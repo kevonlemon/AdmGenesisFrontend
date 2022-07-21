@@ -104,8 +104,8 @@ export default function DashboardHeader({ onOpenSidebar, isCollapse = false, ver
                 fontWeight: 'bold'
               }}
             >
-              {/* empresa */}
-              Empresa
+              { empresa }
+              
             </Typography> : ""
           }
           <AccountPopover />
