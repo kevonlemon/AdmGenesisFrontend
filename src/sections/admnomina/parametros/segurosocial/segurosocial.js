@@ -280,6 +280,7 @@ export default function Homesegurosocual() {
         //     navigate(`${PATH_OPSISTEMA.parametros.nuevosegurosocial}`);
 
         // }
+    }
 
         const Volver = () => {
             navigate(`${PATH_OPSISTEMA.parametros.nuevosegurosocial}`);
@@ -415,5 +416,5 @@ export default function Homesegurosocual() {
                 </Fade>
             </>
         );
-    }
+    
 }
