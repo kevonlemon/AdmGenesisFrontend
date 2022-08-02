@@ -46,11 +46,11 @@ export const _ecommerceLatestProducts = [...Array(5)].map((_, index) => ({
 export const _ecommerceNewProducts = [...Array(5)].map((_, index) => ({
   id: _mock.id(index),
   name: [
-    'Nike Air Max 97',
-    'Nike Zoom Gravity',
-    'Nike DBreak-Type',
-    'Kyrie Flytrap 3 EP Basketball Shoe',
-    'Nike Air Max Fusion Men',
+    'Marketing Digital',
+    'Electrodomesticos',
+    'Consumo Masivo',
+    'Sistema Para Farmacias',
+    'Facturacion Electronica',
   ][index],
   image: _mock.image.product(index),
 }));

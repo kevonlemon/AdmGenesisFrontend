@@ -20,7 +20,7 @@ export default function HeaderBreadcrumbs({ links, action, heading, moreLink = '
         <Box sx={{ mb: 1, ...sx }}>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Grid container >
-                    <Grid item md={6} sm={6} xs={12}>
+                    <Grid item md={6}  xs={12}>
                         <Box sx={{ flexGrow: 1 }}>
                             <Typography variant="h4" gutterBottom>
                                 {heading}
@@ -28,7 +28,7 @@ export default function HeaderBreadcrumbs({ links, action, heading, moreLink = '
                             <Breadcrumbs links={links} {...other} />
                         </Box>
                     </Grid>
-                    <Grid container item md={6} sm={6} xs={12} justifyContent="flex-end" spacing={1}>
+                    <Grid container item md={6}  xs={12} justifyContent="flex-end" spacing={1}>
                         <Grid item md={3} sm={4} xs={12}>
                             {action && <Box sx={{ flexShrink: 0 }}>{action}</Box>}
                         </Grid>
