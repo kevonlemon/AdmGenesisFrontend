@@ -51,3 +51,15 @@ export const styleInactive = {
     border: "0px solid #bd2323",
     backgroundColor: "#e7b9b9"
 }
+export const stylemodal = {
+    borderRadius: '1rem',
+    position: 'absolute',
+    alignItems: 'center',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: { xs: '90%', sm: '60%', md: '35%', lg: '35%' },
+    height: 'auto',
+    bgcolor: 'background.paper',
+    boxShadow: 24,
+  };

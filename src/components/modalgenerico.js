@@ -10,7 +10,7 @@ import {
 import Box from '@mui/material/Box';
 import { DataGrid, esES } from '@mui/x-data-grid';
 import PropTypes from 'prop-types';
-import { styleActive, styleInactive } from '../utils/csssistema/estilos';
+import { styleActive, styleInactive, estilosdatagrid, estilosdetabla } from '../utils/csssistema/estilos';
 
 const stylemodal = {
     borderRadius: '1rem',
@@ -118,28 +118,7 @@ export default function ModalGenerico(props) {
                         </Grid>
                     </Box>
                     <Box
-                        sx={{
-                            '& .columnclass': {
-                                // fontSize: '1.1rem',
-                                width: '100%',
-                                // fontFamily: 'Franklin Gothic '
-                            },
-                            '& .MuiDataGrid-columnHeaders': {
-                                // backgroundColor: '#EFEFEF',
-                                borderRadius: '0.5rem',
-                            },
-                            '& .super-app-theme--header': {
-                                // backgroundColor: 'primary.light',
-                            },
-                            '& .hot': {
-                                backgroundColor: '#ff943975',
-                                color: '#1a3e72',
-                            },
-                            '& .cold': {
-                                backgroundColor: '#b9d5ff91',
-                                color: '#1a3e72',
-                            },
-                        }}
+                        sx={estilosdetabla}
                     >
                         <div
                             style={{
@@ -151,7 +130,7 @@ export default function ModalGenerico(props) {
                             <DataGrid
                                 localeText={esES.components.MuiDataGrid.defaultProps.localeText}
                                 density="compact"
-
+                                sx={estilosdatagrid}
                                 onRowDoubleClick={e => onTrigger(e)}
                                 columns={columns}
                                 rows={rowsFilter}

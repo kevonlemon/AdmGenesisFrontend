@@ -60,6 +60,7 @@ export const ICON = {
 // APIS HTTP
 export const URLAPILOCAL = process.env.REACT_APP_LOCALNETAPI; // URL API LOCAL
 export const URLAPIGENERAL = process.env.REACT_APP_GENERALNETAPI; // URL API GENERAL
+export const URLRUC = process.env.REACT_APP_RUCRAPI // OBTIENE EL RUC POR PERSONA
 // SEGURIDAD
 export const CORS = { headers: { 'Access-Control-Allow-Origin': '*' } }; // cors
 // SESION

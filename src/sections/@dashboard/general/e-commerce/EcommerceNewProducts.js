@@ -74,13 +74,13 @@ function CarouselItem({ item }) {
         }}
       >
         <Typography variant="overline" sx={{ opacity: 0.48 }}>
-          New
+          Nuevo
         </Typography>
         <Typography noWrap variant="h5" sx={{ mt: 1, mb: 3 }}>
           {name}
         </Typography>
-        <Button to="#" variant="contained" component={RouterLink}>
-          Buy Now
+        <Button variant="contained" href="https://birobid.com/wp/productos/" target="_blank" >
+          Mas Informacion
         </Button>
       </CardContent>
       <OverlayStyle />

@@ -9,7 +9,14 @@ import { fullAddress, country } from './address';
 import { firstName, lastName, fullName } from './name';
 import { title, sentence, description } from './text';
 import { price, rating, age, percent } from './number';
+// imagenes de birobid
+import img1 from '../assets/images/carusell/p1.jpeg'
+import img2 from '../assets/images/carusell/p2.jpeg'
+import img3 from '../assets/images/carusell/p3.jpeg'
+import img4 from '../assets/images/carusell/p4.jpeg'
+import img5 from '../assets/images/carusell/p5.jpeg'
 
+const listaimg = [img1, img2, img3, img4, img5]
 // ----------------------------------------------------------------------
 
 const _mock = {
@@ -43,7 +50,8 @@ const _mock = {
   image: {
     cover: (index) => `https://minimal-assets-api.vercel.app/assets/images/covers/cover_${index + 1}.jpg`,
     feed: (index) => `https://minimal-assets-api.vercel.app/assets/images/feeds/feed_${index + 1}.jpg`,
-    product: (index) => `https://minimal-assets-api.vercel.app/assets/images/products/product_${index + 1}.jpg`,
+    // product: (index) => `https://minimal-assets-api.vercel.app/assets/images/products/product_${index + 1}.jpg`,
+    product: (index) => listaimg[index],// `../assets/imagenes/carusell/p6.png`,
     avatar: (index) => `https://minimal-assets-api.vercel.app/assets/images/avatars/avatar_${index + 1}.jpg`,
   },
 };
