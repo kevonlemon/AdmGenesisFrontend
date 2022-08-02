@@ -25,7 +25,7 @@ export default function LoginForm() {
   // });
   const [loading, setLoading] = useState(false);
   const [token, setToken] = useState("");
-  const [sucursal, setSucursal] = useState(1);
+  const [sucursal, setSucursal] = useState(2);
   const [url, setUrl] = useState(1);
   const [listarsucursal, setListarSucursal] = useState([]);
   const [open, setOpen] = useState(false);

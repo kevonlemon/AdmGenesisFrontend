@@ -30,6 +30,7 @@ const EditarPersona = Loadable(lazy(() => import('../../../sections/admnomina/pa
 const Empleado = Loadable(lazy(() => import('../../../sections/admnomina/parametros/empleado/empleado')));
 const FormularioEmpleado = Loadable(lazy(() => import('../../../sections/admnomina/parametros/empleado/formulario/formularioempleado')));
 // const EditarEmpleado = Loadable(lazy(() => import('../../../sections/admnomina/parametros/persona/editarregistropersona/editarregistropersona')));
+const Segurosocial = Loadable(lazy(() => import('../../../sections/admnomina/parametros/segurosocial/segurosocial')));
 
 
 
@@ -129,4 +130,10 @@ export const PARAMETROS = [
     //     url: '/editarempleado',
     //     element: <EditarEmpleado />
     // },
+    
+    {
+        url: '/segurosocial',
+        element: <Segurosocial />
+    },
+    
 ]

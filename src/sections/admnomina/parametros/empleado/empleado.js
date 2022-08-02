@@ -14,7 +14,7 @@ import HeaderBreadcrumbs from '../../../../components/HeaderBreadcrumbs';
 import CircularProgreso from '../../../../components/Cargando';
 import Page from '../../../../components/Page';
 import { PATH_AUTH, PATH_PAGE } from '../../../../routes/paths'
-import { URLAPIGENERAL, URLAPILOCAL } from "../../../../config";
+import { URLAPIGENERAL } from "../../../../config";
 import { styleActive, styleInactive, estilosdetabla, estilosdatagrid } from "../../../../utils/csssistema/estilos";
 import { CustomNoRowsOverlay } from "../../../../utils/csssistema/iconsdatagrid";
 import { formaterarFecha } from '../../../../utils/sistema/funciones';
@@ -117,7 +117,7 @@ export default function Empleado() {
     const texto = String(e.target.value).toLocaleUpperCase();
     const resultado = resultadobusqueda.filter(
       (b) =>
-        
+
         String(b.codigo_Empleado).toLocaleUpperCase().includes(texto) ||
         String(b.nombres).toLocaleUpperCase().includes(texto) ||
         String(b.cedula).toLocaleUpperCase().includes(texto)
@@ -132,7 +132,7 @@ export default function Empleado() {
   React.useEffect(() => {
     async function getDatos() {
       try {
-        const { data } = await axios(`${URLAPILOCAL}/empleados/listar`, config);
+        const { data } = await axios(`${URLAPIGENERAL}/empleados/listar`, config);
         setDatosFilas(data);
         setResultadoBusqueda(data);
       } catch (error) {
@@ -200,9 +200,10 @@ export default function Empleado() {
                 <Grid item container spacing={1} md={9} sm={6} xs={12} justifyContent="flex-end">
                   <Grid item md={1.5} sm={3} xs={6}>
                     <Button
+                      disabled
                       fullWidth
                       variant="text"
-                      // href={`${URLAPILOCAL}/contadores/generarexcel`}
+                      // href={`${URLAPIGENERAL}/contadores/generarexcel`}
                       // target="_blank"
                       startIcon={<ViewComfyRoundedIcon />}
                     >
@@ -211,9 +212,10 @@ export default function Empleado() {
                   </Grid>
                   <Grid item md={1.5} sm={3} xs={6}>
                     <Button
+                      disabled
                       fullWidth
                       variant="text"
-                      // href={`${URLAPILOCAL}/contadores/generarpdf`}
+                      // href={`${URLAPIGENERAL}/contadores/generarpdf`}
                       // target="_blank"
                       startIcon={<PictureAsPdfRoundedIcon />}
                     >
@@ -238,7 +240,7 @@ export default function Empleado() {
                   density="compact"
                   rowHeight={28}
                   localeText={esES.components.MuiDataGrid.defaultProps.localeText}
-                  onRowDoubleClick={(e) => Editar(e)}
+                  // onRowDoubleClick={(e) => Editar(e)}
                   sx={estilosdatagrid}
                   rows={datosfilas}
                   columns={columns}

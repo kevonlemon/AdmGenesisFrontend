@@ -81,7 +81,7 @@ function SucursalDashboard(props) {
                                 >
                                     <Typography gutterBottom variant="h4">
                                         Gestiona tu personal de manera eficiente con
-                                        <br /> ADM GENESIS
+                                        <br /> GENESIS
                                     </Typography>
 
                                     <Typography variant="body2" sx={{ pb: { xs: 3, xl: 5 }, maxWidth: 480, mx: 'auto' }}>

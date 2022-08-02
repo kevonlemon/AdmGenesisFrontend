@@ -131,7 +131,7 @@ export default function Login() {
             </Stack>
 
             <Alert severity="info" sx={{ mb: 3 }}>
-              <strong> ADM GENESIS </strong> ( un ERP Comercial ) es propiedad Intelectual de
+              <strong> GENESIS </strong> ( un ERP Comercial ) es propiedad Intelectual de
               <strong> BiroBID S.A. </strong> Cualquier copia parcial o total es penado por las leyes que rigen los derechos Intelectuales
             </Alert>
 
