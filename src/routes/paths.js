@@ -106,6 +106,9 @@ export const PATH_OPSISTEMA = {
   parametros:{
     permisos: path(ROOTS_SISTEMA, '/parametro/permiso'),
     usuario: path(ROOTS_SISTEMA, '/ajusteprecio'),
+    segurosocial: path(ROOTS_SISTEMA, '/segurosocial'),
+    nuevosegurosocial: path(ROOTS_SISTEMA, '/nuevosegurosocial'),
+    editarsegurosocial: path(ROOTS_SISTEMA, '/editarsegurosocial')
   }
 }
 

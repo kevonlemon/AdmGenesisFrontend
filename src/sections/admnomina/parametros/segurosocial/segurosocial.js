@@ -12,8 +12,13 @@ import clsx from 'clsx';
 import { useSnackbar } from 'notistack';
 import { estilosdetabla, estilosdatagrid, styleActive, styleInactive } from '../../../../utils/csssistema/estilos';
 import { CustomNoRowsOverlay } from '../../../../utils/csssistema/iconsdatagrid';
+
+import CircularProgreso from '../../../../components/Cargando';
+import HeaderBreadcrumbs from '../../../../components/cabecerainforme';
+
 // import CircularProgreso from '../../../../sistema/componentes/circuloprogreso';
-import HeaderBreadcrumbs from '../../../../components/HeaderBreadcrumbs';
+
+
 import { PATH_DASHBOARD, PATH_OPSISTEMA } from '../../../../routes/paths';
 import { URLAPIGENERAL } from '../../../../config';
 import Page from '../../../../components/Page';
@@ -47,7 +52,11 @@ export default function Homesegurosocual() {
             field: 'nombre',
             headerName: 'Nombre',
             width: 200,
+
+
+
             cellClassName: () => clsx('yellowCell')
+
         },
         {
             headerAlign: 'center',
@@ -71,13 +80,14 @@ export default function Homesegurosocual() {
             align: 'center',
             renderCell: (param) =>
                 param.row.aplicaRol === true ? (
-                    <Button variant="containded" style={styleActive}>
-                        Activo
-                    </Button>
+
+                    <Typography variant="overline" display="block" gutterBottom>
+                        SI
+                    </Typography>
                 ) : (
-                    <Button variant="containded" style={styleInactive}>
-                        Inactivo
-                    </Button>
+                    <Typography variant="overline" display="block" gutterBottom>
+                        NO
+                    </Typography>
                 ),
         },
         {
@@ -88,13 +98,13 @@ export default function Homesegurosocual() {
             align: 'center',
             renderCell: (param) =>
                 param.row.seguroSocial === true ? (
-                    <Button variant="containded" style={styleActive}>
-                        Activo
-                    </Button>
+                    <Typography variant="overline" display="block" gutterBottom>
+                        SI
+                    </Typography>
                 ) : (
-                    <Button variant="containded" style={styleInactive}>
-                        Inactivo
-                    </Button>
+                    <Typography variant="overline" display="block" gutterBottom>
+                        NO
+                    </Typography>
                 ),
         },
 
@@ -121,16 +131,17 @@ export default function Homesegurosocual() {
             field: 'sistema',
             headerName: 'Sistema',
             width: 90,
+            align: 'center',
             renderCell: (param) =>
                 param.row.sistema === true ? (
-                    <Button variant="containded" style={styleActive}>
-                        Activo
-                    </Button>
+                    <Typography variant="overline" display="block" gutterBottom>
+                        SI
+                    </Typography>
                 ) : (
-                    <Button variant="containded" style={styleInactive}>
-                        Inactivo
-                    </Button>
-                ),
+                    <Typography variant="overline" display="block" gutterBottom>
+                        NO
+                    </Typography>
+                )
 
         },
         {
@@ -179,23 +190,30 @@ export default function Homesegurosocual() {
             field: 'aplica',
             headerName: 'Aplica',
             width: 90,
+            align: 'center',
             renderCell: (param) =>
                 param.row.aplica === true ? (
-                    <Button variant="containded" style={styleActive}>
-                        Activo
-                    </Button>
+                    <Typography variant="overline" display="block" gutterBottom>
+                        SI
+                    </Typography>
                 ) : (
-                    <Button variant="containded" style={styleInactive}>
-                        Inactivo
-                    </Button>
-                ),
+                    <Typography variant="overline" display="block" gutterBottom>
+                        NO
+                    </Typography>
+                )
         },
     ];
+
+
+    const Edit = (e) => {
+        navigate(`/sistema/parametros/editarsegurosocial`, { state: { id: e.id } });
+    };
 
     // // bloque de evento Edit()
     // const Edit = (e) => {
     //     navigate(`${PATH_DASHBOARD.editarnivel1}/${e.id}`);
     // };
+
 
 
     // eslint-disable-next-line camelcase
@@ -252,141 +270,150 @@ export default function Homesegurosocual() {
         setItems(resultado);
     };
 
-    // const Volver = () => {
-    //     navigate(`${PATH_OPSISTEMA.parametros.nuevosegurosocial}`);
 
-    // }
 
-    const Volver = () => {
-        navigate(`${PATH_OPSISTEMA.parametros.nuevosegurosocial}`);
-    }
 
-    // ------------------------Mostrar a pantalla---------------------------->
-    return (
-        <>
-            {/* <CircularProgreso
-                open={mostrarprogreso}
-                handleClose1={() => {
-                    setMostrarProgreso(false);
-                }}
-            /> */}
-            <Fade in style={{ transformOrigin: '0 0 0' }} timeout={1000}>
-                <Page title="Seguro Social">
-                    <Box sx={{ ml: 3, mr: 3, p: 1 }}>
-                        <Box>
-                            <HeaderBreadcrumbs
-                                heading="Seguro Social"
-                                links={[
-                                    { name: 'Inicio' },
-                                    { name: 'Seguro Social' },
-                                    { name: 'Lista' },
-                                ]}
-                                action={
-                                    <Button
-                                        fullWidth
-                                        variant="text"
-                                        disabled
-                                        // contained
-                                        // component={RouterLink}
-                                        // to={PATH_OPSISTEMA.parametros.nuevosegurosocial}
-                                        onClick={Volver}
-                                        startIcon={<AddCircleRoundedIcon />}
-                                    >
-                                        Nuevo
-                                    </Button>
-                                }
-                            />
-                        </Box>
+    const DIRECNUEVO = () => {
+        navigate(`/sistema/parametros/nuevosegurosocial`);
 
-                        <Card sx={{ height: 'auto', width: '100%' }}>
-                            <Box sx={{ ml: 2, mr: 3, pt: 2 }}>
+        // const Volver = () => {
+        //     navigate(`${PATH_OPSISTEMA.parametros.nuevosegurosocial}`);
 
-                                <Grid container>
-                                    <Grid item container>
-                                        <Grid item xs={12} sm={4} md={4}>
-                                            <Grid>
-                                                <TextField
-                                                    fullWidth
-                                                    label="Buscar"
-                                                    value={buscar}
-                                                    onChange={Buscar}
-                                                    id="outlined-size-small"
-                                                    size="small"
-                                                    InputProps={{
-                                                        endAdornment: (
-                                                            <InputAdornment position="start">
-                                                                <IconButton aria-label="SearchIcon">
-                                                                    <SearchIcon />
-                                                                </IconButton>
-                                                            </InputAdornment>
-                                                        ),
-                                                    }}
-                                                />
-                                            </Grid>
-                                        </Grid>
-                                        <Grid item xs={12} sm={8} md={8}>
-                                            <Grid container justifyContent="flex-end" direction="row">
-                                                <Grid item md={2} sm={2} xs={12}>
-                                                    <Button
-                                                        disabled
+        // }
+
+        const Volver = () => {
+            navigate(`${PATH_OPSISTEMA.parametros.nuevosegurosocial}`);
+
+        }
+
+        // ------------------------Mostrar a pantalla---------------------------->
+        return (
+            <>
+
+                {/* <CircularProgreso */}
+
+                <Fade in style={{ transformOrigin: '0 0 0' }} timeout={1000}>
+                    <Page title="Seguro Social">
+                        <Box sx={{ ml: 3, mr: 3, p: 1 }}>
+                            <Box>
+                                <HeaderBreadcrumbs
+                                    heading="Seguro Social"
+                                    links={[
+                                        { name: 'Inicio' },
+                                        { name: 'Seguro Social' },
+                                        { name: 'Lista' },
+                                    ]}
+                                    action={
+                                        <Button
+                                            fullWidth
+
+                                            variant="contained"
+                                            // contained
+                                            size='small'
+                                            onClick={DIRECNUEVO}
+
+
+
+                                            startIcon={<AddCircleRoundedIcon />}
+                                        >
+                                            Nuevo
+                                        </Button>
+                                    }
+                                />
+                            </Box>
+
+                            <Card sx={{ height: 'auto', width: '100%' }}>
+                                <Box sx={{ ml: 2, mr: 3, pt: 2 }}>
+
+                                    <Grid container>
+                                        <Grid item container>
+                                            <Grid item xs={12} sm={4} md={4}>
+                                                <Grid>
+                                                    <TextField
                                                         fullWidth
-                                                        variant="text"
-                                                        startIcon={<ViewComfyRoundedIcon />}
-                                                        href={`${URLAPIGENERAL}/nivel1/generarexcel`}
-                                                    >
-                                                        Excel
-                                                    </Button>
+                                                        label="Buscar"
+                                                        value={buscar}
+                                                        onChange={Buscar}
+                                                        id="outlined-size-small"
+                                                        size="small"
+                                                        InputProps={{
+                                                            endAdornment: (
+                                                                <InputAdornment position="start">
+                                                                    <IconButton aria-label="SearchIcon">
+                                                                        <SearchIcon />
+                                                                    </IconButton>
+                                                                </InputAdornment>
+                                                            ),
+                                                        }}
+                                                    />
                                                 </Grid>
-                                                <Grid item md={2} sm={2} xs={12}>
-                                                    <Button
-                                                        disabled
-                                                        fullWidth
-                                                        variant="text"
-                                                        startIcon={<PictureAsPdfRoundedIcon />}
-                                                        href={`${URLAPIGENERAL}/nivel1/generarpdf`}
-                                                        target="_blank"
-                                                    >
-                                                        PDF
-                                                    </Button>
+                                            </Grid>
+                                            <Grid item xs={12} sm={8} md={8}>
+                                                <Grid container justifyContent="flex-end" direction="row">
+                                                    <Grid item md={2} sm={2} xs={12}>
+                                                        <Button
+                                                            fullWidth
+                                                            disabled={rowss.length === 0}
+                                                            variant="text"
+                                                            startIcon={<ViewComfyRoundedIcon />}
+                                                            href={`${URLAPIGENERAL}/segurosocial/generarexcel`}
+
+                                                        >
+                                                            Excel
+                                                        </Button>
+                                                    </Grid>
+                                                    <Grid item md={2} sm={2} xs={12}>
+                                                        <Button
+                                                            fullWidth
+                                                            disabled={rowss.length === 0}
+                                                            variant="text"
+                                                            startIcon={<PictureAsPdfRoundedIcon />}
+                                                            href={`${URLAPIGENERAL}/segurosocial/generarpdf`}
+
+
+                                                            target="_blank"
+                                                        >
+                                                            PDF
+                                                        </Button>
+                                                    </Grid>
                                                 </Grid>
                                             </Grid>
                                         </Grid>
                                     </Grid>
-                                </Grid>
-                            </Box>
-                            <Box
-                                sx={estilosdetabla}
-                            >
-                                <div
-                                    style={{
-                                        padding: '1rem',
-                                        height: '55vh',
-                                        width: '100%',
-                                    }}
+                                </Box>
+                                <Box
+                                    sx={estilosdetabla}
                                 >
-                                    <DataGrid
-                                        sx={estilosdatagrid}
-                                        density="compact"
-                                        //   onRowDoubleClick={(e) => Edit(e)}
-                                        columns={columns}
-                                        rows={rowss}
-                                        components={{
-                                            NoRowsOverlay: CustomNoRowsOverlay,
+                                    <div
+                                        style={{
+                                            padding: '1rem',
+                                            height: '55vh',
+                                            width: '100%',
                                         }}
-                                        getRowId={(rows) => rows.codigo}
-                                        rowHeight={28}
-
-                                        disableSelectionOnClick
-                                        localeText={esES.components.MuiDataGrid.defaultProps.localeText}
-                                        // hideFooter={rowss.length < 10}
-                                        disableColumnMenu={ocultaFooter}
-                                    />
-                                </div>
-                            </Box>
-                        </Card>
-                    </Box>
-                </Page>
-            </Fade>
-        </>
-    );
+                                    >
+                                        <DataGrid
+                                            sx={estilosdatagrid}
+                                            density="compact"
+                                            onRowDoubleClick={(e) => Edit(e)}
+                                            columns={columns}
+                                            rows={rowss}
+                                            components={{
+                                                NoRowsOverlay: CustomNoRowsOverlay,
+                                            }}
+                                            getRowId={(rows) => rows.codigo}
+                                            rowHeight={28}
+                                            disableSelectionOnClick
+                                            localeText={esES.components.MuiDataGrid.defaultProps.localeText}
+                                            // hideFooter={rowss.length < 10}
+                                            disableColumnMenu={ocultaFooter}
+                                        />
+                                    </div>
+                                </Box>
+                            </Card>
+                        </Box>
+                    </Page>
+                </Fade>
+            </>
+        );
+    }
 }

@@ -35,6 +35,12 @@ const Segurosocial = Loadable(lazy(() => import('../../../sections/admnomina/par
 
 
 
+// ***************** DESARROLLADOR => Javier Caicedo *********************
+// ========================== PARAMETROS ===================================
+
+const NuevoSegurosocial = Loadable(lazy(() => import('../../../sections/admnomina/parametros/segurosocial/nuevosegurosicual/nuevosegurosocial')));
+const EditarSegurosocial = Loadable(lazy(() => import('../../../sections/admnomina/parametros/segurosocial/editarsegurosocial/editarsegurosocial')));
+
 export const PARAMETROS = [
     {
         url: '/contador',
@@ -134,6 +140,14 @@ export const PARAMETROS = [
     {
         url: '/segurosocial',
         element: <Segurosocial />
+    },
+    {
+        url: '/nuevosegurosocial',
+        element: <NuevoSegurosocial />
+    },
+    {
+        url: '/editarsegurosocial',
+        element: <EditarSegurosocial />
     },
     
 ]
