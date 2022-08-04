@@ -57,17 +57,17 @@ function CajaGenerica(props) {
             'Authorization': `Bearer ${token}`
         }
     }
-    
+
     React.useMemo(() => {
         const obtener = async () => {
             try {
-                let { data } = await axios(`${url}`,config, setMostrarProgreso(true))
+                let { data } = await axios(`${url}`, config, setMostrarProgreso(true))
                 if (`${tipobusqueda}`.toLocaleLowerCase() === 'item') {
-                    data = data.map(p=> ({ codigo: p.item, nombre:p.nombre, estado: p.estado }))
+                    data = data.map(p => ({ codigo: p.item, nombre: p.nombre, estado: p.estado }))
                 }
                 setListar(data);
                 setFormulario(estadoinicial);
-            } catch(error) {
+            } catch (error) {
                 setFormulario(estadoinicial);
                 if (error.response.status === 401) {
                     navegacion(`${PATH_AUTH.login}`);
@@ -82,7 +82,7 @@ function CajaGenerica(props) {
         }
         obtener();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [url])
+    }, [url, estadoinicial])
     return (
         <>
             {/* <CircularProgreso open={mostrarprogreso} handleClose1={() => { setMostrarProgreso(false) }} /> */}
@@ -98,7 +98,7 @@ function CajaGenerica(props) {
             <Grid container item xs={12} spacing={1}>
                 <Grid item md={4} sm={4} xs={12}>
                     <TextField
-                        disabled={desactivar  || mostrarprogreso}
+                        disabled={desactivar || mostrarprogreso}
                         label={nombremodal}
                         fullWidth
                         size="small"
@@ -115,7 +115,7 @@ function CajaGenerica(props) {
                                 <InputAdornment position="end">
                                     {
                                         !descativarbusqueda ?
-                                            <IconButton  size="small" onClick={() => { setOpenModal(true) }}>
+                                            <IconButton size="small" onClick={() => { setOpenModal(true) }}>
                                                 <SearchRounded />
                                             </IconButton> : ''
                                     }
@@ -126,7 +126,7 @@ function CajaGenerica(props) {
                 </Grid>
                 <Grid item md={8} sm={8} xs={12}>
                     <TextField
-                        disabled={desactivar  || mostrarprogreso}
+                        disabled={desactivar || mostrarprogreso}
                         label="Nombre"
                         fullWidth size="small"
                         value={formulario.nombre}
