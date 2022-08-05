@@ -146,8 +146,120 @@ export default function FormularioEmpleado() {
         },
 
         { field: 'idCredencial', headerName: 'Credencial', width: 100 },
-        { field: 'tipo', headerName: 'Tipo', width: 100 },
+        {
+            field: 'tipo', headerName: 'Tipo', width: 100, valueFormatter: (params) => {
+                if (params.value.trim() === 'P') {
+                    return 'PRESENCIAL';
+                }
+                return 'LINEA';
+            },
+        },
         { field: 'urlArchivo', headerName: 'Archivo', width: 100 },
+    ];
+    // EDITAR CERTIFICADO
+    const columnsset = [
+        { field: 'empleado', headerName: 'Empleado', width: 120 },
+        {
+            field: 'nombre', headerName: 'Nombre', width: 200, editable: true,
+            preProcessEditCellProps: (params) => {
+                const hasError = `${params.props.value}`.trim().length !== 0;
+                if (!hasError) {
+                    mensajeSistema('Complete el campo', 'error');
+                }
+                return { ...params.props, error: !hasError };
+            },
+        },
+        {
+            field: 'empresaEmisora', headerName: 'Empresa', width: 100, editable: true,
+            preProcessEditCellProps: (params) => {
+                const hasError = `${params.props.value}`.trim().length !== 0;
+                if (!hasError) {
+                    mensajeSistema('Complete el campo', 'error');
+                }
+                return { ...params.props, error: !hasError };
+            },
+        },
+        {
+            field: 'caduca', headerName: 'Caduca', width: 100, type: 'boolean', editable: true,
+            renderCell: (param) =>
+                param.row.caduca === true ? (
+                    <Button variant="containded" style={styleActive}>
+                        SI
+                    </Button>
+                ) : (
+                    <Button variant="containded" style={styleInactive}>
+                        NO
+                    </Button>
+                ),
+        },
+        {
+            field: 'mesExpedicion', headerName: 'Mes', width: 100,
+            type: 'number', editable: true,
+            valueFormatter: (params) => {
+                try {
+                    const mes = meses.filter(f => f.id === params.value);
+                    return mes[0].nombre;
+                } catch (error) {
+                    return 'Enero';
+                }
+
+            },
+            preProcessEditCellProps: (params) => {
+                const hasError = params.props.value < 13 && params.props.value > 0;
+                if (!hasError) {
+                    mensajeSistema('Escriba del 1 al 12', 'error');
+                }
+                return { ...params.props, error: !hasError };
+            },
+        },
+        { field: 'anioExpedicion', headerName: 'Año', width: 100, type: 'number', editable: true },
+        {
+            field: 'fechaCaducidad', headerName: 'Fecha', width: 100, type: 'date', editable: true,
+            valueFormatter: (params) => {
+                if (params.value == null) {
+                    return '--/--/----';
+                }
+                const valueFormatted = formaterarFecha(params.value, '-', '/');
+                return valueFormatted;
+            },
+        },
+
+        {
+            field: 'idCredencial', headerName: 'Credencial', width: 100, editable: true,
+            preProcessEditCellProps: (params) => {
+                const hasError = `${params.props.value}`.trim().length !== 0;
+                if (!hasError) {
+                    mensajeSistema('Complete el campo', 'error');
+                }
+                return { ...params.props, error: !hasError };
+            },
+        },
+        {
+            field: 'tipo', headerName: 'Tipo', width: 150, editable: true,
+            valueFormatter: (params) => {
+                if (params.value.trim() === 'P') {
+                    return 'PRESENCIAL';
+                }
+                return 'LINEA';
+            },
+            preProcessEditCellProps: (params) => {
+                const hasError = `${params.props.value}`.trim().toUpperCase() === 'P'
+                    || `${params.props.value}`.trim().toUpperCase() === 'L';
+                if (!hasError) {
+                    mensajeSistema('Solo se acepte P Y L', 'error');
+                }
+                return { ...params.props, error: !hasError };
+            },
+        },
+        {
+            field: 'urlArchivo', headerName: 'Archivo', width: 100, editable: true, preProcessEditCellProps: (params) => {
+                const hasError = `${params.props.value}`.trim().length !== 0;
+                if (!hasError) {
+                    mensajeSistema('Complete el campo', 'error');
+                }
+                return { ...params.props, error: !hasError };
+            },
+        },
     ];
     // COLUMNS
     const columns1 = [
@@ -168,13 +280,50 @@ export default function FormularioEmpleado() {
             ),
         },
     ];
+    // COLUMNA CARGA EDITAR
+    const columnscargaset = [
+        { field: 'empleado', headerName: 'Empleado', width: 120 },
+        {
+            field: 'parentezco', headerName: 'Parentezco', width: 120, editable: true,
+            preProcessEditCellProps: (params) => {
+                const hasError = `${params.props.value}`.trim().length !== 0;
+                if (!hasError) {
+                    mensajeSistema('Complete el campo', 'error');
+                }
+                return { ...params.props, error: !hasError };
+            },
+        },
+        {
+            field: 'nombres', headerName: 'Nombre', width: 300, editable: true,
+            preProcessEditCellProps: (params) => {
+                const hasError = `${params.props.value}`.trim().length !== 0;
+                if (!hasError) {
+                    mensajeSistema('Complete el campo', 'error');
+                }
+                return { ...params.props, error: !hasError };
+            },
+        },
+        {
+            field: 'cedula', headerName: 'Cedula', width: 100, editable: true,
+            preProcessEditCellProps: (params) => {
+                const hasError = esCedula(params.props.value);
+                if (!hasError) {
+                    mensajeSistema('Digete una cedula valida', 'error');
+                }
+                return { ...params.props, error: !hasError };
+            },
+        },
+        { field: 'direccion', headerName: 'Direccion', width: 300, editable: true },
+    ];
     // TABS
     const [tabs, setTabs] = React.useState(0);
 
     const handleChangeTabs = (event, newValue) => {
         setTabs(newValue);
     };
-    // MANEJADOR DE ERRORES
+
+    const { state } = useLocation();
+    const { modo, id } = state;
     const [tipodoc, setTipoDoc] = React.useState('05');
     const [listatipodoc, setListaTipoDoc] = React.useState([]);
     const [error, setError] = React.useState(false);
@@ -183,12 +332,15 @@ export default function FormularioEmpleado() {
     const [errorcorreo, setErrorcorreo] = React.useState(false);
     const [mostrarprogreso, setMostrarProgreso] = React.useState(false);
     const [tablacertificado, setTablaCertificado] = React.useState([]);
+    const [tablacertificadoedit, setTablaCertificadoEdit] = React.useState([]);
     const [tablacarga, setTablaCarga] = React.useState([]);
-    
-    // FORMULARIO DE ENVIO
+    const [tablacargaedit, setTablaCargaEdit] = React.useState([]);
 
+    // FORMULARIO DE ENVIO
+    console.log(modo, id)
     // FORMULARIOS DE ENVIO DE DATOS
     const [formularioempleado, setFormularioEmpleado] = React.useState({
+        codigo: '',
         codigo_Empleado: '',
         nombres: '',
         direccion: '',
@@ -225,7 +377,7 @@ export default function FormularioEmpleado() {
         anioExpedicion: new Date().getFullYear(),
         fechaCaducidad: new Date(),
         idCredencial: '',
-        tipo: 'PRE',
+        tipo: 'P',
         urlArchivo: ''
     });
     const [formulariocarga, setFormularioCarga] = React.useState({
@@ -332,7 +484,6 @@ export default function FormularioEmpleado() {
             mensajeSistema('Error al buscar indentificacion', 'error');
         }
     }
-
     const agregarCertificado = () => {
         // validaciones
         if (formulariocertificado.nombre.trim().length === 0) {
@@ -359,12 +510,12 @@ export default function FormularioEmpleado() {
         //     mensajeSistema('Ingrese un nombre', 'error')
         //     return
         // }
-        const existe = tablacertificado.filter(f => 
+        const existe = tablacertificado.filter(f =>
             f.idCredencial === formulariocertificado.idCredencial &&
             f.empresaEmisora === formulariocertificado.empresaEmisora &&
             f.urlArchivo === formulariocertificado.urlArchivo
         )
-        if(existe.length > 0){
+        if (existe.length > 0) {
             mensajeSistema('No puede agregar el mismo certificado', 'error');
             return
         }
@@ -409,7 +560,7 @@ export default function FormularioEmpleado() {
             return
         }
         const existe = tablacarga.filter(f => f.cedula === formulariocarga.cedula.trim());
-        if(existe.length > 0){
+        if (existe.length > 0) {
             mensajeSistema('No puede agregar una persona con el mismo numero de cedula', 'error');
             return
         }
@@ -488,59 +639,127 @@ export default function FormularioEmpleado() {
             if (!validacionEmpleado()) {
                 return
             }
-            tablacertificado.forEach(t => {
-                t.empleado = 0
-            })
-            tablacarga.forEach(t => {
-                t.empleado = 0 
-            })
             setError(false);
-            const maquina = await obtenerMaquina();
-            const enviarjson = {
-                codigo: 0,
-                codigo_Empleado: formularioempleado.codigo_Empleado,
-                nombres: formularioempleado.nombres,
-                direccion: formularioempleado.direccion,
-                telefonos: formularioempleado.telefonos,
-                fecing: formularioempleado.fecing,
-                cedula: formularioempleado.cedula,
-                correo: formularioempleado.correo,
-                fechaNac: formularioempleado.fechaNac,
-                cargo: formularioempleado.cargo,
-                departamento: formularioempleado.departamento,
-                nivelEstudio: formularioempleado.nivelEstudio,
-                sexo: formularioempleado.sexo,
-                sueldoBase: parseFloat(formularioempleado.sueldoBase),
-                afiliadoSeguro: formularioempleado.afiliadoSeguro,
-                beneficioSocial: formularioempleado.beneficioSocial,
-                fondoReserva: formularioempleado.fondoReserva,
-                pagoMensualDecimoTercero: formularioempleado.pagoMensualDecimoTercero,
-                pagoMensualDecimoCuarto: formularioempleado.pagoMensualDecimoCuarto,
-                observacion: formularioempleado.observacion,
-                estado: formularioempleado.estado,
-                fecha_ing: new Date(),
-                maquina,
-                usuario: usuario.codigo,
-                carga: [
-                    ...tablacarga
-                ],
-                certificado: [
-                    ...tablacertificado
-                ]
+            if (modo === 'nuevo') {
+                tablacertificado.forEach(t => {
+                    t.empleado = 0
+                })
+                tablacarga.forEach(t => {
+                    t.empleado = 0
+                })
+
+                const maquina = await obtenerMaquina();
+                const enviarjson = {
+                    codigo: 0,
+                    codigo_Empleado: formularioempleado.codigo_Empleado,
+                    nombres: formularioempleado.nombres,
+                    direccion: formularioempleado.direccion,
+                    telefonos: formularioempleado.telefonos,
+                    fecing: formularioempleado.fecing,
+                    cedula: formularioempleado.cedula,
+                    correo: formularioempleado.correo,
+                    fechaNac: formularioempleado.fechaNac,
+                    cargo: formularioempleado.cargo,
+                    departamento: formularioempleado.departamento,
+                    nivelEstudio: formularioempleado.nivelEstudio,
+                    sexo: formularioempleado.sexo,
+                    sueldoBase: parseFloat(formularioempleado.sueldoBase),
+                    afiliadoSeguro: formularioempleado.afiliadoSeguro,
+                    beneficioSocial: formularioempleado.beneficioSocial,
+                    fondoReserva: formularioempleado.fondoReserva,
+                    pagoMensualDecimoTercero: formularioempleado.pagoMensualDecimoTercero,
+                    pagoMensualDecimoCuarto: formularioempleado.pagoMensualDecimoCuarto,
+                    observacion: formularioempleado.observacion,
+                    estado: formularioempleado.estado,
+                    fecha_ing: new Date(),
+                    maquina,
+                    usuario: usuario.codigo,
+                    carga: [
+                        ...tablacarga
+                    ],
+                    certificado: [
+                        ...tablacertificado
+                    ]
+                }
+                // console.log(enviarjson);
+                const { data } = await axios.post(`${URLAPILOCAL}/empleados`, enviarjson, config,setMostrarProgreso(true));
+                if (data === 200) {
+                    mensajeSistema('Registro guardado correctamente', 'success');
+                    Volver();
+                    // limpiarCampos();
+                    // setTabs(0)
+                    // const inicial = await axios(`${URLAPIGENERAL}/iniciales/buscar?opcion=ADM`, config);
+                    // const codigogenerado = generarCodigo('EM', inicial.data[0].numero, '0000')
+                    // setFormularioEmpleado({
+                    //     ...formularioempleado,
+                    //     codigo_Empleado: codigogenerado
+                    // });
+                }
             }
-            console.log(enviarjson);
-            const { data } = await axios.post(`${URLAPILOCAL}/empleados`,enviarjson,config);
-            if (data === 200) {
-                mensajeSistema('Registro guardado correctamente', 'success');
-                limpiarCampos();
-                setTabs(0)
-                const inicial = await axios(`${URLAPIGENERAL}/iniciales/buscar?opcion=ADM`, config);
-                const codigogenerado = generarCodigo('EM', inicial.data[0].numero, '0000')
-                setFormularioEmpleado({
-                    ...formularioempleado,
-                    codigo_Empleado: codigogenerado
-                });
+            if (modo === 'editar') {
+                tablacertificado.forEach(t => {
+                    t.empleado = 0
+                    t.codigo = 0
+                })
+
+                tablacarga.forEach(t => {
+                    t.empleado = 0
+                    t.codigo = 0
+                })
+
+                const maquina = await obtenerMaquina();
+                const enviarjson = {
+                    codigo: formularioempleado.codigo,
+                    codigo_Empleado: formularioempleado.codigo_Empleado,
+                    nombres: formularioempleado.nombres,
+                    direccion: formularioempleado.direccion,
+                    telefonos: formularioempleado.telefonos,
+                    fecing: formularioempleado.fecing,
+                    cedula: formularioempleado.cedula,
+                    correo: formularioempleado.correo,
+                    fechaNac: formularioempleado.fechaNac,
+                    cargo: formularioempleado.cargo,
+                    departamento: formularioempleado.departamento,
+                    nivelEstudio: formularioempleado.nivelEstudio,
+                    sexo: formularioempleado.sexo,
+                    sueldoBase: parseFloat(formularioempleado.sueldoBase),
+                    afiliadoSeguro: formularioempleado.afiliadoSeguro,
+                    beneficioSocial: formularioempleado.beneficioSocial,
+                    fondoReserva: formularioempleado.fondoReserva,
+                    pagoMensualDecimoTercero: formularioempleado.pagoMensualDecimoTercero,
+                    pagoMensualDecimoCuarto: formularioempleado.pagoMensualDecimoCuarto,
+                    observacion: formularioempleado.observacion,
+                    estado: formularioempleado.estado,
+                    fecha_ing: new Date(),
+                    maquina,
+                    usuario: usuario.codigo,
+                    carga: [
+                        ...tablacarga,
+                        ...tablacargaedit
+                    ],
+                    certificado: [
+                        ...tablacertificado,
+                        ...tablacertificadoedit
+                    ]
+                }
+                // console.log("mira edit", enviarjson)
+                const { data } = await axios.put(`${URLAPILOCAL}/empleados`, enviarjson, config,setMostrarProgreso(true));
+                if (data === 200) {
+                    mensajeSistema('Registro guardado correctamente', 'success');
+                    Volver();
+                    // setTabs(0)
+                    // const inicial = await axios(`${URLAPIGENERAL}/iniciales/buscar?opcion=ADM`, config);
+                    // const codigogenerado = generarCodigo('EM', inicial.data[0].numero, '0000')
+                    // setFormularioEmpleado({
+                    //     ...formularioempleado,
+                    //     codigo_Empleado: codigogenerado
+                    // });
+                }
+                console.log(data);
+                
+
             }
+
         } catch (error) {
             if (error.response.status === 401) {
                 navegacion(`${PATH_AUTH.login}`);
@@ -551,20 +770,293 @@ export default function FormularioEmpleado() {
             } else {
                 mensajeSistema("Problemas al guardar verifique si se encuentra registrado", "error");
             }
+        } finally{
+            setMostrarProgreso(false);
         }
+    }
+    const editarCertificado = (e) => {
+        console.log("miraa", e);
+        if (e.field === 'nombre') {
+            const nuevalista = tablacertificadoedit.map(n => (
+                {
+                    codigo: n.codigo,
+                    empleado: n.empleado,
+                    nombre: e.id === n.codigo ? `${e.value}`.toUpperCase() : n.nombre,
+                    empresaEmisora: n.empresaEmisora,
+                    caduca: n.caduca,
+                    mesExpedicion: n.mesExpedicion,
+                    anioExpedicion: n.anioExpedicion,
+                    fechaCaducidad: n.fechaCaducidad,
+                    idCredencial: n.idCredencial,
+                    tipo: n.tipo,
+                    urlArchivo: n.urlArchivo
+                }
+            ))
+            setTablaCertificadoEdit(nuevalista);
+        }
+        if (e.field === 'empresaEmisora') {
+            const nuevalista = tablacertificadoedit.map(n => (
+                {
+                    codigo: n.codigo,
+                    empleado: n.empleado,
+                    nombre: n.nombre,
+                    empresaEmisora: e.id === n.codigo ? `${e.value}`.toUpperCase() : n.empresaEmisora,
+                    caduca: n.caduca,
+                    mesExpedicion: n.mesExpedicion,
+                    anioExpedicion: n.anioExpedicion,
+                    fechaCaducidad: n.fechaCaducidad,
+                    idCredencial: n.idCredencial,
+                    tipo: n.tipo,
+                    urlArchivo: n.urlArchivo
+                }
+            ))
+            setTablaCertificadoEdit(nuevalista);
+        }
+        if (e.field === 'caduca') {
+            const nuevalista = tablacertificadoedit.map(n => (
+                {
+                    codigo: n.codigo,
+                    empleado: n.empleado,
+                    nombre: n.nombre,
+                    empresaEmisora: n.empresaEmisora,
+                    caduca: e.id === n.codigo ? e.value : n.caduca,
+                    mesExpedicion: n.mesExpedicion,
+                    anioExpedicion: n.anioExpedicion,
+                    fechaCaducidad: n.fechaCaducidad,
+                    idCredencial: n.idCredencial,
+                    tipo: n.tipo,
+                    urlArchivo: n.urlArchivo
+                }
+            ))
+            setTablaCertificadoEdit(nuevalista);
+        }
+        if (e.field === 'mesExpedicion') {
+            const nuevalista = tablacertificadoedit.map(n => (
+                {
+                    codigo: n.codigo,
+                    empleado: n.empleado,
+                    nombre: n.nombre,
+                    empresaEmisora: n.empresaEmisora,
+                    caduca: n.caduca,
+                    mesExpedicion: e.id === n.codigo ? e.value : n.mesExpedicion,
+                    anioExpedicion: n.anioExpedicion,
+                    fechaCaducidad: n.fechaCaducidad,
+                    idCredencial: n.idCredencial,
+                    tipo: n.tipo,
+                    urlArchivo: n.urlArchivo
+                }
+            ))
+            setTablaCertificadoEdit(nuevalista);
+        }
+        if (e.field === 'anioExpedicion') {
+            const nuevalista = tablacertificadoedit.map(n => (
+                {
+                    codigo: n.codigo,
+                    empleado: n.empleado,
+                    nombre: n.nombre,
+                    empresaEmisora: n.empresaEmisora,
+                    caduca: n.caduca,
+                    mesExpedicion: n.mesExpedicion,
+                    anioExpedicion: e.id === n.codigo ? e.value : n.anioExpedicion,
+                    fechaCaducidad: n.fechaCaducidad,
+                    idCredencial: n.idCredencial,
+                    tipo: n.tipo,
+                    urlArchivo: n.urlArchivo
+                }
+            ))
+            setTablaCertificadoEdit(nuevalista);
+        }
+        if (e.field === 'fechaCaducidad') {
+            const nuevalista = tablacertificadoedit.map(n => (
+                {
+                    codigo: n.codigo,
+                    empleado: n.empleado,
+                    nombre: n.nombre,
+                    empresaEmisora: n.empresaEmisora,
+                    caduca: n.caduca,
+                    mesExpedicion: n.mesExpedicion,
+                    anioExpedicion: n.anioExpedicion,
+                    fechaCaducidad: e.id === n.codigo ? new Date(e.value).toISOString() : n.fechaCaducidad,
+                    idCredencial: n.idCredencial,
+                    tipo: n.tipo,
+                    urlArchivo: n.urlArchivo
+                }
+            ))
+            setTablaCertificadoEdit(nuevalista);
+        }
+        if (e.field === 'idCredencial') {
+            const nuevalista = tablacertificadoedit.map(n => (
+                {
+                    codigo: n.codigo,
+                    empleado: n.empleado,
+                    nombre: n.nombre,
+                    empresaEmisora: n.empresaEmisora,
+                    caduca: n.caduca,
+                    mesExpedicion: n.mesExpedicion,
+                    anioExpedicion: n.anioExpedicion,
+                    fechaCaducidad: n.fechaCaducidad,
+                    idCredencial: e.id === n.codigo ? e.value : n.idCredencial,
+                    tipo: n.tipo,
+                    urlArchivo: n.urlArchivo
+                }
+            ))
+            setTablaCertificadoEdit(nuevalista);
+        }
+        if (e.field === 'tipo') {
+            const nuevalista = tablacertificadoedit.map(n => (
+                {
+                    codigo: n.codigo,
+                    empleado: n.empleado,
+                    nombre: n.nombre,
+                    empresaEmisora: n.empresaEmisora,
+                    caduca: n.caduca,
+                    mesExpedicion: n.mesExpedicion,
+                    anioExpedicion: n.anioExpedicion,
+                    fechaCaducidad: n.fechaCaducidad,
+                    idCredencial: n.idCredencial,
+                    tipo: e.id === n.codigo ? `${e.value}`.toUpperCase() : n.tipo,
+                    urlArchivo: n.urlArchivo
+                }
+            ))
+            setTablaCertificadoEdit(nuevalista);
+        }
+        if (e.field === 'urlArchivo') {
+            const nuevalista = tablacertificadoedit.map(n => (
+                {
+                    codigo: n.codigo,
+                    empleado: n.empleado,
+                    nombre: n.nombre,
+                    empresaEmisora: n.empresaEmisora,
+                    caduca: n.caduca,
+                    mesExpedicion: n.mesExpedicion,
+                    anioExpedicion: n.anioExpedicion,
+                    fechaCaducidad: n.fechaCaducidad,
+                    idCredencial: n.idCredencial,
+                    tipo: n.tipo,
+                    urlArchivo: e.id === n.codigo ? e.value : n.urlArchivo
+                }
+            ))
+            setTablaCertificadoEdit(nuevalista);
+        }
+
+    }
+    const editarCarga = (e) => {
+        console.log(e)
+        if (e.field === 'parentezco') {
+            const nuevalista = tablacargaedit.map(n => (
+                {
+                    codigo: n.codigo,
+                    empleado: n.empleado,
+                    parentezco: e.id === n.codigo ? `${e.value}`.toUpperCase() : n.parentezco,
+                    nombres: n.nombres,
+                    cedula: n.cedula,
+                    direccion: n.direccion
+                }
+            ))
+            setTablaCargaEdit(nuevalista);
+        }
+        if (e.field === 'nombres') {
+            const nuevalista = tablacargaedit.map(n => (
+                {
+                    codigo: n.codigo,
+                    empleado: n.empleado,
+                    parentezco: n.parentezco,
+                    nombres: e.id === n.codigo ? `${e.value}`.toUpperCase() : n.nombres,
+                    cedula: n.cedula,
+                    direccion: n.direccion
+                }
+            ))
+            setTablaCargaEdit(nuevalista);
+        }
+        if (e.field === 'cedula') {
+            const nuevalista = tablacargaedit.map(n => (
+                {
+                    codigo: n.codigo,
+                    empleado: n.empleado,
+                    parentezco: n.parentezco,
+                    nombres: n.nombres,
+                    cedula: e.id === n.codigo ? e.value : n.cedula,
+                    direccion: n.direccion
+                }
+            ))
+            setTablaCargaEdit(nuevalista);
+        }
+        if (e.field === 'direccion') {
+            const nuevalista = tablacargaedit.map(n => (
+                {
+                    codigo: n.codigo,
+                    empleado: n.empleado,
+                    parentezco: n.parentezco,
+                    nombres: n.nombres,
+                    cedula: n.cedula,
+                    direccion: e.id === n.codigo ? `${e.value}`.toUpperCase() : n.direccion
+                }
+            ))
+            setTablaCargaEdit(nuevalista);
+        }
+
     }
     React.useEffect(() => {
         async function obtenerDatos() {
             try {
-                const tipodoc = await axios(`${URLAPIGENERAL}/mantenimientogenerico/listarportabla?tabla=CXC_TIPODOC`, config)
-                const inicial = await axios(`${URLAPIGENERAL}/iniciales/buscar?opcion=ADM`, config);
-                const codigogenerado = generarCodigo('EM', inicial.data[0].numero, '0000')
-
+                const tipodoc = await axios(`${URLAPIGENERAL}/mantenimientogenerico/listarportabla?tabla=CXC_TIPODOC`, config,setMostrarProgreso(true))
                 setListaTipoDoc(tipodoc.data);
-                setFormularioEmpleado({
-                    ...formularioempleado,
-                    codigo_Empleado: codigogenerado
-                })
+
+                if (modo === 'nuevo') {
+                    const inicial = await axios(`${URLAPIGENERAL}/iniciales/buscar?opcion=ADM`, config,setMostrarProgreso(true));
+                    const codigogenerado = generarCodigo('EM', inicial.data[0].numero, '0000')
+
+                    setFormularioEmpleado({
+                        ...formularioempleado,
+                        codigo_Empleado: codigogenerado
+                    })
+                }
+                if (modo === 'editar') {
+                    const empleado = await axios(`${URLAPILOCAL}/empleados/obtener?codigo=${id}`, config,setMostrarProgreso(true))
+
+                    setFormularioEmpleado({
+                        
+                        codigo: empleado.data.codigo,
+                        codigo_Empleado: empleado.data.codigo_Empleado,
+                        nombres: empleado.data.nombres,
+                        direccion: empleado.data.direccion,
+                        telefonos: empleado.data.telefonos,
+                        fecing: empleado.data.fecing,
+                        cedula: empleado.data.cedula,
+                        correo: empleado.data.correo,
+                        fechaNac: empleado.data.fechaNac,
+                        cargo: empleado.data.cargo,
+                        nombrecargo: empleado.data.nombreCargo,
+                        departamento: empleado.data.departamento,
+                        nombredepartamento: empleado.data.nombreDepartamento,
+                        nivelEstudio: empleado.data.nivelEstudio,
+                        nombrenivelEstudio: empleado.data.nombreNivelEstudio,
+                        sexo: empleado.data.sexo,
+                        sueldoBase: empleado.data.sueldoBase,
+                        afiliadoSeguro: empleado.data.afiliadoSeguro,
+                        beneficioSocial: empleado.data.beneficioSocial,
+                        fondoReserva: empleado.data.fondoReserva,
+                        pagoMensualDecimoTercero: empleado.data.pagoMensualDecimoTercero,
+                        pagoMensualDecimoCuarto: empleado.data.pagoMensualDecimoCuarto,
+                        observacion: empleado.data.observacion,
+                        estado: empleado.data.estado,
+                    })
+                    // let idc = 0;
+                    // let idce = 0;
+
+                    // empleado.data.carga.forEach(f => {
+                    //     idc += 1;
+                    //     f.codigo = idc
+                    // })
+                    // empleado.data.certificado.forEach(f => {
+                    //     idce += 1;
+                    //     f.codigo = idce
+                    // })
+                    setTablaCargaEdit(empleado.data.carga);
+                    setTablaCertificadoEdit(empleado.data.certificado);
+
+                }
+
 
             } catch (error) {
                 if (error.response.status === 401) {
@@ -577,7 +1069,7 @@ export default function FormularioEmpleado() {
                     mensajeSistema("Problemas al guardar verifique si se encuentra registrado", "error");
                 }
             } finally {
-                /**/
+                setMostrarProgreso(false)
             }
         }
         obtenerDatos();
@@ -599,7 +1091,7 @@ export default function FormularioEmpleado() {
                     timeout={1000}
                 >
                     <Box sx={{ ml: 3, mr: 3, p: 1, width: '100%' }}>
-                        <h1>Formulario de Empleado</h1>
+                        <h1>{String(modo).toUpperCase().substring(0, 1) + String(modo).substring(1, modo.length)}  Empleado</h1>
                     </Box>
                 </Fade>
                 <Fade
@@ -1063,8 +1555,8 @@ export default function FormularioEmpleado() {
                                                 fullWidth
                                                 size="small"
                                             >
-                                                <MenuItem value="PRE"> PRESENCIAL </MenuItem>
-                                                <MenuItem value="LIN"> LINEA </MenuItem>
+                                                <MenuItem value="P"> PRESENCIAL </MenuItem>
+                                                <MenuItem value="L"> LINEA </MenuItem>
                                             </TextField>
                                         </Grid>
                                         <Grid item md={2} sm={4} xs={12}>
@@ -1181,7 +1673,7 @@ export default function FormularioEmpleado() {
                                     <div
                                         style={{
                                             padding: '0.5rem',
-                                            height: '55vh',
+                                            height: modo !== 'editar' ? '55vh' : '30vh',
                                             width: '100%',
                                         }}
                                     >
@@ -1200,6 +1692,38 @@ export default function FormularioEmpleado() {
                                         />
                                     </div>
                                 </Box>
+
+                                {
+                                    modo === 'editar' ?
+                                        <Box
+                                            sx={estilosdetabla}
+                                        >
+                                            <Typography variant="h6"> Editar </Typography>
+                                            <div
+                                                style={{
+                                                    padding: '0.5rem',
+                                                    height: modo !== 'editar' ? '55vh' : '30vh',
+                                                    width: '100%',
+                                                }}
+                                            >
+                                                <DataGrid
+                                                    density="compact"
+                                                    rowHeight={28}
+                                                    localeText={esES.components.MuiDataGrid.defaultProps.localeText}
+                                                    onCellEditCommit={(e) => {
+                                                        editarCertificado(e)
+                                                    }}
+                                                    sx={estilosdatagrid}
+                                                    rows={tablacertificadoedit}
+                                                    columns={columnsset}
+                                                    getRowId={rows => rows.codigo}
+                                                    components={{
+                                                        NoRowsOverlay: CustomNoRowsOverlay,
+                                                    }}
+                                                />
+                                            </div>
+                                        </Box> : ''
+                                }
                             </TabPanel>
                             <TabPanel value={tabs} index={2}>
                                 <Grid container spacing={1}>
@@ -1297,7 +1821,7 @@ export default function FormularioEmpleado() {
                                     <div
                                         style={{
                                             padding: '0.5rem',
-                                            height: '55vh',
+                                            height: modo !== 'editar' ? '55vh' : '30vh',
                                             width: '100%',
                                         }}
                                     >
@@ -1316,6 +1840,35 @@ export default function FormularioEmpleado() {
                                         />
                                     </div>
                                 </Box>
+                                {
+                                    modo === 'editar' ?
+                                        <Box
+                                            sx={estilosdetabla}
+                                        >
+                                            <div
+                                                style={{
+                                                    padding: '0.5rem',
+                                                    height: modo !== 'editar' ? '55vh' : '30vh',
+                                                    width: '100%',
+                                                }}
+                                            >
+                                                <DataGrid
+                                                    density="compact"
+                                                    rowHeight={28}
+                                                    localeText={esES.components.MuiDataGrid.defaultProps.localeText}
+                                                    onCellEditCommit={(e) => {
+                                                        editarCarga(e)
+                                                    }} sx={estilosdatagrid}
+                                                    rows={tablacargaedit}
+                                                    columns={columnscargaset}
+                                                    getRowId={(datosfilas) => datosfilas.codigo}
+                                                    components={{
+                                                        NoRowsOverlay: CustomNoRowsOverlay,
+                                                    }}
+                                                />
+                                            </div>
+                                        </Box> : ''
+                                }
                             </TabPanel>
                         </Box>
                     </Card>

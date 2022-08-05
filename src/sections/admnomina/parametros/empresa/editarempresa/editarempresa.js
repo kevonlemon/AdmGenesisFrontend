@@ -643,7 +643,7 @@ if (celular < 10 ) {
                       name="secuenciaAutomaticaProductos"
                     />
                   </Grid>
-                  <Grid item sm={4} xs={12} md={5}>
+                  {/* <Grid item sm={4} xs={12} md={5}>
                     <TextField
                       fullWidth
                       disabled
@@ -659,7 +659,7 @@ if (celular < 10 ) {
                       }}
                       value={formulario.secuenciaProducto}
                     />
-                  </Grid>
+                  </Grid> */}
                 </Grid>
               </Grid>
             </Box>

@@ -14,7 +14,7 @@ import HeaderBreadcrumbs from '../../../../components/HeaderBreadcrumbs';
 import CircularProgreso from '../../../../components/Cargando';
 import Page from '../../../../components/Page';
 import { PATH_AUTH, PATH_PAGE } from '../../../../routes/paths'
-import { URLAPIGENERAL } from "../../../../config";
+import { URLAPIGENERAL, URLAPILOCAL } from "../../../../config";
 import { styleActive, styleInactive, estilosdetabla, estilosdatagrid } from "../../../../utils/csssistema/estilos";
 import { CustomNoRowsOverlay } from "../../../../utils/csssistema/iconsdatagrid";
 import { formaterarFecha } from '../../../../utils/sistema/funciones';
@@ -111,6 +111,7 @@ export default function Empleado() {
   const [buscar, setBuscar] = React.useState('');
   const [resultadobusqueda, setResultadoBusqueda] = React.useState([]);
   const [datosfilas, setDatosFilas] = React.useState([]);
+  const [mostrarprogreso, setMostrarProgreso] = React.useState(false);
   const Buscar = (e) => {
     // console.log(e.target.value);
     setBuscar(e.target.value);
@@ -126,13 +127,16 @@ export default function Empleado() {
   };
   const Editar = (e) => {
     console.log(e);
-    navegacion(`/sistema/parametros/editarpersona`, { state: { id: e.id } });
+    navegacion(`/sistema/parametros/formularioempleado`, { state: { modo: 'editar', id: e.id } });
+  };
+  const Nuevo = () => {
+    navegacion(`/sistema/parametros/formularioempleado`, { state: { modo: 'nuevo', id: 0 } });
   };
 
   React.useEffect(() => {
     async function getDatos() {
       try {
-        const { data } = await axios(`${URLAPIGENERAL}/empleados/listar`, config);
+        const { data } = await axios(`${URLAPIGENERAL}/empleados/listar`, config,setMostrarProgreso(true));
         setDatosFilas(data);
         setResultadoBusqueda(data);
       } catch (error) {
@@ -145,6 +149,8 @@ export default function Empleado() {
         } else {
           mensajeSistema("Problemas al guardar verifique si se encuentra registrado", "error");
         }
+      } finally{
+        setMostrarProgreso(false)
       }
     }
     getDatos();
@@ -152,6 +158,7 @@ export default function Empleado() {
   }, []);
   return (
     <>
+    <CircularProgreso open={mostrarprogreso} handleClose1={() => { setMostrarProgreso(false) }} />
       <Page title="Empleado">
         <Fade in style={{ transformOrigin: '0 0 0' }} timeout={1000}>
           <Box sx={{ ml: 3, mr: 3, p: 1 }}>
@@ -166,8 +173,7 @@ export default function Empleado() {
                 <Button
                   fullWidth
                   variant="contained"
-                  component={RouterLink}
-                  to="/sistema/parametros/formularioempleado"
+                  onClick={() => { Nuevo() }}
                   startIcon={<AddCircleRoundedIcon />}
                 >
                   Nuevo
@@ -200,11 +206,11 @@ export default function Empleado() {
                 <Grid item container spacing={1} md={9} sm={6} xs={12} justifyContent="flex-end">
                   <Grid item md={1.5} sm={3} xs={6}>
                     <Button
-                      disabled
+                      // disabled
                       fullWidth
                       variant="text"
-                      // href={`${URLAPIGENERAL}/contadores/generarexcel`}
-                      // target="_blank"
+                      href={`${URLAPILOCAL}/empleados/generarexcel`}
+                      target="_blank"
                       startIcon={<ViewComfyRoundedIcon />}
                     >
                       Excel
@@ -212,11 +218,11 @@ export default function Empleado() {
                   </Grid>
                   <Grid item md={1.5} sm={3} xs={6}>
                     <Button
-                      disabled
+                      // disabled
                       fullWidth
                       variant="text"
-                      // href={`${URLAPIGENERAL}/contadores/generarpdf`}
-                      // target="_blank"
+                      href={`${URLAPILOCAL}/empleados/generarpdf?operador=${usuario.tipo_Persona}`}
+                      target="_blank"
                       startIcon={<PictureAsPdfRoundedIcon />}
                     >
                       Pdf
@@ -240,7 +246,7 @@ export default function Empleado() {
                   density="compact"
                   rowHeight={28}
                   localeText={esES.components.MuiDataGrid.defaultProps.localeText}
-                  // onRowDoubleClick={(e) => Editar(e)}
+                  onRowDoubleClick={(e) => Editar(e)}
                   sx={estilosdatagrid}
                   rows={datosfilas}
                   columns={columns}

@@ -581,11 +581,11 @@ export default function Homeempresa() {
                           }}
                         />
                       }
-                      label="Secuencia Automatica Productos"
+                      label="Calculo con biometrico"
                       name="secuenciaAutomaticaProductos"
                     />
                   </Grid>
-                  <Grid item sm={4} xs={12} md={5}>
+                  {/* <Grid item sm={4} xs={12} md={5}>
                     <TextField
                       fullWidth
                       disabled
@@ -601,7 +601,7 @@ export default function Homeempresa() {
                       }}
                       value={formulario.secuenciaProducto}
                     />
-                  </Grid>
+                  </Grid> */}
                 </Grid>
               </Grid>
             </Box>

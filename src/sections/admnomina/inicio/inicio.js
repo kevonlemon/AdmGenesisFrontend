@@ -2,12 +2,16 @@ import * as React from 'react';
 import axios from 'axios';
 import { Box, Grid, Fade } from "@mui/material";
 import Page from '../../../components/Page';
-import { URLAPIGENERAL, URLAPILOCAL } from '../../../config';
+// import { URLAPIGENERAL, URLAPILOCAL } from '../../../config';
 // COMPONENTES
 import SucursalDashboard from './componentes/sucursal';
-import ContadoresDashboard from './componentes/contadores';
+// import ContadoresDashboard from './componentes/contadores';
 import EstadisticasDashboard from './componentes/estadisticas';
-import GraficarPastel from './componentes/estadisticaspastel';
+// import GraficarPastel from './componentes/estadisticaspastel';
+
+import {
+    AppWidget,
+} from '../../@dashboard/general/app';
 
 
 // ----------------------------------------------------------------------
@@ -32,17 +36,24 @@ export default function Inicio() {
                         style={{ transformOrigin: '0 0 0' }}
                         timeout={1000}
                     >
-                        <Grid container spacing={1} direction="column">
-                            <Grid item container md={6} sm={12} xs={12} spacing={1}>
-                                <ContadoresDashboard sucursal={datos.surcursal} buscar="cliente" etiqueta="Empleados Nuevos" />
-                                <ContadoresDashboard sucursal={datos.surcursal} buscar="ventdirecta" etiqueta="Prestamos Nuevos" />
-                                <ContadoresDashboard sucursal={datos.surcursal} buscar="ventdirectapos" etiqueta="Anticipos Nuevos" />
-                                {/* <ContadoresDashboard sucursal={datos.surcursal} buscar="deuda" etiqueta="Cuentas por Cobrar" /> */}
+                        <Grid container spacing={1} >
+                            <Grid item md={6} sm={6} xs={12} >
+                                <AppWidget title="Empleados" total={50} icon={'eva:person-fill'} chartData={48} />
+
+                            </Grid>
+                            <Grid item  md={6} sm={6} xs={12}>
+                                <AppWidget title="Prestamos" total={100} icon={'fa-solid:money-check-alt'} color="warning" chartData={70} />
+                            </Grid>
+                            <Grid item  md={6} sm={6} xs={12}>
+                                <AppWidget title="Antipicipos" total={10} icon={'fa6-solid:money-bill-transfer'} color="success" chartData={15} />
+                            </Grid>
+                            <Grid item  md={6} sm={6} xs={12}>
+                                <AppWidget title="Nuevos Usuarios" total={5} icon={'eva:person-fill'} color="info" chartData={5} />
                             </Grid>
                         </Grid>
                     </Fade>
-                    {/* <EstadisticasDashboard />
-                    <Fade
+                     <EstadisticasDashboard />
+                    {/* <Fade
                         in
                         style={{ transformOrigin: '0 0 0' }}
                         timeout={1000}
@@ -68,7 +79,7 @@ export default function Inicio() {
                             </Grid>
 
                         </Box>
-                    </Fade> */}
+                    </Fade> */} 
                 </Box>
             </Page>
         </>
