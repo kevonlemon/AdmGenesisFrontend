@@ -36,8 +36,10 @@ function EstadisticasDashboard(props) {
         {
             year: 2019,
             data: [
-                { name: 'Ventas', data: ventas },
-                { name: 'Compras', data: compras },
+                // { name: 'Ventas', data: ventas },
+                // { name: 'Compras', data: compras },
+                { name: 'Anticipos', data: [148, 91, 69, 62, 49, 51, 115, 141, 180] },
+                { name: 'Prestamos', data: [45, 77, 99, 88, 77, 56, 113, 134, 180] },
             ],
 
         },

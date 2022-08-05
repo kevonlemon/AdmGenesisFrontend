@@ -111,6 +111,7 @@ export default function Empleado() {
   const [buscar, setBuscar] = React.useState('');
   const [resultadobusqueda, setResultadoBusqueda] = React.useState([]);
   const [datosfilas, setDatosFilas] = React.useState([]);
+  const [mostrarprogreso, setMostrarProgreso] = React.useState(false);
   const Buscar = (e) => {
     // console.log(e.target.value);
     setBuscar(e.target.value);
@@ -135,7 +136,7 @@ export default function Empleado() {
   React.useEffect(() => {
     async function getDatos() {
       try {
-        const { data } = await axios(`${URLAPIGENERAL}/empleados/listar`, config);
+        const { data } = await axios(`${URLAPIGENERAL}/empleados/listar`, config,setMostrarProgreso(true));
         setDatosFilas(data);
         setResultadoBusqueda(data);
       } catch (error) {
@@ -148,6 +149,8 @@ export default function Empleado() {
         } else {
           mensajeSistema("Problemas al guardar verifique si se encuentra registrado", "error");
         }
+      } finally{
+        setMostrarProgreso(false)
       }
     }
     getDatos();
@@ -155,6 +158,7 @@ export default function Empleado() {
   }, []);
   return (
     <>
+    <CircularProgreso open={mostrarprogreso} handleClose1={() => { setMostrarProgreso(false) }} />
       <Page title="Empleado">
         <Fade in style={{ transformOrigin: '0 0 0' }} timeout={1000}>
           <Box sx={{ ml: 3, mr: 3, p: 1 }}>

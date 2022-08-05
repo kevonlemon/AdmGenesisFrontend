@@ -42,8 +42,8 @@ const ChartWrapperStyle = styled('div')(({ theme }) => ({
 
 function GraficarPastel(props) {
     const { titulo, tipoinformacion, sucursal } = props;
-    const [valor, setValor] = React.useState([]);
-    const [topvalor, setTopvalor] = React.useState([]);
+    const [valor, setValor] = React.useState([0,10,5,2,3]);
+    const [topvalor, setTopvalor] = React.useState([1,2,15,48,2]);
     const [mostrarprogreso, setMostrarProgreso] = React.useState(false);
     const theme = useTheme();
     const { enqueueSnackbar } = useSnackbar();
@@ -124,7 +124,10 @@ function GraficarPastel(props) {
                 <CardHeader title={titulo} />
                 <ChartWrapperStyle dir="ltr">
                     <ReactApexChart type="donut"
-                        series={topvalor.length > 0 ? CHART_DATA : [0]} options={chartOptions} height={280} />
+                        // series={topvalor.length > 0 ? CHART_DATA : [0,10]} 
+                        series={[0,10,5,2,3]} 
+                        
+                        options={chartOptions} height={280} />
                 </ChartWrapperStyle>
             </Card>
         </>

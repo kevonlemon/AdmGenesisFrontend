@@ -681,8 +681,8 @@ export default function FormularioEmpleado() {
                         ...tablacertificado
                     ]
                 }
-                console.log(enviarjson);
-                const { data } = await axios.post(`${URLAPILOCAL}/empleados`, enviarjson, config);
+                // console.log(enviarjson);
+                const { data } = await axios.post(`${URLAPILOCAL}/empleados`, enviarjson, config,setMostrarProgreso(true));
                 if (data === 200) {
                     mensajeSistema('Registro guardado correctamente', 'success');
                     Volver();
@@ -742,8 +742,8 @@ export default function FormularioEmpleado() {
                         ...tablacertificadoedit
                     ]
                 }
-                console.log("mira edit", enviarjson)
-                const { data } = await axios.put(`${URLAPILOCAL}/empleados`, enviarjson, config);
+                // console.log("mira edit", enviarjson)
+                const { data } = await axios.put(`${URLAPILOCAL}/empleados`, enviarjson, config,setMostrarProgreso(true));
                 if (data === 200) {
                     mensajeSistema('Registro guardado correctamente', 'success');
                     Volver();
@@ -770,6 +770,8 @@ export default function FormularioEmpleado() {
             } else {
                 mensajeSistema("Problemas al guardar verifique si se encuentra registrado", "error");
             }
+        } finally{
+            setMostrarProgreso(false);
         }
     }
     const editarCertificado = (e) => {
@@ -997,11 +999,11 @@ export default function FormularioEmpleado() {
     React.useEffect(() => {
         async function obtenerDatos() {
             try {
-                const tipodoc = await axios(`${URLAPIGENERAL}/mantenimientogenerico/listarportabla?tabla=CXC_TIPODOC`, config)
+                const tipodoc = await axios(`${URLAPIGENERAL}/mantenimientogenerico/listarportabla?tabla=CXC_TIPODOC`, config,setMostrarProgreso(true))
                 setListaTipoDoc(tipodoc.data);
 
                 if (modo === 'nuevo') {
-                    const inicial = await axios(`${URLAPIGENERAL}/iniciales/buscar?opcion=ADM`, config);
+                    const inicial = await axios(`${URLAPIGENERAL}/iniciales/buscar?opcion=ADM`, config,setMostrarProgreso(true));
                     const codigogenerado = generarCodigo('EM', inicial.data[0].numero, '0000')
 
                     setFormularioEmpleado({
@@ -1010,7 +1012,7 @@ export default function FormularioEmpleado() {
                     })
                 }
                 if (modo === 'editar') {
-                    const empleado = await axios(`${URLAPILOCAL}/empleados/obtener?codigo=${id}`, config)
+                    const empleado = await axios(`${URLAPILOCAL}/empleados/obtener?codigo=${id}`, config,setMostrarProgreso(true))
 
                     setFormularioEmpleado({
                         
@@ -1067,7 +1069,7 @@ export default function FormularioEmpleado() {
                     mensajeSistema("Problemas al guardar verifique si se encuentra registrado", "error");
                 }
             } finally {
-                /**/
+                setMostrarProgreso(false)
             }
         }
         obtenerDatos();
