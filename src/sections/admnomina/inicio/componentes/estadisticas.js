@@ -34,28 +34,29 @@ function EstadisticasDashboard(props) {
     const [compras, setCompras] = React.useState([]);
     const CHART_DATA = [
         {
-            year: 2019,
+            year: 2021,
             data: [
                 // { name: 'Ventas', data: ventas },
                 // { name: 'Compras', data: compras },
-                { name: 'Anticipos', data: [148, 91, 69, 62, 49, 51, 115, 141, 180] },
-                { name: 'Prestamos', data: [45, 77, 99, 88, 77, 56, 113, 134, 180] },
+                { name: 'Anticipos', data: [10, 20, 30, 40,50, 51, 62, 84, 80] },
+                { name: 'Prestamos', data: [25, 35, 56, 88, 77, 56, 12, 15, 90] },
+                
             ],
 
         },
         {
-            year: 2020,
+            year: 2022,
             data: [
-                { name: 'Ventas', data: [148, 91, 69, 62, 49, 51, 35, 41, 10] },
-                { name: 'Compras', data: [45, 77, 99, 88, 77, 56, 13, 34, 10] },
+                { name: 'Anticipos', data: [148, 91, 69, 62, 49, 51, 115, 141, 180] },
+                { name: 'Prestamos', data: [45, 77, 99, 88, 77, 56, 113, 134, 180] },
             ],
         },
     ];
-    const [seriesData, setSeriesData] = useState(2019);
+    const [seriesData, setSeriesData] = useState(2022);
 
-    // const handleChangeSeriesData = (event) => {
-    //     setSeriesData(Number(event.target.value));
-    // };
+    const handleChangeSeriesData = (event) => {
+        setSeriesData(Number(event.target.value));
+    };
 
     const chartOptions = merge(BaseOptionChart(), {
         xaxis: {
@@ -126,40 +127,40 @@ function EstadisticasDashboard(props) {
                         <CardHeader
                             title="Estadisticas"
                             subheader="(+43%) que el año pasado"
-                        // action={
-                        //     <TextField
-                        //         select
-                        //         fullWidth
-                        //         value={seriesData}
-                        //         SelectProps={{ native: true }}
-                        //         onChange={handleChangeSeriesData}
-                        //         sx={{
-                        //             '& fieldset': { border: '0 !important' },
-                        //             '& select': {
-                        //                 pl: 1,
-                        //                 py: 0.5,
-                        //                 pr: '24px !important',
-                        //                 typography: 'subtitle2',
-                        //             },
-                        //             '& .MuiOutlinedInput-root': {
-                        //                 borderRadius: 0.75,
-                        //                 bgcolor: 'background.neutral',
-                        //             },
-                        //             '& .MuiNativeSelect-icon': {
-                        //                 top: 4,
-                        //                 right: 0,
-                        //                 width: 20,
-                        //                 height: 20,
-                        //             },
-                        //         }}
-                        //     >
-                        //         {CHART_DATA.map((option) => (
-                        //             <option key={option.year} value={option.year}>
-                        //                 {option.year}
-                        //             </option>
-                        //         ))}
-                        //     </TextField>
-                        // }
+                        action={
+                            <TextField
+                                select
+                                fullWidth
+                                value={seriesData}
+                                SelectProps={{ native: true }}
+                                onChange={handleChangeSeriesData}
+                                sx={{
+                                    '& fieldset': { border: '0 !important' },
+                                    '& select': {
+                                        pl: 1,
+                                        py: 0.5,
+                                        pr: '24px !important',
+                                        typography: 'subtitle2',
+                                    },
+                                    '& .MuiOutlinedInput-root': {
+                                        borderRadius: 0.75,
+                                        bgcolor: 'background.neutral',
+                                    },
+                                    '& .MuiNativeSelect-icon': {
+                                        top: 4,
+                                        right: 0,
+                                        width: 20,
+                                        height: 20,
+                                    },
+                                }}
+                            >
+                                {CHART_DATA.map((option) => (
+                                    <option key={option.year} value={option.year}>
+                                        {option.year}
+                                    </option>
+                                ))}
+                            </TextField>
+                        }
                         />
 
                         {CHART_DATA.map((item) => (
