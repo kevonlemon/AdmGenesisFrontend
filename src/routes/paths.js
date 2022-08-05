@@ -103,13 +103,18 @@ export const PATH_OPSISTEMA = {
     ajusteprecio: path(ROOTS_DASHBOARD, '/ajusteprecio'),
     all: path(ROOTS_DASHBOARD, '/mail/all'),
   },
-  parametros:{
+  parametros: {
     permisos: path(ROOTS_SISTEMA, '/parametro/permiso'),
     usuario: path(ROOTS_SISTEMA, '/ajusteprecio'),
     segurosocial: path(ROOTS_SISTEMA, '/segurosocial'),
     nuevosegurosocial: path(ROOTS_SISTEMA, '/nuevosegurosocial'),
     editarsegurosocial: path(ROOTS_SISTEMA, '/editarsegurosocial')
+  },
+  procesos: {
+    beneficiosocial: path(ROOTS_SISTEMA, '/beneficiosocial')
   }
+
+
 }
 
 export const PATH_DOCS = 'https://docs-minimals.vercel.app/introduction';
