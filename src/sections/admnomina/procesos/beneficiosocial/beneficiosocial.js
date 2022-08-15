@@ -52,15 +52,12 @@ import { fCurrency } from '../../../../utils/formatNumber';
 
 
 export default function beneficiosocial() {
-
     const usuario = JSON.parse(window.localStorage.getItem('usuario'));
     const config = {
         headers: {
             'Authorization': `Bearer ${usuario.token}`
         }
     }
-
-
     document.body.style.overflowX = 'hidden';
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const { enqueueSnackbar } = useSnackbar();
@@ -493,7 +490,7 @@ export default function beneficiosocial() {
 
 
             const response =
-                await axios(`${URLAPIGENERAL}/beneficioempleado/listar?Empleado1=${Datospaciente.id}&Empleado2=${Datospaciente2.id}`, config ,setMostrarProgreso(true))
+                await axios(`${URLAPIGENERAL}/beneficioempleado/listar?Empleado1=${Datospaciente.id}&Empleado2=${Datospaciente2.id}`,config, setMostrarProgreso(true))
 
             const datos = response.data;
             if (response.status === 200) {
