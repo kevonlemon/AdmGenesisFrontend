@@ -64,6 +64,8 @@ export default function beneficiosocial() {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const navigate = useNavigate();
     // eslint-disable-next-line react-hooks/rules-of-hooks
+    const [numeroid, setIdnumero] = useState(0);
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const [mostrarprogreso, setMostrarProgreso] = useState(false);
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const [lineaItem, setLineaItem] = useState(0);
@@ -77,7 +79,8 @@ export default function beneficiosocial() {
     const [error1, setError1] = useState(false);
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const [error2, setError2] = useState(false);
-
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+    const [ fechaerror, setFechaerror] = useState(false); 
     const ocultaFooter = true;
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const [rows, setRows] = useState([]);
@@ -161,7 +164,7 @@ export default function beneficiosocial() {
         // sethabilitarbtn(true);
         // setenablePrint(true);
         setEnbleañadir(false);
-
+        setFechaerror(false)
     };
 
     const nuevo = async () => {
@@ -179,7 +182,7 @@ export default function beneficiosocial() {
             // console.log(dataRes[ultimovalor])
 
             setDatospaciente({
-                ...Datospaciente,
+                id: primervalor.codigo, // int
                 codigo: primervalor.codigo_Empleado, // int
                 nombre: primervalor.nombres, // string 100
                 cedula: primervalor.cedula, // string
@@ -189,7 +192,7 @@ export default function beneficiosocial() {
             // console.log('primer dato', Datospaciente)
 
             setDatospaciente2({
-                ...Datospaciente2,
+                id: dataRes[ultimovalor].codigo, // int
                 codigo: dataRes[ultimovalor].codigo_Empleado, // int
                 nombre: dataRes[ultimovalor].nombres, // string 100
                 cedula: dataRes[ultimovalor].cedula, // string
@@ -319,6 +322,7 @@ export default function beneficiosocial() {
                 nombre: dataRes[ultimovalor].nombres, // string 100
                 cedula: dataRes[ultimovalor].cedula, // string
             })
+      
 
         }
 
@@ -326,8 +330,7 @@ export default function beneficiosocial() {
 
     }, []);
 
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const [numeroid, setIdnumero] = useState(0);
+
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const [getPaciente, setgetPaciente] = useState({});
 
@@ -411,38 +414,19 @@ export default function beneficiosocial() {
             const response = await axios(`${URLAPIGENERAL}/empleados/listar`);
             const dataRes = response.data;
 
+            // const callback = v => v.codigo_Empleado >= numeroid;
+            // const even = dataRes.filter(callback);
 
-            // el comentado borra los empleados anteriores que se seleccione en el empleado desde
+            const getPaciente2 = dataRes.map((el) => ({
+                id: el.codigo,
+                codigo: el.codigo_Empleado,
+                nombre: el.nombres,
+                cedula: el.cedula,
+            }));
 
-            // if (numeroid >= 1) {
 
-            //     const callback = v => v.codigo_Empleado >= numeroid;
-            //     const even = dataRes.filter(callback);
+            setgetPaciente2(getPaciente2);
 
-            //     const getPaciente2 = even.map((el) => ({
-            //         id: el.codigo,
-            //         codigo: el.codigo_Empleado,
-            //         nombre: el.nombres,
-            //         cedula: el.cedula,
-            //         // cedula: el.sueldoBase,
-            //         // sexo: el.sexo,
-            //         // edad: el.fecnac
-
-            //     }));
-            //     setgetPaciente2(getPaciente2);
-            // }
-                const getPaciente2 = dataRes.map((el) => ({
-                    id: el.codigo,
-                    codigo: el.codigo_Empleado,
-                    nombre: el.nombres,
-                    cedula: el.cedula,
-                    // cedula: el.sueldoBase,
-                    // sexo: el.sexo,
-                    // edad: el.fecnac
-                }));
-
-                setgetPaciente2(getPaciente2);
-            
 
         }
         getPacientes2();
@@ -453,13 +437,14 @@ export default function beneficiosocial() {
 
     const validarsave = () => {
 
-        // const esfechaValida = formulario.fdesde <= formulario.fhasta;
+        const esfechaValida = anio.anio <= tiempo.getFullYear() ;
 
-        // if (!esfechaValida) {
-        //     messajeTool('error', 'Por favor, debe colocar el rango de fechas adecuadamente.')
-        //     setError(true);
-        //     return false;
-        // }
+        if (!esfechaValida) {
+            messajeTool('error', 'Por favor, debe colocar algun año anterior o el año actual.')
+            // setError(true);
+            setFechaerror(true)
+            return false;
+        }
 
         // const idpaciente1 = Datospaciente.codigo;
         const idpaciente2 = Datospaciente2.codigo;
@@ -489,6 +474,9 @@ export default function beneficiosocial() {
         }
 
         setFila([]);
+
+        const { codigo } = JSON.parse(window.localStorage.getItem('usuario'));
+
 
         try {
 
@@ -544,21 +532,12 @@ export default function beneficiosocial() {
 
 
                         if (pivote === siguiente) {
-
-
-
                             salario = parseFloat(datos[index].sueldobase);
                             factor = parseFloat(datos[index].porcentaje);
-
-                            // console.log('sueldo', salario)
-                            // console.log('factor', factor)
                             const beneficios = salario / 100 * factor;
 
-                            // console.log('beneficio', beneficios)
+
                             totalbeneficio += beneficios
-
-
-
 
                             listagrupada.push({
                                 // codigo: datos[index].codigo,
@@ -586,15 +565,10 @@ export default function beneficiosocial() {
                                 observacion: dataobservacion.observacion
                             });
 
-                            // console.log(paragrabar)
                             setFila(paragrabar)
 
                             if (datos.length - 1 === index) {
 
-
-
-
-                                //   console.log(`${datosprincipales[index-1].cuenta} = > total ${totalpordebe}`)
                                 listagrupada.push({
                                     codigo: '---------',
                                     nombres: 'TOTAL ==>',
@@ -604,12 +578,6 @@ export default function beneficiosocial() {
                                 totalgeneralbenecios += totalbeneficio
                             }
                         } else {
-                            // console.log(`${datosprincipales[index - 1].cuenta} = > total ${totalpordebe}`)
-                            // console.log(listagrupada)
-
-                            // aqui haces los de lista 
-
-
 
                             listagrupada.push({
                                 codigo: '---------',
@@ -628,28 +596,15 @@ export default function beneficiosocial() {
 
 
                             );
-                            // listagrupada.push({
-                            //     // nombre: `${datosprincipales[index].cuenta} - ${datosprincipales[index].nombre}`
-                            //     // nombre: ' '
-                            // });
-                            // listagrupada.push({
-                            //     // nombre: `${datosprincipales[index].cuenta} - ${datosprincipales[index].nombre}`
-                            //     // nombre: ' '
-                            // });
+
                             totalgeneralbenecios += totalbeneficio
                             listagrupada.push({
                                 codigo: `${datos[index].codigo}`,
                                 nombres: datos[index].nombre
                             });
 
-
-
-
-
-
                             pivote = datos[index].codigo
                             index -= 1;
-                            // totalgeneralbenecios = 0;
                             totalbeneficio = 0;
                             calular = 0;
                             factor = 0;
@@ -667,7 +622,7 @@ export default function beneficiosocial() {
                     }, {
                         id: id + 1,
                         nombres: 'TOTAL BENEFICIOS -->',
-                        beneficio: totalgeneralbenecios
+                        beneficio: totalgeneralbenecios.toFixed(2)
 
                     });
 
@@ -675,17 +630,6 @@ export default function beneficiosocial() {
 
                     setRows(listagrupada)
                 }
-
-
-
-
-
-
-
-
-
-
-
 
                 if (datos.length <= 0) {
 
@@ -697,7 +641,13 @@ export default function beneficiosocial() {
 
 
         } catch (error) {
-            messajeTool('error', 'Problemas con el servidor.');
+
+            if (error.response.status === 500) {
+                messajeTool('error', 'Debe colocar correctamente los rangos de empleado. ');
+            }
+            if (error.response.status !== 500) {
+                messajeTool('error', 'Problemas con el servidor.');
+            }
         } finally {
             setMostrarProgreso(false);
         }
@@ -804,8 +754,13 @@ export default function beneficiosocial() {
 
     ];
 
+    const { codigo } = JSON.parse(window.localStorage.getItem('usuario'));
+    const codigooperador = codigo;
+    // console.log('ADM =>', codigooperador)
 
     const Grabar = async () => {
+
+
 
         try {
 
@@ -813,6 +768,7 @@ export default function beneficiosocial() {
                 anio: m.anio,
                 mes: m.mes,
                 fechadesde: m.fechadesde,
+                fechahasta: m.fechahasta,
                 beneficio: m.beneficio,
                 empleado: m.empleado,
                 ingegremp: m.ingegremp,
@@ -821,21 +777,25 @@ export default function beneficiosocial() {
                 PagaEmpleado: false,
                 Comision: 0,
                 OtroIngreso: 0,
+                // Operador: `${codigo}`
             }))
 
             // console.log('grabado',listaempleado)
 
-            //  const response = await axios(`https://localhost:7012/api/beneficioempleado/grabar`, listaempleado , setMostrarProgreso(true))
+            const response = await axios.post(`${URLAPIGENERAL}/beneficioempleado/grabar`, listaempleado, config, setMostrarProgreso(true))
 
-            console.log('grabado', listaempleado)
-
-            //  if(reponse.status === 500)
-            //  {
-
-            //  }
+            if (response.status === 200) {
+                messajeTool('success', 'Grabado con exito.');
+            }
 
         } catch (error) {
-            // 
+            // console.log(error.response)
+            if (error.response.status === 400) {
+                messajeTool('error', 'Ya existe datos grabados con estas referencias ');
+            }
+            if (error.response.status !== 400) {
+                messajeTool('error', 'Problemas con el servidor.');
+            }
         } finally {
             setMostrarProgreso(false);
         }
@@ -1083,7 +1043,7 @@ export default function beneficiosocial() {
                                                     <Grid>
                                                         <TextField
                                                             fullWidth
-                                                            // error={erroranio}
+                                                            error={fechaerror}
                                                             label="Año"
                                                             id="outlined-basic"
                                                             required
@@ -1096,6 +1056,7 @@ export default function beneficiosocial() {
                                                                     ...anio,
                                                                     anio: e.target.value,
                                                                 });
+                                                                setFechaerror(false);
                                                             }}
                                                         />
                                                     </Grid>
@@ -1203,7 +1164,7 @@ export default function beneficiosocial() {
                                                     disabled={rows.length <= 0}
                                                     variant="text"
                                                     // eslint-disable-next-line camelcase
-                                                    // href={`${URLAPIGENERAL}/historial/generarexcel?Paciente1=${Datospaciente.codigo}&Paciente2=${Datospaciente2.codigo}&Fdesde=${formulario.fdesde.toISOString().substr(0, 10)}&Fhasta=${formulario.fhasta.toISOString().substr(0, 10)}`}
+                                                    href={`${URLAPIGENERAL}/beneficioempleado/generarexcel?Anio=${anio.anio}&Mes=${getmes.month}&Empleado1=${Datospaciente.id}&Empleado2=${Datospaciente2.id}&Operador=${codigooperador}`}
                                                     // target="_blank"
                                                     startIcon={<ViewComfyRoundedIcon />}
                                                 >
@@ -1215,9 +1176,8 @@ export default function beneficiosocial() {
                                                     fullWidth
                                                     disabled={rows.length <= 0}
                                                     variant="text"
-                                                    // eslint-disable-next-line camelcase
-                                                    // href={`${URLAPIGENERAL}/historial/generarpdf?Paciente1=${Datospaciente.codigo}&Paciente2=${Datospaciente2.codigo}&Fdesde=${formulario.fdesde.toISOString().substr(0, 10)}&Fhasta=${formulario.fhasta.toISOString().substr(0, 10)}`}
-                                                    // target="_blank"
+                                                    href={`${URLAPIGENERAL}/beneficioempleado/generarpdf?Anio=${anio.anio}&Mes=${getmes.month}&Empleado1=${Datospaciente.id}&Empleado2=${Datospaciente2.id}&Operador=${codigooperador}`}
+                                                    target="_blank"
                                                     startIcon={<PictureAsPdfRoundedIcon />}
                                                 >
                                                     Pdf
