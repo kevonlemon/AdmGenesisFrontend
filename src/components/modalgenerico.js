@@ -51,15 +51,15 @@ export default function ModalGenerico(props) {
             width: 250,
             headerClassName: 'super-app-theme--header'
         },
-        {
-            field: 'estado',
-            headerName: 'Estado',
-            width: 100,
-            headerClassName: 'super-app-theme--header',
-            renderCell: (param) => (
-                param.row.estado === 'A' ? <Button variant="containded" style={styleActive}>Activo</Button> : <Button variant="containded" style={styleInactive}>Inactivo</Button>
-            ),
-        }
+        // {
+        //     field: 'estado',
+        //     headerName: 'Estado',
+        //     width: 100,
+        //     headerClassName: 'super-app-theme--header',
+        //     renderCell: (param) => (
+        //         param.row.estado === true ? <Button variant="containded" style={styleActive}>Activo</Button> : <Button variant="containded" style={styleInactive}>Inactivo</Button>
+        //     ),
+        // }
     ]);
 
     const [searchBy, setSearBy] = useState('nombre');
