@@ -111,7 +111,8 @@ export const PATH_OPSISTEMA = {
     editarsegurosocial: path(ROOTS_SISTEMA, '/editarsegurosocial')
   },
   procesos: {
-    beneficiosocial: path(ROOTS_SISTEMA, '/beneficiosocial')
+    beneficiosocial: path(ROOTS_SISTEMA, '/beneficiosocial'),
+    // solicituddocumentos: path()
   }
 
 

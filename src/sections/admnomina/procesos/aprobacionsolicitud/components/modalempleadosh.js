@@ -10,7 +10,8 @@ import {
 import Box from '@mui/material/Box';
 import { DataGrid, esES } from '@mui/x-data-grid';
 import PropTypes from 'prop-types';
-import { styleActive, styleInactive, estilosdatagrid, estilosdetabla } from '../utils/csssistema/estilos';
+import { styleActive, styleInactive, estilosdatagrid, estilosdetabla } from '../../../../../utils/csssistema/estilos';
+
 
 const stylemodal = {
     borderRadius: '1rem',
@@ -24,13 +25,13 @@ const stylemodal = {
     boxShadow: 24,
 };
 
-ModalGenerico.propTypes = {
+ModalEmpleadosH.propTypes = {
     nombre: PropTypes.string.isRequired,
     openModal: PropTypes.bool.isRequired,
     parentCallback: PropTypes.func.isRequired,
 }
 
-export default function ModalGenerico(props) {
+export default function ModalEmpleadosH(props) {
     // eslint-disable-next-line react/prop-types
     const { openModal, toggleShow, rowsData } = props;
     // eslint-disable-next-line react/prop-types

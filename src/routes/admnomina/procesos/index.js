@@ -6,6 +6,10 @@ const Prestamos = Loadable(lazy(() => import('../../../sections/admnomina/proces
 
 const Beneficiosocial = Loadable(lazy(() => import('../../../sections/admnomina/procesos/beneficiosocial/beneficiosocial')));
 
+const SolicitudDocumentos = Loadable(lazy(() => import('../../../sections/admnomina/procesos/solicituddocumentos/solicituddocumentos')));
+
+const AprobacionSolicitud = Loadable(lazy(() => import('../../../sections/admnomina/procesos/aprobacionsolicitud/aprobacionsolicitud')));
+
 export const PROCESOS = [
     // {
     //     url: '/dashboard',
@@ -22,5 +26,15 @@ export const PROCESOS = [
 
         url: '/prestamos',
         element: <Prestamos />
-    }
+    },
+    {
+
+        url: '/solicituddocumentos',
+        element: <SolicitudDocumentos />
+    },
+    {
+
+        url: '/aprobacionsolicitud',
+        element: <AprobacionSolicitud />
+    },
 ]
