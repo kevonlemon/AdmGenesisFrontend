@@ -41,6 +41,7 @@ export default function Motivo(props) {
             //   disabled={!desactivar}
             select
             label="Motivo"
+            value={motivo}
             onChange={(e) => {
                 setMotivo(e.target.value);
                 disparador(e.target.value);

@@ -150,6 +150,9 @@ export default function AprobacionSolicitud() {
     }
 
     const Nuevo = () => {
+        const date = new Date();
+        const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+        const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
         setFormulario({
             ...formulario,
             empleadodesde: 0,
@@ -158,8 +161,8 @@ export default function AprobacionSolicitud() {
             empleadohasta: 0,
             codigoempleadohasta: '',
             nombreempleadohasta: '',
-            fechadesde: new Date(),
-            fechahasta: new Date()
+            fechadesde: firstDay,
+            fechahasta: lastDay
         })
         setRows([]);
     }
@@ -225,6 +228,21 @@ export default function AprobacionSolicitud() {
                 const listaempleadohasta = data.map(m => ({ id: m.codigo, codigo: m.codigo_Empleado, nombre: m.nombres }));
                 setEmpleadoD(listaempleadodesde);
                 setEmpleadoH(listaempleadohasta);
+                const { [Object.keys(listaempleadohasta).pop()]: lastItem } = listaempleadohasta;
+                const date = new Date();
+                const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+                const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+                setFormulario({
+                    ...formulario,
+                    fechadesde: firstDay,
+                    fechahasta: lastDay,
+                    empleadodesde: listaempleadodesde[0].id,
+                    codigoempleadodesde: listaempleadodesde[0].codigo,
+                    nombreempleadodesde: listaempleadodesde[0].nombre,
+                    empleadohasta: lastItem.id,
+                    codigoempleadohasta: lastItem.codigo,
+                    nombreempleadohasta: lastItem.nombre,
+                })
             } catch (error) {
                 if (error.response.status === 401) {
                     navegacion(`${PATH_AUTH.login}`);
