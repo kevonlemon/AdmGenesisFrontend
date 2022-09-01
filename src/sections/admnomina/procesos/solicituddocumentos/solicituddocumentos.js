@@ -66,7 +66,7 @@ export default function SolicitudDocumentos() {
             empleado: '',
             codigoempleado: '',
             nombreempleado: '',
-            estado: false,
+            estado: true,
             aprobado: false,
             observacion: ''
         })
@@ -88,7 +88,6 @@ export default function SolicitudDocumentos() {
         });
         toggleShow();
     }
-    console.log(formulario)
 
     const grabarSolicitudDocumento = async () => {
         try {
@@ -100,8 +99,8 @@ export default function SolicitudDocumentos() {
                 motivo: formulario.motivo,
                 empleado: formulario.empleado,
                 observacion: formulario.observacion,
-                estado: formulario.estado,
-                aprobado: formulario.aprobado,
+                estado: true,
+                aprobado: false,
                 urlDocumento: " ",
                 fechaing: new Date(),
                 maquina: ip,
@@ -110,7 +109,6 @@ export default function SolicitudDocumentos() {
                 maquinaapr: " ",
                 usuarioapr: 0
             }
-            console.log('form to send', form);
             const { data } = await axios.post(`${URLAPIGENERAL}/SolicitudDocumentos`, form, config, setMostrarProgreso(true));
             if (data === 200) {
                 mensajeSistema('Datos registrados correctamente', 'success');
@@ -135,9 +133,8 @@ export default function SolicitudDocumentos() {
     React.useEffect(() => {
         async function getDatos() {
             try {
-                const { data } = await axios(`${URLAPIGENERAL}/empleados/listar`, config, setMostrarProgreso(true));
-                const response = await axios(`${URLAPIGENERAL}/SolicitudDocumentos/listar`, config, setMostrarProgreso(true));
-
+                const { data } = await axios(`${URLAPIGENERAL}/empleados/listar`, config);
+                const response = await axios(`${URLAPIGENERAL}/SolicitudDocumentos/listar`, config);
 
                 const listaempleado = data.map(m => ({ id: m.codigo, codigo: m.codigo_Empleado, nombre: m.nombres }));
                 const listadosolicitudocs = response.data;
@@ -145,6 +142,7 @@ export default function SolicitudDocumentos() {
 
                 SetNumeroSolicitud(lastItem.numero + 1);
                 setEmpleado(listaempleado);
+
             } catch (error) {
                 if (error.response.status === 401) {
                     navegacion(`${PATH_AUTH.login}`);
@@ -162,6 +160,36 @@ export default function SolicitudDocumentos() {
         getDatos();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [numeroSolicitud])
+    React.useEffect(() => {
+        async function getDatosEmpleado() {
+            try {
+                const { data } = await axios(`${URLAPIGENERAL}/empleados/listar`, config);
+                const listaempleado = data.map(m => ({ id: m.codigo, codigo: m.codigo_Empleado, nombre: m.nombres }));
+                setEmpleado(listaempleado);
+                setFormulario({
+                    ...formulario,
+                    empleado: listaempleado[0].id,
+                    codigoempleado: listaempleado[0].codigo,
+                    nombreempleado: listaempleado[0].nombre
+                });
+            } catch (error) {
+                if (error.response.status === 401) {
+                    navegacion(`${PATH_AUTH.login}`);
+                    mensajeSistema("Su inicio de sesión expiró", "error");
+                }
+                else if (error.response.status === 500) {
+                    navegacion(`${PATH_PAGE.page500}`);
+                } else {
+                    mensajeSistema("Problemas al obtener datos, inténtelo nuevamente", "error");
+                }
+            } finally {
+                setMostrarProgreso(false)
+            }
+        }
+        getDatosEmpleado();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
 
     return (
         <>
@@ -298,7 +326,7 @@ export default function SolicitudDocumentos() {
                                             }}
                                         />
                                     </Grid>
-                                    <Grid item md={1.5} sm={4}>
+                                    {/* <Grid item md={1.5} sm={4}>
                                         <FormControlLabel
                                             onChange={(e) => {
                                                 setFormulario({
@@ -319,7 +347,7 @@ export default function SolicitudDocumentos() {
                                             }}
                                             control={<Checkbox />} checked={formulario.aprobado} label="Aprobado"
                                         />
-                                    </Grid>
+                                    </Grid> */}
                                 </Grid>
                                 <Grid item container md={12} spacing={1}>
                                     <Grid item md={6} sm={12} xs={12}>
