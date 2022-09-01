@@ -9,7 +9,7 @@ import axios from 'axios';
 import SearchRounded from '@mui/icons-material/SearchRounded';
 import { obtenerMaquina } from '../../../../utils/sistema/funciones';
 import ModalGenerico from '../../../../components/modalgenerico';
-import { URLAPIGENERAL, URLAPILOCAL } from '../../../../config';
+import { URLAPIGENERAL } from '../../../../config';
 // import CajaGenerica from '../../../../components/cajagenerica';
 
 import { MenuMantenimiento } from '../../../../components/sistema/menumatenimiento';
@@ -30,6 +30,7 @@ export default function RegistroRol() {
   const [datosgenerales, setdatosgenerales] = useState({
     fechaemision: new Date(),
     empleado: 0,
+    codigoempleado: '',
     nombreempleado: '',
     tipocreditos: '',
     tipo: 'I',
@@ -54,19 +55,11 @@ export default function RegistroRol() {
     { nombre: 'Poner Valor Manualmente', value: false },
   ];
   // Para coger el codigo del Hijo
-  const onValor = (event) => {
-    setdatosgenerales({ ...datosgenerales, codigomonto: event });
-    setactivarimoresion(true);
-  };
-  const onPorsentaje = (porcentaje) => {
-    // console.log(e);
-    setdatosgenerales({
-      ...datosgenerales,
-      porcentaje,
-      valormontocredito: porcentaje * (datosgenerales.sueldobase / 100),
-    });
-    // console.log(datosgenerales.valormontocredito);
-  };
+
+  // useEffect(() => {
+  //   onPorsentaje();
+  // }, []);
+
   // Parte del Modal
   const [tiposBusquedas] = useState([{ tipo: 'nombres' }, { tipo: 'codigo' }]);
 
@@ -78,8 +71,9 @@ export default function RegistroRol() {
     const item = e.row;
     setdatosgenerales({
       ...datosgenerales,
-      empleado: item.codigo,
+      empleado: item.id,
       nombreempleado: item.nombre,
+      codigoempleado: item.codigoempleado,
       sueldobase: item.sueldobase,
     });
     toggleShowEmpleados();
@@ -87,18 +81,49 @@ export default function RegistroRol() {
   useEffect(() => {
     async function getDatos() {
       const { data } = await axios(`${URLAPIGENERAL}/empleados/listar`);
-      const lista = data.map((e) => ({ codigo: e.codigo, nombre: e.nombres, sueldobase: e.sueldoBase }));
-      console.log(lista);
+      const lista = data.map((e) => ({
+        id: e.codigo,
+        codigo: e.codigo_Empleado,
+        nombre: e.nombres,
+        sueldobase: e.sueldoBase,
+        codigoempleado: e.codigo_Empleado,
+      }));
+      // console.log(lista);
       setlistarempleados(lista);
     }
     getDatos();
   }, []);
+  const onValor = (event) => {
+    setdatosgenerales({ ...datosgenerales, codigomonto: event });
+    setactivarimoresion(true);
+  };
+
+  const onPorsentaje = (porcentaje) => {
+    // console.log(e);
+    setdatosgenerales({
+      ...datosgenerales,
+      porcentaje,
+      // valormontocredito: porcentaje * (datosgenerales.sueldobase / 100),
+    });
+    // console.log(datosgenerales.valormontocredito);
+  };
+  useEffect(() => {
+    const Calculo = () => {
+      setdatosgenerales({
+        ...datosgenerales,
+        valormontocredito: datosgenerales.porcentaje * (datosgenerales.sueldobase / 100),
+      });
+    };
+    Calculo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [datosgenerales.empleado, datosgenerales.porcentaje]);
 
   const [error, seterror] = useState(false);
   const Nuevo = () => {
     setdatosgenerales({
       fechaemision: new Date(),
       empleado: 0,
+      codigoempleado: '',
       nombreempleado: '',
       tipocreditos: '',
       tipo: 'I',
@@ -158,7 +183,7 @@ export default function RegistroRol() {
         maquina,
         observacion: datosgenerales.observacion,
       };
-      console.log(datosfinales);
+      // console.log(datosfinales);
       const { data } = await axios.post(`${URLAPIGENERAL}/ingresoegresorol`, datosfinales, config);
       if (data === 200) {
         mensajeSistema('Registro Guardados correctamente ', 'success');
@@ -167,6 +192,7 @@ export default function RegistroRol() {
           `${URLAPIGENERAL}/ingresoegresorol/buscar?Codigodescr=${datosgenerales.codigomonto}`
         );
         setdatosgenerales({ ...datosgenerales, debito: response.data.numero });
+        Nuevo();
       }
     } catch {
       messajeTool('error', 'Se Obtuvo un error ');
@@ -227,7 +253,7 @@ export default function RegistroRol() {
                       fullWidth
                       size="small"
                       error={error}
-                      value={datosgenerales.empleado}
+                      value={datosgenerales.codigoempleado}
                       onChange={(e) => {
                         setdatosgenerales({
                           empleado: e.target.value,
@@ -332,12 +358,7 @@ export default function RegistroRol() {
                 </Grid>
                 <Grid container item spacing={1}>
                   <Grid item md={4} sm={4} xs={12}>
-                    <TipoCredito
-                      data={datosgenerales}
-                      tipo={datosgenerales.tipo}
-                      onValor={onValor}
-                      
-                    />
+                    <TipoCredito data={datosgenerales} tipo={datosgenerales.tipo} onValor={onValor} />
                   </Grid>
                   <Grid item md={4} sm={4} xs={12}>
                     <TextField
@@ -351,7 +372,7 @@ export default function RegistroRol() {
                           porcentaje: e.target.value,
                         });
                       }}
-                      value={datosgenerales.porcentaje.toFixed(2)}
+                      value={datosgenerales.porcentaje}
                     />
                   </Grid>
                 </Grid>
@@ -384,7 +405,7 @@ export default function RegistroRol() {
                       label="Monto Credito"
                       size="small"
                       fullWidth
-                      value={datosgenerales.valormontocredito}
+                      value={parseFloat(datosgenerales.valormontocredito)}
                       onChange={(e) => setdatosgenerales({ ...datosgenerales, valormontocredito: e.target.value })}
                     />
                   </Grid>
