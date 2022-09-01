@@ -109,7 +109,7 @@ export default function SolicitudDocumentos() {
                 maquinaapr: " ",
                 usuarioapr: 0
             }
-            const { data } = await axios.post(`${URLAPILOCAL}/SolicitudDocumentos`, form, config, setMostrarProgreso(true));
+            const { data } = await axios.post(`${URLAPIGENERAL}/SolicitudDocumentos`, form, config, setMostrarProgreso(true));
             if (data === 200) {
                 mensajeSistema('Datos registrados correctamente', 'success');
                 limpiarCampos();
