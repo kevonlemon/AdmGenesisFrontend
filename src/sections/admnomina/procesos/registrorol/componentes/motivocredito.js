@@ -17,6 +17,7 @@ export default function MotivoCredito(props) {
         setlistaropcionesmonto(data);
         setporcentaje(data[0].porcentaje);
         setopcionesmonto(data[0].codigo);
+        // console.log(data[0].porcentaje);
 
         // console.log('Vamos bien', data[0].codigo);
       } catch {
@@ -31,7 +32,7 @@ export default function MotivoCredito(props) {
       props.onPorcentaje(event);
     };
     EnviarPorsentaje(porcentaje);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [porcentaje]);
 
   return (
