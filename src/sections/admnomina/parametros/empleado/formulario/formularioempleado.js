@@ -19,11 +19,12 @@ import { URLAPIGENERAL, URLRUC, URLAPILOCAL } from "../../../../../config";
 import { esCedula, noEsVacio, esCorreo, formaterarFecha, generarCodigo, obtenerMaquina } from "../../../../../utils/sistema/funciones";
 import { MenuMantenimiento } from "../../../../../components/sistema/menumatenimiento";
 import CircularProgreso from "../../../../../components/Cargando";
-import CajaGenerica from "../../../../../components/cajagenerica";
+import ModalGenerico from "../../../../../components/modalgenerico";
 import { PATH_AUTH, PATH_PAGE } from '../../../../../routes/paths'
 import { fCurrency } from '../../../../../utils/formatNumber';
 import { styleActive, styleInactive, estilosdetabla, estilosdatagrid } from "../../../../../utils/csssistema/estilos";
 import { CustomNoRowsOverlay } from "../../../../../utils/csssistema/iconsdatagrid";
+import RequiredTextField from '../../../../../sistema/componentes/formulario/RequiredTextField';
 
 const meses = [
     { id: 1, nombre: 'Enero' },
@@ -682,7 +683,7 @@ export default function FormularioEmpleado() {
                     ]
                 }
                 // console.log(enviarjson);
-                const { data } = await axios.post(`${URLAPILOCAL}/empleados`, enviarjson, config,setMostrarProgreso(true));
+                const { data } = await axios.post(`${URLAPILOCAL}/empleados`, enviarjson, config, setMostrarProgreso(true));
                 if (data === 200) {
                     mensajeSistema('Registro guardado correctamente', 'success');
                     Volver();
@@ -743,7 +744,7 @@ export default function FormularioEmpleado() {
                     ]
                 }
                 // console.log("mira edit", enviarjson)
-                const { data } = await axios.put(`${URLAPILOCAL}/empleados`, enviarjson, config,setMostrarProgreso(true));
+                const { data } = await axios.put(`${URLAPILOCAL}/empleados`, enviarjson, config, setMostrarProgreso(true));
                 if (data === 200) {
                     mensajeSistema('Registro guardado correctamente', 'success');
                     Volver();
@@ -756,7 +757,7 @@ export default function FormularioEmpleado() {
                     // });
                 }
                 console.log(data);
-                
+
 
             }
 
@@ -770,7 +771,7 @@ export default function FormularioEmpleado() {
             } else {
                 mensajeSistema("Problemas al guardar verifique si se encuentra registrado", "error");
             }
-        } finally{
+        } finally {
             setMostrarProgreso(false);
         }
     }
@@ -999,11 +1000,11 @@ export default function FormularioEmpleado() {
     React.useEffect(() => {
         async function obtenerDatos() {
             try {
-                const tipodoc = await axios(`${URLAPIGENERAL}/mantenimientogenerico/listarportabla?tabla=CXC_TIPODOC`, config,setMostrarProgreso(true))
+                const tipodoc = await axios(`${URLAPIGENERAL}/mantenimientogenerico/listarportabla?tabla=CXC_TIPODOC`, config, setMostrarProgreso(true))
                 setListaTipoDoc(tipodoc.data);
 
                 if (modo === 'nuevo') {
-                    const inicial = await axios(`${URLAPIGENERAL}/iniciales/buscar?opcion=ADM`, config,setMostrarProgreso(true));
+                    const inicial = await axios(`${URLAPIGENERAL}/iniciales/buscar?opcion=ADM`, config, setMostrarProgreso(true));
                     const codigogenerado = generarCodigo('EM', inicial.data[0].numero, '0000')
 
                     setFormularioEmpleado({
@@ -1012,10 +1013,10 @@ export default function FormularioEmpleado() {
                     })
                 }
                 if (modo === 'editar') {
-                    const empleado = await axios(`${URLAPILOCAL}/empleados/obtener?codigo=${id}`, config,setMostrarProgreso(true))
+                    const empleado = await axios(`${URLAPILOCAL}/empleados/obtener?codigo=${id}`, config, setMostrarProgreso(true))
 
                     setFormularioEmpleado({
-                        
+
                         codigo: empleado.data.codigo,
                         codigo_Empleado: empleado.data.codigo_Empleado,
                         nombres: empleado.data.nombres,
@@ -1075,8 +1076,165 @@ export default function FormularioEmpleado() {
         obtenerDatos();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
+
+    // -----------------------------------------------------------------------------------------------------------------------------------
+    const [tiposBusquedasD, setTiposBusquedaD] = React.useState([{ tipo: 'nombre' }, { tipo: 'codigo' }]);
+    const [openModalD, setOpenModalD] = React.useState(false);
+    const toggleShowD = () => setOpenModalD(p => !p);
+    const handleCallbackChildD = (e) => {
+        const item = e.row;
+        setFormularioEmpleado({
+            ...formularioempleado,
+            departamento: item.codigo,
+            nombredepartamento: item.nombre
+        })
+        toggleShowD();
+    }
+    const [departamentos, setDepartamentos] = React.useState([]);
+    React.useEffect(() => {
+        async function getDepartamentos() {
+            const { data } = await axios(`${URLAPIGENERAL}/mantenimientogenerico/listarportabla?tabla=ADM_DEPARTAMENTO`, config)
+            const departamentos = data.map(m => ({
+                codigo: m.codigo,
+                nombre: m.nombre
+            }));
+            setDepartamentos(departamentos)
+        }
+        getDepartamentos()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+    async function buscarDepartamentos() {
+        try {
+            const { data } = await axios(`${URLAPIGENERAL}/mantenimientogenerico/obtener?codigo=${formularioempleado.departamento === '' ? 'string' : formularioempleado.departamento}&tabla=ADM_DEPARTAMENTO`, config)
+            if (data.length === 0) {
+                mensajeSistema('Código no encontrado', 'warning')
+                setOpenModalD(true);
+            } else {
+                setFormularioEmpleado({
+                    ...formularioempleado,
+                    departamento: data.codigo,
+                    nombredepartamento: data.nombre
+                })
+            }
+        } catch (error) {
+            console.log(error)
+        }
+    }
+    // -----------------------------------------------------------------------------------------------------------------------------------
+    const [tiposBusquedasC, setTiposBusquedaC] = React.useState([{ tipo: 'nombre' }, { tipo: 'codigo' }]);
+    const [openModalC, setOpenModalC] = React.useState(false);
+    const toggleShowC = () => setOpenModalC(p => !p);
+    const handleCallbackChildC = (e) => {
+        const item = e.row;
+        setFormularioEmpleado({
+            ...formularioempleado,
+            cargo: item.codigo,
+            nombrecargo: item.nombre
+        })
+        toggleShowC();
+    }
+    const [cargos, setCargos] = React.useState([]);
+    React.useEffect(() => {
+        async function getCargos() {
+            const { data } = await axios(`${URLAPIGENERAL}/mantenimientogenerico/listarportabla?tabla=ADM_CARGO`, config)
+            const cargos = data.map(m => ({
+                codigo: m.codigo,
+                nombre: m.nombre
+            }));
+            setCargos(cargos)
+        }
+        getCargos()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+    async function buscarCargos() {
+        try {
+            const { data } = await axios(`${URLAPIGENERAL}/mantenimientogenerico/obtener?codigo=${formularioempleado.cargo === '' ? 'string' : formularioempleado.cargo}&tabla=ADM_CARGO`, config)
+            if (data.length === 0) {
+                mensajeSistema('Código no encontrado', 'warning')
+                setOpenModalC(true);
+            } else {
+                setFormularioEmpleado({
+                    ...formularioempleado,
+                    cargo: data.codigo,
+                    nombrecargo: data.nombre
+                })
+            }
+        } catch (error) {
+            console.log(error)
+        }
+    }
+    // -----------------------------------------------------------------------------------------------------------------------------------
+    const [tiposBusquedasE, setTiposBusquedaE] = React.useState([{ tipo: 'nombre' }, { tipo: 'codigo' }]);
+    const [openModalE, setOpenModalE] = React.useState(false);
+    const toggleShowE = () => setOpenModalE(p => !p);
+    const handleCallbackChildE = (e) => {
+        const item = e.row;
+        setFormularioEmpleado({
+            ...formularioempleado,
+            nivelEstudio: item.codigo,
+            nombrenivelEstudio: item.nombre
+        })
+        toggleShowE();
+    }
+    const [estudios, setEstudios] = React.useState([]);
+    React.useEffect(() => {
+        async function getEstudios() {
+            const { data } = await axios(`${URLAPIGENERAL}/mantenimientogenerico/listarportabla?tabla=ADM_NIVEL_ESTUDIO`, config)
+            const estudios = data.map(m => ({
+                codigo: m.codigo,
+                nombre: m.nombre
+            }));
+            setEstudios(estudios)
+        }
+        getEstudios()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+    async function buscarEstudios() {
+        try {
+            const { data } = await axios(`${URLAPIGENERAL}/mantenimientogenerico/obtener?codigo=${formularioempleado.nivelEstudio === '' ? 'string' : formularioempleado.nivelEstudio}&tabla=ADM_NIVEL_ESTUDIO`, config)
+            if (data.length === 0) {
+                mensajeSistema('Código no encontrado', 'warning')
+                setOpenModalE(true);
+            } else {
+                setFormularioEmpleado({
+                    ...formularioempleado,
+                    nivelEstudio: data.codigo,
+                    nombrenivelEstudio: data.nombre
+                })
+            }
+        } catch (error) {
+            console.log(error)
+        }
+    }
+    // -----------------------------------------------------------------------------------------------------------------------------------
+
+
     return (
         <>
+            <ModalGenerico
+                nombre="Departamento"
+                openModal={openModalD}
+                busquedaTipo={tiposBusquedasD}
+                toggleShow={toggleShowD}
+                rowsData={departamentos}
+                parentCallback={handleCallbackChildD}
+            />
+            <ModalGenerico
+                nombre="Cargo"
+                openModal={openModalC}
+                busquedaTipo={tiposBusquedasC}
+                toggleShow={toggleShowC}
+                rowsData={cargos}
+                parentCallback={handleCallbackChildC}
+            />
+            <ModalGenerico
+                nombre="Estudio"
+                openModal={openModalE}
+                busquedaTipo={tiposBusquedasE}
+                toggleShow={toggleShowE}
+                rowsData={estudios}
+                parentCallback={handleCallbackChildE}
+            />
             <Page title="Empleados">
                 <CircularProgreso open={mostrarprogreso} handleClose1={() => { setMostrarProgreso(false) }} />
                 <MenuMantenimiento
@@ -1125,10 +1283,16 @@ export default function FormularioEmpleado() {
                                                         codigo_Empleado: e.target.value.toUpperCase()
                                                     })
                                                 }}
+                                                sx={{
+                                                    backgroundColor: "#e5e8eb",
+                                                    border: "none",
+                                                    borderRadius: '10px',
+                                                    color: "#212B36"
+                                                }}
                                             />
                                         </Grid>
                                         <Grid item md={8} sm={6} xs={12}>
-                                            <TextField
+                                            <RequiredTextField
                                                 error={error}
                                                 fullWidth
                                                 size="small"
@@ -1144,7 +1308,7 @@ export default function FormularioEmpleado() {
                                             />
                                         </Grid>
                                         <Grid item md={12} sm={12} xs={12}>
-                                            <TextField
+                                            <RequiredTextField
                                                 error={error}
                                                 fullWidth
                                                 size="small"
@@ -1160,7 +1324,7 @@ export default function FormularioEmpleado() {
                                             />
                                         </Grid>
                                         <Grid item md={4} sm={4} xs={12}>
-                                            <TextField
+                                            <RequiredTextField
                                                 select
                                                 label="Tipo"
                                                 value={tipodoc}
@@ -1177,10 +1341,10 @@ export default function FormularioEmpleado() {
                                                         <MenuItem key={t.codigo} value={t.codigo}> {t.nombre}</MenuItem>
                                                     )
                                                 }
-                                            </TextField>
+                                            </RequiredTextField>
                                         </Grid>
                                         <Grid item md={4} sm={4} xs={12}>
-                                            <TextField
+                                            <RequiredTextField
                                                 error={error}
                                                 fullWidth
                                                 type="number"
@@ -1207,7 +1371,7 @@ export default function FormularioEmpleado() {
                                             />
                                         </Grid>
                                         <Grid item md={4} sm={4} xs={12}>
-                                            <TextField
+                                            <RequiredTextField
                                                 error={error}
                                                 fullWidth
                                                 type="number"
@@ -1224,7 +1388,7 @@ export default function FormularioEmpleado() {
                                             />
                                         </Grid>
                                         <Grid item md={4} sm={4} xs={12}>
-                                            <TextField
+                                            <RequiredTextField
                                                 select
                                                 label="Sexo"
                                                 value={formularioempleado.sexo}
@@ -1239,10 +1403,10 @@ export default function FormularioEmpleado() {
                                             >
                                                 <MenuItem value="M"> MASCULINO</MenuItem>
                                                 <MenuItem value="F"> FEMENINO </MenuItem>
-                                            </TextField>
+                                            </RequiredTextField>
                                         </Grid>
                                         <Grid item md={8} sm={8} xs={12}>
-                                            <TextField
+                                            <RequiredTextField
                                                 error={error}
                                                 fullWidth
                                                 type="email"
@@ -1275,7 +1439,7 @@ export default function FormularioEmpleado() {
                                                             fechaNac: newValue
                                                         });
                                                     }}
-                                                    renderInput={(params) => <TextField {...params} fullWidth size="small" />}
+                                                    renderInput={(params) => <RequiredTextField {...params} fullWidth size="small" />}
                                                 />
                                             </LocalizationProvider>
                                         </Grid>
@@ -1291,12 +1455,12 @@ export default function FormularioEmpleado() {
                                                             fecing: newValue
                                                         });
                                                     }}
-                                                    renderInput={(params) => <TextField {...params} fullWidth size="small" />}
+                                                    renderInput={(params) => <RequiredTextField {...params} fullWidth size="small" />}
                                                 />
                                             </LocalizationProvider>
                                         </Grid>
                                         <Grid item md={4} sm={4} xs={12}>
-                                            <TextField
+                                            <RequiredTextField
                                                 error={error}
                                                 fullWidth
                                                 type="number"
@@ -1312,42 +1476,141 @@ export default function FormularioEmpleado() {
                                                 }}
                                             />
                                         </Grid>
-                                        <CajaGenerica
-                                            nombremodal="Departamento"
-                                            url={`${URLAPIGENERAL}/mantenimientogenerico/listarportabla?tabla=ADM_DEPARTAMENTO`}
-                                            disparador={(e) => {
-                                                setFormularioEmpleado({
-                                                    ...formularioempleado,
-                                                    departamento: e.codigo,
-                                                    nombredepartamento: e.nombre
-                                                })
-                                            }}
-                                            estadoinicial={{ codigo: formularioempleado.departamento, nombre: formularioempleado.nombredepartamento }}
-                                        />
-                                        <CajaGenerica
-                                            nombremodal="Cargo"
-                                            url={`${URLAPIGENERAL}/mantenimientogenerico/listarportabla?tabla=ADM_CARGO`}
-                                            disparador={(e) => {
-                                                setFormularioEmpleado({
-                                                    ...formularioempleado,
-                                                    cargo: e.codigo,
-                                                    nombrecargo: e.nombre
-                                                })
-                                            }}
-                                            estadoinicial={{ codigo: formularioempleado.cargo, nombre: formularioempleado.nombrecargo }}
-                                        />
-                                        <CajaGenerica
-                                            nombremodal="Estudio"
-                                            url={`${URLAPIGENERAL}/mantenimientogenerico/listarportabla?tabla=ADM_NIVEL_ESTUDIO`}
-                                            disparador={(e) => {
-                                                setFormularioEmpleado({
-                                                    ...formularioempleado,
-                                                    nivelEstudio: e.codigo,
-                                                    nombrenivelEstudio: e.nombre
-                                                })
-                                            }}
-                                            estadoinicial={{ codigo: formularioempleado.nivelEstudio, nombre: formularioempleado.nombrenivelEstudio }}
-                                        />
+                                        <Grid item container xs={12} md={12} spacing={1}>
+                                            <Grid item md={4} sm={4} xs={12}>
+                                                <RequiredTextField
+                                                    label="Departamento"
+                                                    fullWidth
+                                                    size="small"
+                                                    value={formularioempleado.departamento}
+                                                    onChange={(e) => {
+                                                        setFormularioEmpleado({
+                                                            ...formularioempleado,
+                                                            departamento: e.target.value,
+                                                        })
+                                                    }}
+                                                    InputProps={{
+                                                        endAdornment: (
+                                                            <InputAdornment position="end">
+                                                                <IconButton size="small"
+                                                                    onClick={() => {
+                                                                        buscarDepartamentos()
+                                                                    }}>
+                                                                    <SearchRounded />
+                                                                </IconButton>
+                                                            </InputAdornment>
+                                                        )
+                                                    }}
+                                                />
+                                            </Grid>
+                                            <Grid item md={8} sm={8} xs={12}>
+                                                <TextField
+                                                    disabled
+                                                    label="Nombre Departamento"
+                                                    fullWidth size="small"
+                                                    value={formularioempleado.nombredepartamento}
+                                                    InputProps={{
+                                                        readOnly: true
+                                                    }}
+                                                    sx={{
+                                                        backgroundColor: "#e5e8eb",
+                                                        border: "none",
+                                                        borderRadius: '10px',
+                                                        color: "#212B36"
+                                                    }}
+                                                />
+                                            </Grid>
+                                        </Grid>
+                                        <Grid item container xs={12} md={12} spacing={1}>
+                                            <Grid item md={4} sm={4} xs={12}>
+                                                <RequiredTextField
+                                                    label="Cargo"
+                                                    fullWidth
+                                                    size="small"
+                                                    value={formularioempleado.cargo}
+                                                    onChange={(e) => {
+                                                        setFormularioEmpleado({
+                                                            ...formularioempleado,
+                                                            cargo: e.target.value,
+                                                        })
+                                                    }}
+                                                    InputProps={{
+                                                        endAdornment: (
+                                                            <InputAdornment position="end">
+                                                                <IconButton size="small"
+                                                                    onClick={() => {
+                                                                        buscarCargos()
+                                                                    }}>
+                                                                    <SearchRounded />
+                                                                </IconButton>
+                                                            </InputAdornment>
+                                                        )
+                                                    }}
+                                                />
+                                            </Grid>
+                                            <Grid item md={8} sm={8} xs={12}>
+                                                <TextField
+                                                    disabled
+                                                    label="Nombre Cargo"
+                                                    fullWidth size="small"
+                                                    value={formularioempleado.nombrecargo}
+                                                    InputProps={{
+                                                        readOnly: true
+                                                    }}
+                                                    sx={{
+                                                        backgroundColor: "#e5e8eb",
+                                                        border: "none",
+                                                        borderRadius: '10px',
+                                                        color: "#212B36"
+                                                    }}
+                                                />
+                                            </Grid>
+                                        </Grid>
+                                        <Grid item container xs={12} md={12} spacing={1}>
+                                            <Grid item md={4} sm={4} xs={12}>
+                                                <RequiredTextField
+                                                    label="Estudio"
+                                                    fullWidth
+                                                    size="small"
+                                                    value={formularioempleado.nivelEstudio}
+                                                    onChange={(e) => {
+                                                        setFormularioEmpleado({
+                                                            ...formularioempleado,
+                                                            nivelEstudio: e.target.value,
+                                                        })
+                                                    }}
+                                                    InputProps={{
+                                                        endAdornment: (
+                                                            <InputAdornment position="end">
+                                                                <IconButton size="small"
+                                                                    onClick={() => {
+                                                                        buscarEstudios()
+                                                                    }}>
+                                                                    <SearchRounded />
+                                                                </IconButton>
+                                                            </InputAdornment>
+                                                        )
+                                                    }}
+                                                />
+                                            </Grid>
+                                            <Grid item md={8} sm={8} xs={12}>
+                                                <TextField
+                                                    disabled
+                                                    label="Nombre Estudio"
+                                                    fullWidth size="small"
+                                                    value={formularioempleado.nombrenivelEstudio}
+                                                    InputProps={{
+                                                        readOnly: true
+                                                    }}
+                                                    sx={{
+                                                        backgroundColor: "#e5e8eb",
+                                                        border: "none",
+                                                        borderRadius: '10px',
+                                                        color: "#212B36"
+                                                    }}
+                                                />
+                                            </Grid>
+                                        </Grid>
                                         <Grid item md={12} sm={12} xs={12}>
                                             <TextField
                                                 fullWidth
@@ -1356,13 +1619,19 @@ export default function FormularioEmpleado() {
                                                 label="Plantel*"
                                                 variant="outlined"
                                                 disabled
-                                            // value={formularioempleado.}
-                                            // onChange={e => {
-                                            //     setFormularioEmpleado({
-                                            //         ...formularioempleado,
-                                            //         sexo: e.target.value
-                                            //     })
-                                            // }}
+                                                // value={formularioempleado.}
+                                                // onChange={e => {
+                                                //     setFormularioEmpleado({
+                                                //         ...formularioempleado,
+                                                //         sexo: e.target.value
+                                                //     })
+                                                // }}
+                                                sx={{
+                                                    backgroundColor: "#e5e8eb",
+                                                    border: "none",
+                                                    borderRadius: '10px',
+                                                    color: "#212B36"
+                                                }}
                                             />
                                         </Grid>
                                     </Grid>
@@ -1510,7 +1779,7 @@ export default function FormularioEmpleado() {
                                 <Grid container spacing={1}>
                                     <Grid item container md={12} sm={12} xs={12} spacing={1}>
                                         <Grid item md={3} sm={12} xs={12}>
-                                            <TextField
+                                            <RequiredTextField
                                                 fullWidth
                                                 error={errorcertificado}
                                                 size="small"
@@ -1526,7 +1795,7 @@ export default function FormularioEmpleado() {
                                             />
                                         </Grid>
                                         <Grid item md={3} sm={12} xs={12}>
-                                            <TextField
+                                            <RequiredTextField
                                                 fullWidth
                                                 error={errorcertificado}
                                                 size="small"
@@ -1581,7 +1850,7 @@ export default function FormularioEmpleado() {
                                             </TextField>
                                         </Grid>
                                         <Grid item md={2} sm={4} xs={12}>
-                                            <TextField
+                                            <RequiredTextField
                                                 error={errorcertificado}
                                                 label="Año*"
                                                 value={formulariocertificado.anioExpedicion}
@@ -1608,12 +1877,12 @@ export default function FormularioEmpleado() {
                                                             fechaCaducidad: newValue
                                                         });
                                                     }}
-                                                    renderInput={(params) => <TextField {...params} fullWidth size="small" />}
+                                                    renderInput={(params) => <RequiredTextField {...params} fullWidth size="small" />}
                                                 />
                                             </LocalizationProvider>
                                         </Grid>
                                         <Grid item md={2} sm={12} xs={12}>
-                                            <TextField
+                                            <RequiredTextField
                                                 fullWidth
                                                 error={errorcertificado}
                                                 size="small"
@@ -1629,7 +1898,7 @@ export default function FormularioEmpleado() {
                                             />
                                         </Grid>
                                         <Grid item md={3} sm={12} xs={12}>
-                                            <TextField
+                                            <RequiredTextField
                                                 fullWidth
                                                 size="small"
                                                 label="Archivo*"
@@ -1729,7 +1998,7 @@ export default function FormularioEmpleado() {
                                 <Grid container spacing={1}>
                                     <Grid item container md={12} sm={12} xs={12} spacing={1}>
                                         <Grid item md={2} sm={12} xs={12}>
-                                            <TextField
+                                            <RequiredTextField
                                                 fullWidth
                                                 error={errorcarga}
                                                 size="small"
@@ -1745,7 +2014,7 @@ export default function FormularioEmpleado() {
                                             />
                                         </Grid>
                                         <Grid item md={3} sm={12} xs={12}>
-                                            <TextField
+                                            <RequiredTextField
                                                 fullWidth
                                                 error={errorcarga}
                                                 size="small"
@@ -1761,7 +2030,7 @@ export default function FormularioEmpleado() {
                                             />
                                         </Grid>
                                         <Grid item md={2} sm={12} xs={12}>
-                                            <TextField
+                                            <RequiredTextField
                                                 fullWidth
                                                 error={errorcarga}
                                                 type="number"

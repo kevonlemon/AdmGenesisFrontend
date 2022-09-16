@@ -20,6 +20,7 @@ import { CORS, URLAPILOCAL } from '../../../../../config';
 import { PATH_AUTH, PATH_PAGE } from '../../../../../routes/paths';
 import ModalGenerico from '../../../../../components/modalgenerico';
 import Page from '../../../../../components/Page';
+import RequiredTextField from '../../../../../sistema/componentes/formulario/RequiredTextField';
 
 
 // ----------------------------------------------------------------------
@@ -551,6 +552,12 @@ export default function EditarBancoCia() {
                     }}
                     value={dataBanco.inicial_Banco}
                     id="outlined-size-small"
+                    sx={{
+                        backgroundColor: "#e5e8eb",
+                        border: "none",
+                        borderRadius: '10px',
+                        color: "#212B36"
+                      }}
                   />
                 </Grid>
                 <Grid item md={7.5} xs={12} sm={7}>
@@ -570,6 +577,12 @@ export default function EditarBancoCia() {
                       });
                     }}
                     value={dataBanco.nombre}
+                    sx={{
+                        backgroundColor: "#e5e8eb",
+                        border: "none",
+                        borderRadius: '10px',
+                        color: "#212B36"
+                      }}
                   />
                 </Grid>
 
@@ -590,10 +603,17 @@ export default function EditarBancoCia() {
                       }}
                       value={dataBanco.numero_Cuenta}
                       id="outlined-size-small"
+                      sx={{
+                        backgroundColor: "#e5e8eb",
+                        border: "none",
+                        borderRadius: '10px',
+                        color: "#212B36"
+                      }}
                     />
                   </Grid>
                   <Grid item md={4} xs={12} sm={4}>
-                    <TextField select
+                    <RequiredTextField 
+                      select
                       error={error3}
                       label="Tipo de Cuenta"
                       value={dataBanco.tipo_Cuenta}
@@ -607,7 +627,7 @@ export default function EditarBancoCia() {
                           )
                         )
                       }
-                    </TextField>
+                    </RequiredTextField>
                   </Grid>
                 </Grid>
 

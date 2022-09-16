@@ -12,6 +12,7 @@ import CircularProgreso from '../../../../../components/Cargando';
 import { PATH_DASHBOARD, PATH_OPSISTEMA } from '../../../../../routes/paths';
 import { URLAPIGENERAL, CORS } from '../../../../../config';
 import Page from '../../../../../components/Page';
+import RequiredTextField from '../../../../../sistema/componentes/formulario/RequiredTextField';
 
 export default function newnominasegurosocial() {
 
@@ -317,11 +318,17 @@ export default function newnominasegurosocial() {
                                             value={dataNuevo.codigo}
                                             id="outlined-size-small"
                                             size="small"
+                                            sx={{
+                                                backgroundColor: "#e5e8eb",
+                                                border: "none",
+                                                borderRadius: '10px',
+                                                color: "#212B36"
+                                            }}
                                         />
                                     </Grid>
 
                                     <Grid item sm={9} xs={12} md={8}>
-                                        <TextField
+                                        <RequiredTextField
                                             error={error}
                                             fullWidth
                                             required
@@ -342,7 +349,7 @@ export default function newnominasegurosocial() {
                                     <Grid item sm={12} xs={12} md={12}>
                                         <Grid container direction="row" spacing={2} alignItems="center">
                                             <Grid item sm={6} xs={6} md={6}>
-                                                <TextField
+                                                <RequiredTextField
                                                     error={error1}
                                                     fullWidth
                                                     required
@@ -361,10 +368,10 @@ export default function newnominasegurosocial() {
                                                             )
                                                         )
                                                     }
-                                                </TextField>
+                                                </RequiredTextField>
                                             </Grid>
                                             <Grid item sm={6} xs={6} md={6}>
-                                                <TextField
+                                                <RequiredTextField
                                                     error={error2}
                                                     fullWidth
                                                     required
@@ -383,7 +390,7 @@ export default function newnominasegurosocial() {
                                                             )
                                                         )
                                                     }
-                                                </TextField>
+                                                </RequiredTextField>
                                             </Grid>
                                         </Grid>
 
@@ -392,7 +399,7 @@ export default function newnominasegurosocial() {
 
 
                                     <Grid item sm={4} xs={12} md={4}>
-                                        <TextField
+                                        <RequiredTextField
                                             error={error3}
                                             fullWidth
                                             required
@@ -412,7 +419,7 @@ export default function newnominasegurosocial() {
                                     </Grid>
 
                                     <Grid item sm={4} xs={12} md={4}>
-                                        <TextField
+                                        <RequiredTextField
                                             error={error4}
                                             fullWidth
                                             type="Number"
@@ -433,7 +440,7 @@ export default function newnominasegurosocial() {
 
 
                                     <Grid item sm={4} xs={12} md={4}>
-                                        <TextField
+                                        <RequiredTextField
                                             error={error5}
                                             fullWidth
                                             required

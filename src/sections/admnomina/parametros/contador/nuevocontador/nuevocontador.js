@@ -11,6 +11,7 @@ import { esCedula, noEsVacio, esCorreo } from "../../../../../utils/sistema/func
 import { MenuMantenimiento } from "../../../../../components/sistema/menumatenimiento";
 import CircularProgreso from "../../../../../components/Cargando";
 import { PATH_AUTH, PATH_PAGE } from '../../../../../routes/paths'
+import RequiredTextField from '../../../../../sistema/componentes/formulario/RequiredTextField';
 // import axiosInst from "../../../../../../utils/axiosBirobid";
 
 
@@ -139,7 +140,7 @@ export default function FormularioContador() {
             }
             else if (error.response.status === 500) {
                 navegacion(`${PATH_PAGE.page500}`);
-            } else{
+            } else {
                 mensajeSistema("Problemas al guardar verifique si se encuentra registrado", "error");
             }
         } finally {
@@ -188,11 +189,17 @@ export default function FormularioContador() {
                                             InputProps={{
                                                 readOnly: true
                                             }}
+                                            sx={{
+                                                backgroundColor: "#e5e8eb",
+                                                border: "none",
+                                                borderRadius: '10px',
+                                                color: "#212B36"
+                                            }}
                                         // value="-----"
                                         />
                                     </Grid>
                                     <Grid item md={3} sm={4} xs={12}>
-                                        <TextField
+                                        <RequiredTextField
                                             error={error}
                                             fullWidth
                                             type="number"
@@ -224,7 +231,7 @@ export default function FormularioContador() {
                                 </Grid>
                                 <Grid container item xs={12} spacing={1}>
                                     <Grid item md={2} sm={3} xs={12}>
-                                        <TextField
+                                        <RequiredTextField
                                             error={error}
                                             fullWidth
                                             // inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
@@ -245,7 +252,7 @@ export default function FormularioContador() {
                                         />
                                     </Grid>
                                     <Grid item md={4} sm={5} xs={12}>
-                                        <TextField
+                                        <RequiredTextField
                                             error={error}
                                             fullWidth
                                             size="small"
@@ -263,7 +270,7 @@ export default function FormularioContador() {
                                 </Grid>
                                 <Grid container item xs={12} spacing={1}>
                                     <Grid item md={6} sm={8} xs={12}>
-                                        <TextField
+                                        <RequiredTextField
                                             error={error}
                                             fullWidth
                                             size="small"
@@ -281,7 +288,7 @@ export default function FormularioContador() {
                                 </Grid>
                                 <Grid container item xs={12} spacing={1}>
                                     <Grid item md={2} sm={3} xs={12}>
-                                        <TextField
+                                        <RequiredTextField
                                             error={error}
                                             fullWidth
                                             size="small"
@@ -302,7 +309,7 @@ export default function FormularioContador() {
                                         />
                                     </Grid>
                                     <Grid item md={4} sm={5} xs={12}>
-                                        <TextField
+                                        <RequiredTextField
                                             error={errorcorreo}
                                             fullWidth
                                             size="small"
@@ -333,7 +340,7 @@ export default function FormularioContador() {
                                 </Grid>
                                 <Grid container item xs={12} spacing={1}>
                                     <Grid item md={2} sm={5} xs={12}>
-                                        <TextField
+                                        <RequiredTextField
                                             error={error}
                                             fullWidth
                                             size="small"

@@ -11,6 +11,7 @@ import HeaderBreadcrumbs from '../../../../components/HeaderBreadcrumbs';
 import { URLAPIGENERAL } from '../../../../config';
 import { PATH_AUTH, PATH_PAGE } from '../../../../routes/paths';
 import Page from '../../../../components/Page';
+import RequiredTextField from '../../../../sistema/componentes/formulario/RequiredTextField';
 
 export default function Homeempresa() {
   const usuario = JSON.parse(window.localStorage.getItem('usuario'));
@@ -72,7 +73,7 @@ export default function Homeempresa() {
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
   React.useEffect(() => {
-    
+
     async function getDatos() {
       try {
         const { data } = await axios(`${URLAPIGENERAL}/empresa/listar`, config, setMostrarProgreso(true));
@@ -348,10 +349,16 @@ export default function Homeempresa() {
                         });
                       }}
                       value={formulario.codigo}
+                      sx={{
+                        backgroundColor: "#e5e8eb",
+                        border: "none",
+                        borderRadius: '10px',
+                        color: "#212B36"
+                      }}
                     />
                   </Grid>
                   <Grid item sm={5} xs={12} md={5}>
-                    <TextField
+                    <RequiredTextField
                       fullWidth
                       // disabled
                       label="Nombre"
@@ -380,10 +387,16 @@ export default function Homeempresa() {
                         });
                       }}
                       value={formulario.ruc}
+                      sx={{
+                        backgroundColor: "#e5e8eb",
+                        border: "none",
+                        borderRadius: '10px',
+                        color: "#212B36"
+                      }}
                     />
                   </Grid>
                   <Grid item sm={12} xs={12} md={12}>
-                    <TextField
+                    <RequiredTextField
                       fullWidth
                       required
                       label="Dirección"
@@ -399,7 +412,7 @@ export default function Homeempresa() {
                     />
                   </Grid>
                   <Grid item sm={3.5} xs={12} md={3.5}>
-                    <TextField
+                    <RequiredTextField
                       fullWidth
                       required
                       label="Teléfono"
@@ -416,7 +429,7 @@ export default function Homeempresa() {
                     />
                   </Grid>
                   <Grid item sm={3.5} xs={12} md={3.5}>
-                    <TextField
+                    <RequiredTextField
                       fullWidth
                       required
                       type="number"
@@ -433,7 +446,7 @@ export default function Homeempresa() {
                     />
                   </Grid>
                   <Grid item sm={5} xs={12} md={5}>
-                    <TextField
+                    <RequiredTextField
                       fullWidth
                       required
                       error={errorcorreo}
@@ -460,7 +473,7 @@ export default function Homeempresa() {
                   </Grid>
 
                   <Grid item sm={6} xs={12} md={6}>
-                    <TextField
+                    <RequiredTextField
                       select
                       required
                       label="Repesentante"
@@ -479,11 +492,11 @@ export default function Homeempresa() {
                           {val.nombre}
                         </MenuItem>
                       ))}
-                    </TextField>
+                    </RequiredTextField>
                   </Grid>
 
                   <Grid item sm={6} xs={12} md={6}>
-                    <TextField
+                    <RequiredTextField
                       select
                       required
                       label="Contador"
@@ -497,7 +510,7 @@ export default function Homeempresa() {
                           {val.nombre}
                         </MenuItem>
                       ))}
-                    </TextField>
+                    </RequiredTextField>
                   </Grid>
 
                   {/* <Grid item sm={6} xs={12} md={6}>
@@ -537,7 +550,7 @@ export default function Homeempresa() {
                   </Grid> */}
 
                   <Grid item sm={6} xs={12} md={6}>
-                    <TextField
+                    <RequiredTextField
                       required
                       select
                       label="Contribuyente"
@@ -551,11 +564,11 @@ export default function Homeempresa() {
                           {val.nombre}
                         </MenuItem>
                       ))}
-                    </TextField>
+                    </RequiredTextField>
                   </Grid>
 
                   <Grid item sm={6} xs={12} md={6}>
-                    <TextField
+                    <RequiredTextField
                       required
                       fullWidth
                       // type="number"

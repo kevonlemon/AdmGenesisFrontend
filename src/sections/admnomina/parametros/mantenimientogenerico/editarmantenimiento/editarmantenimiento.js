@@ -10,6 +10,7 @@ import { URLAPIGENERAL } from "../../../../../config";
 import { MenuMantenimiento } from "../../../../../components/sistema/menumatenimiento";
 import CircularProgreso from '../../../../../components/Cargando';
 import { PATH_AUTH, PATH_PAGE } from '../../../../../routes/paths'
+import RequiredTextField from '../../../../../sistema/componentes/formulario/RequiredTextField';
 
 export default function Formulario() {
     document.body.style.overflowX = 'hidden';
@@ -187,7 +188,7 @@ export default function Formulario() {
                                 </Grid>
                                 <Grid container item xs={12} spacing={1}>
                                     <Grid item md={2} sm={3} xs={12}>
-                                        <TextField
+                                        <RequiredTextField
                                             error={error}
                                             fullWidth
                                             size="small"
@@ -204,7 +205,7 @@ export default function Formulario() {
                                         />
                                     </Grid>
                                     <Grid item md={4} sm={5} xs={12}>
-                                        <TextField
+                                        <RequiredTextField
                                             error={error}
                                             fullWidth
                                             size="small"
