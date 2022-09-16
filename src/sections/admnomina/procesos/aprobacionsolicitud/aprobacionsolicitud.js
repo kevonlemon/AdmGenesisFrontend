@@ -37,7 +37,7 @@ import ModalEmpleadosH from './components/modalempleadosh';
 import { estilosdetabla, estilosdatagrid, estilosacordeon } from '../../../../utils/csssistema/estilos';
 import Page from '../../../../components/Page';
 import { formaterarFecha, generarCodigo, obtenerMaquina } from '../../../../utils/sistema/funciones';
-import { fCurrency } from '../../../../utils/formatNumber';
+import RequiredTextField from '../../../../sistema/componentes/formulario/RequiredTextField';
 
 
 
@@ -260,7 +260,45 @@ export default function AprobacionSolicitud() {
         getDatos();
     }, [])
 
-    console.log('formulario', formulario)
+    // -----------------------------------------------------------------------------------------------------
+    async function buscarEmpleados(empleado) {
+        if (empleado === 'desde') {
+            try {
+                const { data } = await axios(`${URLAPILOCAL}/empleados/obtenerxcodigo?codigo=${formulario.codigoempleadodesde === '' ? 'string' : formulario.codigoempleadodesde}`, config)
+                if (data.length === 0) {
+                    mensajeSistema('Código no encontrado', 'warning')
+                    setOpenModalD(true);
+                } else {
+                    setFormulario({
+                        ...formulario,
+                        empleadodesde: data.codigo,
+                        codigoempleadodesde: data.codigo_Empleado,
+                        nombreempleadodesde: data.nombres
+                    });
+                }
+            } catch (error) {
+                console.log(error)
+            }
+        } else {
+            try {
+                const { data } = await axios(`${URLAPILOCAL}/empleados/obtenerxcodigo?codigo=${formulario.codigoempleadohasta === '' ? 'string' : formulario.codigoempleadohasta}`, config)
+                if (data.length === 0) {
+                    mensajeSistema('Código no encontrado', 'warning')
+                    setOpenModalH(true);
+                } else {
+                    setFormulario({
+                        ...formulario,
+                        empleadohasta: data.codigo,
+                        codigoempleadohasta: data.codigo_Empleado,
+                        nombreempleadohasta: data.nombres
+                    });
+                }
+            } catch (error) {
+                console.log(error)
+            }
+        }
+    }
+    // -----------------------------------------------------------------------------------------------------
 
     return (
         <>
@@ -371,16 +409,24 @@ export default function AprobacionSolicitud() {
                                                     <Grid item container spacing={1} md={9}>
                                                         <Grid item container spacing={1} md={12}>
                                                             <Grid item md={5} sm={6} xs={12}>
-                                                                <TextField
+                                                                <RequiredTextField
                                                                     size="small"
                                                                     fullWidth
                                                                     label="Empleado Desde"
                                                                     value={formulario.codigoempleadodesde}
+                                                                    onChange={(e) => {
+                                                                        setFormulario({
+                                                                            ...formulario,
+                                                                            codigoempleadodesde: e.target.value
+                                                                        })
+                                                                    }}
                                                                     InputProps={{
-                                                                        readOnly: true,
                                                                         endAdornment: (
                                                                             <InputAdornment position="end">
-                                                                                <IconButton size="small" onClick={() => { setOpenModalD(true) }}>
+                                                                                <IconButton size="small" onClick={() => { 
+                                                                                    const empleado = 'desde'
+                                                                                    buscarEmpleados(empleado) 
+                                                                                }}>
                                                                                     <SearchRoundedIcon />
                                                                                 </IconButton>
                                                                             </InputAdornment>
@@ -397,21 +443,35 @@ export default function AprobacionSolicitud() {
                                                                     InputProps={{
                                                                         readOnly: true
                                                                     }}
+                                                                    sx={{
+                                                                        backgroundColor: "#e5e8eb",
+                                                                        border: "none",
+                                                                        borderRadius: '10px',
+                                                                        color: "#212B36"
+                                                                    }}
                                                                 />
                                                             </Grid>
                                                         </Grid>
                                                         <Grid item container spacing={1} md={12}>
                                                             <Grid item md={5} sm={6} xs={12}>
-                                                                <TextField
+                                                                <RequiredTextField
                                                                     size="small"
                                                                     fullWidth
                                                                     label="Empleado Hasta"
                                                                     value={formulario.codigoempleadohasta}
+                                                                    onChange={(e) => {
+                                                                        setFormulario({
+                                                                            ...formulario,
+                                                                            codigoempleadohasta: e.target.value
+                                                                        })
+                                                                    }}
                                                                     InputProps={{
-                                                                        readOnly: true,
                                                                         endAdornment: (
                                                                             <InputAdornment position="end">
-                                                                                <IconButton size="small" onClick={() => { setOpenModalH(true) }}>
+                                                                                <IconButton size="small" onClick={() => { 
+                                                                                    const empleado = 'hasta'
+                                                                                    buscarEmpleados(empleado) 
+                                                                                }}>
                                                                                     <SearchRoundedIcon />
                                                                                 </IconButton>
                                                                             </InputAdornment>
@@ -427,6 +487,12 @@ export default function AprobacionSolicitud() {
                                                                     value={formulario.nombreempleadohasta}
                                                                     InputProps={{
                                                                         readOnly: true
+                                                                    }}
+                                                                    sx={{
+                                                                        backgroundColor: "#e5e8eb",
+                                                                        border: "none",
+                                                                        borderRadius: '10px',
+                                                                        color: "#212B36"
                                                                     }}
                                                                 />
                                                             </Grid>

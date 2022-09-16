@@ -3,6 +3,7 @@ import * as React from 'react';
 import PropTypes from "prop-types";
 import axios from 'axios';
 import { URLAPIGENERAL } from '../../../../../config';
+import RequiredTextField from '../../../../../sistema/componentes/formulario/RequiredTextField';
 
 Motivo.prototype = {
     disparador: PropTypes.func.isRequired,
@@ -37,7 +38,7 @@ export default function Motivo(props) {
     }, []);
 
     return (
-        <TextField
+        <RequiredTextField
             //   disabled={!desactivar}
             select
             label="Motivo"
@@ -54,6 +55,6 @@ export default function Motivo(props) {
                     {f.nombre}
                 </MenuItem>
             ))}
-        </TextField>
+        </RequiredTextField>
     );
 }

@@ -45,9 +45,10 @@ import ModalPacientes from "./Componentes/ModalPacientes";
 import { obtenerMaquina, formaterarFecha } from '../../../../utils/sistema/funciones';
 
 import { PATH_DASHBOARD, PATH_OPSISTEMA } from '../../../../routes/paths';
-import { CORS, URLAPIGENERAL } from '../../../../config';
+import { CORS, URLAPIGENERAL, URLAPILOCAL } from '../../../../config';
 import Page from '../../../../components/Page';
 import { fCurrency } from '../../../../utils/formatNumber';
+import RequiredTextField from '../../../../sistema/componentes/formulario/RequiredTextField';
 
 
 
@@ -79,8 +80,8 @@ export default function beneficiosocial() {
     const [error1, setError1] = useState(false);
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const [error2, setError2] = useState(false);
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-    const [ fechaerror, setFechaerror] = useState(false); 
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const [fechaerror, setFechaerror] = useState(false);
     const ocultaFooter = true;
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const [rows, setRows] = useState([]);
@@ -98,7 +99,16 @@ export default function beneficiosocial() {
     })
 
     // console.log(filas)
-
+    // MENSAJE GENERICO
+  const mensajeSistema = (mensaje, variante) => {
+    enqueueSnackbar(mensaje, {
+      variant: variante,
+      anchorOrigin: {
+        vertical: 'top',
+        horizontal: 'center',
+      },
+    });
+  };
     const messajeTool = (variant, msg) => {
         enqueueSnackbar(msg, {
             variant, anchorOrigin: { vertical: 'top', horizontal: 'center' },
@@ -322,7 +332,7 @@ export default function beneficiosocial() {
                 nombre: dataRes[ultimovalor].nombres, // string 100
                 cedula: dataRes[ultimovalor].cedula, // string
             })
-      
+
 
         }
 
@@ -437,7 +447,7 @@ export default function beneficiosocial() {
 
     const validarsave = () => {
 
-        const esfechaValida = anio.anio <= tiempo.getFullYear() ;
+        const esfechaValida = anio.anio <= tiempo.getFullYear();
 
         if (!esfechaValida) {
             messajeTool('error', 'Por favor, debe colocar algun año anterior o el año actual.')
@@ -490,7 +500,7 @@ export default function beneficiosocial() {
 
 
             const response =
-                await axios(`${URLAPIGENERAL}/beneficioempleado/listar?Empleado1=${Datospaciente.id}&Empleado2=${Datospaciente2.id}`,config, setMostrarProgreso(true))
+                await axios(`${URLAPIGENERAL}/beneficioempleado/listar?Empleado1=${Datospaciente.id}&Empleado2=${Datospaciente2.id}`, config, setMostrarProgreso(true))
 
             const datos = response.data;
             if (response.status === 200) {
@@ -803,6 +813,50 @@ export default function beneficiosocial() {
 
     }
 
+    // -----------------------------------------------------------------------------------------------------
+    async function buscarEmpleados(empleado) {
+        if (empleado === 'desde') {
+            try {
+                const { data } = await axios(`${URLAPILOCAL}/empleados/obtenerxcodigo?codigo=${Datospaciente.codigo === '' ? 'string' : Datospaciente.codigo}`, config)
+                if (data.length === 0) {
+                    mensajeSistema('Código no encontrado', 'warning')
+                    setOpenModallistpacientes(true);
+                } else {
+                    setDatospaciente({
+                        ...Datospaciente,
+                        id: data.codigo,
+                        codigo: data.codigo_Empleado,
+                        nombre: data.nombres,
+                        cedula: data.cedula,
+                        sexo: data.sexo === 'M' ? 'MASCULINO' : 'FEMENINO',
+                    })
+                }
+            } catch (error) {
+                console.log(error)
+            }
+        } else {
+            try {
+                const { data } = await axios(`${URLAPILOCAL}/empleados/obtenerxcodigo?codigo=${Datospaciente2.codigo === '' ? 'string' : Datospaciente2.codigo}`, config)
+                if (data.length === 0) {
+                    mensajeSistema('Código no encontrado', 'warning')
+                    setOpenModalProducto(true);
+                } else {
+                    setDatospaciente2({
+                        ...Datospaciente2,
+                        id: data.codigo,
+                        codigo: data.codigo_Empleado,
+                        nombre: data.nombres,
+                        cedula: data.cedula,
+                        sexo: data.sexo === 'M' ? 'MASCULINO' : 'FEMENINO',
+                    })
+                }
+            } catch (error) {
+                console.log(error)
+            }
+        }
+    }
+    // -----------------------------------------------------------------------------------------------------
+
 
     // ------------------------Mostrar a pantalla---------------------------->
 
@@ -876,7 +930,7 @@ export default function beneficiosocial() {
                                                     <Grid item container spacing={1} md={12}>
 
                                                         <Grid item sm={3} xs={5} md={3}>
-                                                            <TextField
+                                                            <RequiredTextField
                                                                 fullWidth
                                                                 // disabled
                                                                 error={error1}
@@ -892,20 +946,21 @@ export default function beneficiosocial() {
                                                                 }}
                                                                 value={Datospaciente.codigo}
                                                                 InputProps={{
-                                                                    readOnly: true,
                                                                     endAdornment: (
                                                                         <InputAdornment position="start">
                                                                             <IconButton
                                                                                 disabled={enableAñadir}
                                                                                 aria-label="SearchIcon"
                                                                                 onClick={() => {
-                                                                                    setOpenModallistpacientes(true);
-                                                                                    setError1(false);
-                                                                                    setDatospaciente2({
-                                                                                        codigo: '---', // int
-                                                                                        nombre: '---', // string 100
-                                                                                        cedula: '---', // string
-                                                                                    });
+                                                                                    // setOpenModallistpacientes(true);
+                                                                                    // setError1(false);
+                                                                                    // setDatospaciente2({
+                                                                                    //     codigo: '---', // int
+                                                                                    //     nombre: '---', // string 100
+                                                                                    //     cedula: '---', // string
+                                                                                    // });
+                                                                                    const empleado = 'desde'
+                                                                                    buscarEmpleados(empleado)
                                                                                 }}
                                                                             >
                                                                                 <SearchIcon />
@@ -925,6 +980,12 @@ export default function beneficiosocial() {
                                                                 size="small"
                                                                 InputProps={{ readOnly: true }}
                                                                 value={Datospaciente.nombre}
+                                                                sx={{
+                                                                    backgroundColor: "#e5e8eb",
+                                                                    border: "none",
+                                                                    borderRadius: '10px',
+                                                                    color: "#212B36"
+                                                                }}
                                                             />
                                                         </Grid>
                                                         <Grid item md={3} xs={12} sm={3}>
@@ -947,7 +1008,7 @@ export default function beneficiosocial() {
                                                         </Grid>
 
                                                         <Grid item sm={3} xs={5} md={3}>
-                                                            <TextField
+                                                            <RequiredTextField
                                                                 fullWidth
                                                                 // disabled
                                                                 required
@@ -963,15 +1024,16 @@ export default function beneficiosocial() {
                                                                 }}
                                                                 value={Datospaciente2.codigo}
                                                                 InputProps={{
-                                                                    readOnly: true,
                                                                     endAdornment: (
                                                                         <InputAdornment position="start">
                                                                             <IconButton
                                                                                 // disabled={enableAñadir}
                                                                                 aria-label="SearchIcon"
                                                                                 onClick={() => {
-                                                                                    setOpenModalProducto(true);
-                                                                                    setError2(false);
+                                                                                    // setOpenModalProducto(true);
+                                                                                    // setError2(false);
+                                                                                    const empleado = 'hasta'
+                                                                                    buscarEmpleados(empleado)
                                                                                 }}
                                                                             >
                                                                                 <SearchIcon />
@@ -991,6 +1053,12 @@ export default function beneficiosocial() {
                                                                 size="small"
                                                                 InputProps={{ readOnly: true }}
                                                                 value={Datospaciente2.nombre}
+                                                                sx={{
+                                                                    backgroundColor: "#e5e8eb",
+                                                                    border: "none",
+                                                                    borderRadius: '10px',
+                                                                    color: "#212B36"
+                                                                }}
                                                             />
                                                         </Grid>
                                                         <Grid item md={3} xs={12} sm={3}>
@@ -1013,7 +1081,7 @@ export default function beneficiosocial() {
 
                                                         <Grid item md={12} sm={12} xs={12}>
                                                             <Grid>
-                                                                <TextField
+                                                                <RequiredTextField
                                                                     fullWidth
                                                                     label="Observacion"
                                                                     required
@@ -1041,7 +1109,7 @@ export default function beneficiosocial() {
                                             <Grid container spacing={1}>
                                                 <Grid item md={12} sm={12} xs={12}>
                                                     <Grid>
-                                                        <TextField
+                                                        <RequiredTextField
                                                             fullWidth
                                                             error={fechaerror}
                                                             label="Año"
@@ -1063,7 +1131,7 @@ export default function beneficiosocial() {
                                                 </Grid>
                                                 <Grid item md={12} sm={12} xs={12}>
                                                     <Grid>
-                                                        <TextField
+                                                        <RequiredTextField
                                                             fullWidth
                                                             required
                                                             select
@@ -1082,7 +1150,7 @@ export default function beneficiosocial() {
                                                                     )
                                                                 )
                                                             }
-                                                        </TextField>
+                                                        </RequiredTextField>
                                                     </Grid>
                                                 </Grid>
                                             </Grid>

@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { URLAPIGENERAL } from '../../../../../config';
+import RequiredTextField from '../../../../../sistema/componentes/formulario/RequiredTextField';
 
 export default function MotivoCredito(props) {
   const { codigo } = props;
@@ -38,7 +39,7 @@ export default function MotivoCredito(props) {
   return (
     <>
       <Grid item md={12} sm={12} xs={12}>
-        <TextField
+        <RequiredTextField
           select
           label="Motivo Credito"
           fullWidth
@@ -55,7 +56,7 @@ export default function MotivoCredito(props) {
               {f.nombre}
             </MenuItem>
           ))}
-        </TextField>
+        </RequiredTextField>
       </Grid>
     </>
   );

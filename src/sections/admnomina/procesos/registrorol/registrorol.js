@@ -9,7 +9,8 @@ import axios from 'axios';
 import SearchRounded from '@mui/icons-material/SearchRounded';
 import { obtenerMaquina } from '../../../../utils/sistema/funciones';
 import ModalGenerico from '../../../../components/modalgenerico';
-import { URLAPIGENERAL } from '../../../../config';
+import { URLAPIGENERAL, URLAPILOCAL } from '../../../../config';
+import RequiredTextField from '../../../../sistema/componentes/formulario/RequiredTextField';
 // import CajaGenerica from '../../../../components/cajagenerica';
 
 import { MenuMantenimiento } from '../../../../components/sistema/menumatenimiento';
@@ -116,7 +117,7 @@ export default function RegistroRol() {
     };
     Calculo();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [datosgenerales.empleado, datosgenerales.porcentaje]);
+  }, [datosgenerales.nombreempleado, datosgenerales.porcentaje]);
 
   const [error, seterror] = useState(false);
   const Nuevo = () => {
@@ -200,6 +201,28 @@ export default function RegistroRol() {
     }
   };
 
+  // -----------------------------------------------------------------------------------------------------
+  async function buscarEmpleados() {
+    try {
+      const { data } = await axios(`${URLAPILOCAL}/empleados/obtenerxcodigo?codigo=${datosgenerales.codigoempleado === '' ? 'string' : datosgenerales.codigoempleado}`, config)
+      if (data.length === 0) {
+        mensajeSistema('Código no encontrado', 'warning')
+        setopenmodalEmpleados(true);
+      } else {
+        setdatosgenerales({
+          ...datosgenerales,
+          empleado: data.codigo,
+          codigoempleado: data.codigo_Empleado,
+          nombreempleado: data.nombres,
+          sueldobase: data.sueldoBase
+        })
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
+  // -----------------------------------------------------------------------------------------------------
+
   return (
     <>
       <ModalGenerico
@@ -212,6 +235,7 @@ export default function RegistroRol() {
       />
       <Page title="Registro Rol">
         <MenuMantenimiento
+          nomostrarvolver
           modo
           nuevo={Nuevo}
           grabar={Grabar}
@@ -248,7 +272,7 @@ export default function RegistroRol() {
                     </LocalizationProvider>
                   </Grid>
                   <Grid item md={2} sm={2} xs={12}>
-                    <TextField
+                    <RequiredTextField
                       label="Empleado *"
                       fullWidth
                       size="small"
@@ -256,17 +280,17 @@ export default function RegistroRol() {
                       value={datosgenerales.codigoempleado}
                       onChange={(e) => {
                         setdatosgenerales({
-                          empleado: e.target.value,
+                          ...datosgenerales,
+                          codigoempleado: e.target.value,
                         });
                       }}
                       InputProps={{
-                        readOnly: true,
                         endAdornment: (
                           <InputAdornment position="end">
                             <IconButton
                               size="small"
                               onClick={() => {
-                                setopenmodalEmpleados(true);
+                                buscarEmpleados()
                               }}
                             >
                               <SearchRounded />
@@ -292,6 +316,12 @@ export default function RegistroRol() {
                       InputProps={{
                         readOnly: true,
                       }}
+                      sx={{
+                        backgroundColor: "#e5e8eb",
+                        border: "none",
+                        borderRadius: '10px',
+                        color: "#212B36"
+                      }}
                     />
                   </Grid>
                 </Grid>
@@ -308,6 +338,12 @@ export default function RegistroRol() {
                         sueldobase: e.target.value,
                       })}
                       disabled
+                      sx={{
+                        backgroundColor: "#e5e8eb",
+                        border: "none",
+                        borderRadius: '10px',
+                        color: "#212B36"
+                      }}
                     />
                   </Grid>
                   <Grid item md={4} sm={4} xs={12}>
@@ -317,6 +353,12 @@ export default function RegistroRol() {
                       disabled
                       value={datosgenerales.debito}
                       onChange={(e) => setdatosgenerales({ ...datosgenerales, debito: e.target.value })}
+                      sx={{
+                        backgroundColor: "#e5e8eb",
+                        border: "none",
+                        borderRadius: '10px',
+                        color: "#212B36"
+                      }}
                     />
                   </Grid>
                 </Grid>
@@ -335,7 +377,7 @@ export default function RegistroRol() {
               <Grid container spacing={1}>
                 <Grid container item spacing={1}>
                   <Grid item md={4} sm={4} xs={12}>
-                    <TextField
+                    <RequiredTextField
                       select
                       label="Tipo de Movimiento"
                       fullWidth
@@ -353,7 +395,7 @@ export default function RegistroRol() {
                           {f.nombre}
                         </MenuItem>
                       ))}
-                    </TextField>
+                    </RequiredTextField>
                   </Grid>
                 </Grid>
                 <Grid container item spacing={1}>
@@ -373,6 +415,12 @@ export default function RegistroRol() {
                         });
                       }}
                       value={datosgenerales.porcentaje}
+                      sx={{
+                        backgroundColor: "#e5e8eb",
+                        border: "none",
+                        borderRadius: '10px',
+                        color: "#212B36"
+                      }}
                     />
                   </Grid>
                 </Grid>
@@ -418,7 +466,7 @@ export default function RegistroRol() {
                       size="small"
                       error={error}
                       fullWidth
-                      value={datosgenerales.observacion.toLocaleUpperCase()}
+                      value={datosgenerales.observacion}
                       onChange={(e) =>
                         setdatosgenerales({
                           ...datosgenerales,

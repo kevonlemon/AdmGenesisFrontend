@@ -29,6 +29,7 @@ import { styleActive, styleInactive, estilosdetabla, estilosdatagrid } from "../
 import { CustomNoRowsOverlay } from "../../../../utils/csssistema/iconsdatagrid";
 import { formaterarFecha, generarCodigo, obtenerMaquina } from '../../../../utils/sistema/funciones';
 import { fCurrency } from '../../../../utils/formatNumber';
+import RequiredTextField from '../../../../sistema/componentes/formulario/RequiredTextField';
 
 
 export default function Empleado() {
@@ -341,18 +342,18 @@ export default function Empleado() {
                     ...detalleprestamos
                 ]
             }
-            const { data } = await axios.post(`${URLAPILOCAL}/prestamo`,enviarjson, config, setMostrarProgreso(true));
+            const { data } = await axios.post(`${URLAPILOCAL}/prestamo`, enviarjson, config, setMostrarProgreso(true));
             if (data === 200) {
                 mensajeSistema('Datos registrados correctamente', 'success');
                 limpiarCampos();
                 setImprimir(false);
                 const inicial = await axios(`${URLAPIGENERAL}/iniciales/buscar?opcion=NOM`, config, setMostrarProgreso(true));
                 const inicialprestamo = inicial.data.filter(m => m.usadoEnOpcion === 'NOM_PRESTAMO_CAB')
-                
+
                 // console.log(inicial);
                 const codigogenerado = generarCodigo(inicialprestamo[0].inicial, inicialprestamo[0].numero, '0000')
-                const codigogeneradoimp = generarCodigo(inicialprestamo[0].inicial, parseFloat(inicialprestamo[0].numero)-1, '0000')
-                
+                const codigogeneradoimp = generarCodigo(inicialprestamo[0].inicial, parseFloat(inicialprestamo[0].numero) - 1, '0000')
+
                 setFormulario({
                     ...formulario,
                     codigo: codigogenerado,
@@ -370,7 +371,7 @@ export default function Empleado() {
             } else {
                 mensajeSistema("Problemas al guardar verifique si se encuentra registrado", "error");
             }
-        } finally{
+        } finally {
             setMostrarProgreso(false);
         }
     }
@@ -416,6 +417,28 @@ export default function Empleado() {
         getDatos();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // -----------------------------------------------------------------------------------------------------
+    async function buscarEmpleados() {
+        try {
+            const { data } = await axios(`${URLAPILOCAL}/empleados/obtenerxcodigo?codigo=${formulario.codigoempleado === '' ? 'string' : formulario.codigoempleado}`, config)
+            if (data.length === 0) {
+                mensajeSistema('Código no encontrado', 'warning')
+                setOpenModal(true);
+            } else {
+                setFormulario({
+                    ...formulario,
+                    empleado: data.codigo,
+                    codigoempleado: data.codigo_Empleado,
+                    nombreempleado: data.nombres
+                })
+            }
+        } catch (error) {
+            console.log(error)
+        }
+    }
+    // -----------------------------------------------------------------------------------------------------
+
     return (
         <>
             <CircularProgreso open={mostrarprogreso} handleClose1={() => { setMostrarProgreso(false) }} />
@@ -482,25 +505,36 @@ export default function Empleado() {
                         <Box>
                             <Grid container spacing={1}>
                                 <Grid item md={1.5} sm={6} xs={12}>
-                                    <TextField
+                                    <RequiredTextField
                                         disabled
                                         size="small"
                                         fullWidth
                                         label="Codigo"
                                         value={formulario.codigo}
+                                        sx={{
+                                            backgroundColor: "#e5e8eb",
+                                            border: "none",
+                                            borderRadius: '10px',
+                                            color: "#212B36"
+                                        }}
                                     />
                                 </Grid>
                                 <Grid item md={1.8} sm={6} xs={12}>
-                                    <TextField
+                                    <RequiredTextField
                                         size="small"
                                         fullWidth
                                         label="Empleado"
                                         value={formulario.codigoempleado}
+                                        onChange={(e) => {
+                                            setFormulario({
+                                                ...formulario,
+                                                codigoempleado: e.target.value
+                                            })
+                                        }}
                                         InputProps={{
-                                            readOnly: true,
                                             endAdornment: (
                                                 <InputAdornment position="end">
-                                                    <IconButton size="small" onClick={() => { setOpenModal(true) }}>
+                                                    <IconButton size="small" onClick={() => { buscarEmpleados() }}>
                                                         <SearchRoundedIcon />
                                                     </IconButton>
                                                 </InputAdornment>
@@ -517,10 +551,16 @@ export default function Empleado() {
                                         InputProps={{
                                             readOnly: true
                                         }}
+                                        sx={{
+                                            backgroundColor: "#e5e8eb",
+                                            border: "none",
+                                            borderRadius: '10px',
+                                            color: "#212B36"
+                                        }}
                                     />
                                 </Grid>
                                 <Grid item md={2} sm={6} xs={12}>
-                                    <TextField
+                                    <RequiredTextField
                                         select
                                         size="small"
                                         fullWidth
@@ -542,10 +582,10 @@ export default function Empleado() {
                                             ))
                                         }
 
-                                    </TextField>
+                                    </RequiredTextField>
                                 </Grid>
                                 <Grid item md={1.5} sm={6} xs={12}>
-                                    <TextField
+                                    <RequiredTextField
                                         type="number"
                                         size="small"
                                         fullWidth
@@ -573,7 +613,7 @@ export default function Empleado() {
                                     />
                                 </Grid>
                                 <Grid item md={1.5} sm={6} xs={12}>
-                                    <TextField
+                                    <RequiredTextField
                                         size="small"
                                         fullWidth
                                         label="Plazo"
@@ -609,7 +649,7 @@ export default function Empleado() {
                                 </Grid>
 
                                 <Grid item md={1.5} sm={6} xs={12}>
-                                    <TextField
+                                    <RequiredTextField
                                         size="small"
                                         fullWidth
                                         label="Tasa"
@@ -644,10 +684,16 @@ export default function Empleado() {
                                                 valorDividendo: e.target.value
                                             }
                                         )}
+                                        sx={{
+                                            backgroundColor: "#e5e8eb",
+                                            border: "none",
+                                            borderRadius: '10px',
+                                            color: "#212B36"
+                                        }}
                                     />
                                 </Grid>
                                 <Grid item md={1.5} sm={6} xs={12}>
-                                    <TextField
+                                    <RequiredTextField
                                         disabled={formulario.tipo === 'TP0003'}
                                         size="small"
                                         fullWidth
@@ -682,6 +728,12 @@ export default function Empleado() {
                                                 liquidoRecibir: e.target.value
                                             }
                                         )}
+                                        sx={{
+                                            backgroundColor: "#e5e8eb",
+                                            border: "none",
+                                            borderRadius: '10px',
+                                            color: "#212B36"
+                                        }}
                                     />
                                 </Grid>
                                 <Grid item md={2} sm={6} xs={12}>
@@ -697,7 +749,14 @@ export default function Empleado() {
                                                     fechaPrimerDividendo: newValue
                                                 });
                                             }}
-                                            renderInput={(params) => <TextField {...params} fullWidth size="small" />}
+                                            renderInput={(params) => <TextField {...params} fullWidth size="small"
+                                                sx={{
+                                                    backgroundColor: "#e5e8eb",
+                                                    border: "none",
+                                                    borderRadius: '10px',
+                                                    color: "#212B36"
+                                                }}
+                                            />}
                                         />
                                     </LocalizationProvider>
                                 </Grid>
@@ -714,7 +773,14 @@ export default function Empleado() {
                                                     fechaUltimoDividendo: newValue
                                                 });
                                             }}
-                                            renderInput={(params) => <TextField {...params} fullWidth size="small" />}
+                                            renderInput={(params) => <TextField {...params} fullWidth size="small"
+                                                sx={{
+                                                    backgroundColor: "#e5e8eb",
+                                                    border: "none",
+                                                    borderRadius: '10px',
+                                                    color: "#212B36"
+                                                }}
+                                            />}
                                         />
                                     </LocalizationProvider>
                                 </Grid>
@@ -723,7 +789,7 @@ export default function Empleado() {
                         <Box mt={2}>
                             <Grid container spacing={1}>
                                 <Grid item md={2} sm={4} xs={12}>
-                                    <TextField
+                                    <RequiredTextField
                                         // disabled
                                         select
                                         size="small"
@@ -741,7 +807,7 @@ export default function Empleado() {
                                     >
                                         <MenuItem value="ALEMAN">ALEMAN</MenuItem>
                                         <MenuItem value="FRANCES">FRANCES</MenuItem>
-                                    </TextField>
+                                    </RequiredTextField>
                                 </Grid>
                                 <Grid item md={1.2} sm={4} xs={12}>
                                     <Button
