@@ -12,6 +12,7 @@ import { esCedula, noEsVacio, esCorreo, obtenerMaquina } from "../../../../../ut
 import { MenuMantenimiento } from "../../../../../components/sistema/menumatenimiento";
 import CircularProgreso from "../../../../../components/Cargando";
 import { PATH_AUTH, PATH_PAGE } from '../../../../../routes/paths'
+import RequiredTextField from '../../../../../sistema/componentes/formulario/RequiredTextField';
 
 export default function FormularioRegisroPersona() {
   document.body.style.overflowX = 'hidden';
@@ -244,7 +245,7 @@ export default function FormularioRegisroPersona() {
         <MenuMantenimiento modo={false} nuevo={() => Nuevo()} grabar={() => Grabar()} volver={() => Volver()} />
         <Fade in style={{ transformOrigin: '0 0 0' }} timeout={1000}>
           <Box sx={{ ml: 3, mr: 3, p: 1, width: '100%' }}>
-            <h1>Ingreso de Persona</h1>
+            <h1>Editar Persona</h1>
           </Box>
         </Fade>
         <Fade in style={{ transformOrigin: '0 0 0' }} timeout={1000}>
@@ -264,6 +265,12 @@ export default function FormularioRegisroPersona() {
                         readOnly: true,
                       }}
                       value={formulario.codigo}
+                      sx={{
+                        backgroundColor: "#e5e8eb",
+                        border: "none",
+                        borderRadius: '10px',
+                        color: "#212B36"
+                      }}
                     />
                   </Grid>
                   {/* <Grid item md={2} xs={12} sm={6}>
@@ -286,7 +293,7 @@ export default function FormularioRegisroPersona() {
 
                 <Grid container item xs={12} spacing={1}>
                   <Grid item md={2.5} xs={12} sm={6}>
-                    <TextField
+                    <RequiredTextField
                       fullWidth
                       size="small"
                       error={error}
@@ -303,7 +310,7 @@ export default function FormularioRegisroPersona() {
                     />
                   </Grid>
                   <Grid item md={2.5} xs={12} sm={6}>
-                    <TextField
+                    <RequiredTextField
                       fullWidth
                       size="small"
                       error={error}
@@ -325,7 +332,7 @@ export default function FormularioRegisroPersona() {
                     <TipoPersona data={formulario} />
                   </Grid>
                   <Grid item md={2.5} xs={12} sm={6}>
-                    <TextField
+                    <RequiredTextField
                       fullWidth
                       size="small"
                       type="number"
@@ -354,7 +361,7 @@ export default function FormularioRegisroPersona() {
 
                 <Grid container item xs={12} spacing={1}>
                   <Grid item md={2} xs={12} sm={6}>
-                    <TextField
+                    <RequiredTextField
                       fullWidth
                       size="small"
                       error={error}
@@ -371,7 +378,7 @@ export default function FormularioRegisroPersona() {
                     />
                   </Grid>
                   <Grid item md={3} xs={12} sm={6}>
-                    <TextField
+                    <RequiredTextField
                       fullWidth
                       size="small"
                       error={error}
@@ -391,7 +398,7 @@ export default function FormularioRegisroPersona() {
 
                 <Grid container item xs={12} spacing={1}>
                   <Grid item xs={12} md={5}>
-                    <TextField
+                    <RequiredTextField
                       fullWidth
                       size="small"
                       error={error}
@@ -411,7 +418,7 @@ export default function FormularioRegisroPersona() {
 
                 <Grid container item xs={12} spacing={1}>
                   <Grid item xs={12} md={5}>
-                    <TextField
+                    <RequiredTextField
                       fullWidth
                       size="small"
                       error={error}

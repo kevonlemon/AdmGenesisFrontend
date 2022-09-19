@@ -22,6 +22,7 @@ import { URLAPIGENERAL, URLRUC } from '../../../../../config';
 import { PATH_AUTH, PATH_PAGE } from '../../../../../routes/paths';
 import Page from '../../../../../components/Page';
 import { noEsVacio, esCorreo } from "../../../../../utils/sistema/funciones";
+import RequiredTextField from '../../../../../sistema/componentes/formulario/RequiredTextField';
 
 export default function FormularioRepresentanteLegal() {
   document.body.style.overflowX = 'hidden';
@@ -200,10 +201,16 @@ export default function FormularioRepresentanteLegal() {
                       InputProps={{
                         readOnly: true,
                       }}
+                      sx={{
+                        backgroundColor: "#e5e8eb",
+                        border: "none",
+                        borderRadius: '10px',
+                        color: "#212B36"
+                      }}
                     />
                   </Grid>
                   <Grid item md={3} sm={4} xs={12}>
-                    <TextField
+                    <RequiredTextField
                       fullWidth
                       size="small"
                       type="number"
@@ -231,7 +238,7 @@ export default function FormularioRepresentanteLegal() {
                 </Grid>
                 <Grid container item xs={12} spacing={1}>
                   <Grid item md={2} sm={3} xs={12}>
-                    <TextField
+                    <RequiredTextField
                       fullWidth
                       size="small"
                       type="number"
@@ -248,7 +255,7 @@ export default function FormularioRepresentanteLegal() {
                     />
                   </Grid>
                   <Grid item md={4} sm={5} xs={12}>
-                    <TextField
+                    <RequiredTextField
                       fullWidth
                       size="small"
                       error={error}
@@ -266,7 +273,7 @@ export default function FormularioRepresentanteLegal() {
                 </Grid>
                 <Grid container item xs={12} spacing={1}>
                   <Grid item md={6} sm={8} xs={12}>
-                    <TextField
+                    <RequiredTextField
                       fullWidth
                       size="small"
                       error={error}
@@ -284,7 +291,7 @@ export default function FormularioRepresentanteLegal() {
                 </Grid>
                 <Grid container item xs={12} spacing={1}>
                   <Grid item md={2} sm={3} xs={12}>
-                    <TextField
+                    <RequiredTextField
                       fullWidth
                       size="small"
                       error={error}
@@ -301,7 +308,7 @@ export default function FormularioRepresentanteLegal() {
                     />
                   </Grid>
                   <Grid item md={4} sm={5} xs={12}>
-                    <TextField
+                    <RequiredTextField
                       fullWidth
                       size="small"
                       type="email"
@@ -357,7 +364,7 @@ export default function FormularioRepresentanteLegal() {
                     </LocalizationProvider>
                   </Grid>
                   <Grid item md={2} sm={5} xs={12}>
-                    <TextField
+                    <RequiredTextField
                       fullWidth
                       size="small"
                       type="text"

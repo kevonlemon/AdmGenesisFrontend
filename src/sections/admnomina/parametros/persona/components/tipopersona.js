@@ -3,6 +3,7 @@ import * as React from 'react';
 import axios from 'axios';
 import { TextField, MenuItem, Grid } from '@mui/material';
 import { URLAPIGENERAL } from '../../../../../config';
+import RequiredTextField from '../../../../../sistema/componentes/formulario/RequiredTextField';
 
 // const serverapi = process.env.REACT_APP_SERVERAPI2; // SERVICIO
 // OPCIONES ACTIVADAS/ANULADAS/TODAS
@@ -34,7 +35,7 @@ export default function TipoPersona(props) {
     obtenerTipoPersona();
   }, []);
   return (
-    <TextField
+    <RequiredTextField
       select
       label="Tipo"
       value={tipopersona}
@@ -50,6 +51,6 @@ export default function TipoPersona(props) {
           {t.nombre}
         </MenuItem>
       ))}
-    </TextField>
+    </RequiredTextField>
   );
 }

@@ -21,6 +21,7 @@ import { CORS, URLAPILOCAL } from '../../../../../config';
 import { PATH_AUTH, PATH_PAGE } from '../../../../../routes/paths';
 import ModalGenerico from '../../../../../components/modalgenerico';
 import Page from '../../../../../components/Page';
+import RequiredTextField from '../../../../../sistema/componentes/formulario/RequiredTextField';
 
 
 // ----------------------------------------------------------------------
@@ -520,7 +521,7 @@ export default function NuevoBancoCia() {
                 </Box>
 
                 <Grid item md={4.5} xs={12} sm={5}>
-                  <TextField
+                  <RequiredTextField
                     fullWidth
                     error={error}
                     size="small"
@@ -537,7 +538,7 @@ export default function NuevoBancoCia() {
                   />
                 </Grid>
                 <Grid item md={7.5} xs={12} sm={7}>
-                  <TextField
+                  <RequiredTextField
                     fullWidth
                     error={error1}
                     size="small"
@@ -557,7 +558,7 @@ export default function NuevoBancoCia() {
 
                 <Grid container item xs={12} spacing={1} sx={{ mb: 1 }}>
                   <Grid item md={7} xs={12} sm={7}>
-                    <TextField
+                    <RequiredTextField
                       fullWidth
                       error={error2}
                       size="small"
@@ -574,7 +575,8 @@ export default function NuevoBancoCia() {
                     />
                   </Grid>
                   <Grid item md={4} xs={12} sm={4}>
-                    <TextField select
+                    <RequiredTextField 
+                      select
                       error={error3}
                       label="Tipo de Cuenta"
                       value={dataBanco.tipo_Cuenta}
@@ -588,7 +590,7 @@ export default function NuevoBancoCia() {
                           )
                         )
                       }
-                    </TextField>
+                    </RequiredTextField>
                   </Grid>
                 </Grid>
 

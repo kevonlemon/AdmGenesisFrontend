@@ -1,15 +1,17 @@
-import { TextField, Grid, Card, FormControlLabel, Checkbox, Fade } from '@mui/material';
+import { TextField, Grid, Card, FormControlLabel, Checkbox, Fade, IconButton, InputAdornment } from '@mui/material';
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import axios from 'axios';
 import { useSnackbar } from 'notistack';
+import SearchRounded from '@mui/icons-material/SearchRounded';
 import { MenuMantenimiento } from "../../../../../components/sistema/menumatenimiento";
 import { URLAPIGENERAL } from '../../../../../config';
-import CajaGenerica from "../../../../../components/cajagenerica";
+import ModalGenerico from "../../../../../components/modalgenerico";
 import Page from '../../../../../components/Page';
 import { noEsVacio, esCorreo } from "../../../../../utils/sistema/funciones";
 import { PATH_AUTH, PATH_PAGE } from '../../../../../routes/paths';
+import RequiredTextField from '../../../../../sistema/componentes/formulario/RequiredTextField';
 
 export default function FormularioSucursal() {
   document.body.style.overflowX = 'hidden';
@@ -49,8 +51,8 @@ export default function FormularioSucursal() {
     direccion: '',
     estado: true,
     esmatriz: true,
-    canton: "--",
-    nombrecanton: "----",
+    canton: '',
+    nombrecanton: '',
   });
   // METODO PARA LIMPIAR CAMPOS
   const limpiarCampos = () => {
@@ -65,6 +67,8 @@ export default function FormularioSucursal() {
       direccion: '',
       estado: true,
       matriz: true,
+      canton: '',
+      nombrecanton: '',
     });
   };
 
@@ -144,8 +148,62 @@ export default function FormularioSucursal() {
     limpiarCampos();
   };
 
+  // ------------------------------------------------------------------------------------------
+
+  const [tiposBusquedas, setTiposBusqueda] = React.useState([{ tipo: 'nombre' }, { tipo: 'codigo' }]);
+  const [openModal, setOpenModal] = React.useState(false);
+  const toggleShow = () => setOpenModal(p => !p);
+  const handleCallbackChild = (e) => {
+    const item = e.row;
+    setFormulario({
+      ...formulario,
+      canton: item.codigo,
+      nombrecanton: item.nombre
+    })
+    toggleShow();
+  }
+  const [cantones, setCantones] = React.useState([]);
+  React.useEffect(() => {
+    async function getCantones() {
+      const { data } = await axios(`${URLAPIGENERAL}/cantones/listar`, config)
+      const cantones = data.map(m => ({
+        codigo: m.codigo,
+        nombre: m.nombre
+      }));
+      setCantones(cantones)
+    }
+    getCantones()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  async function buscarCantones() {
+    try {
+      const { data } = await axios(`${URLAPIGENERAL}/cantones/buscar?codigo=${formulario.canton === '' ? 'string' : formulario.canton}`, config)
+      if (data.length === 0) {
+        mensajeSistema('Código no encontrado', 'warning')
+        setOpenModal(true);
+      } else {
+        setFormulario({
+          ...formulario,
+          canton: data.codigo,
+          nombrecanton: data.nombre
+        })
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
+  // ------------------------------------------------------------------------------------------
+
   return (
     <>
+      <ModalGenerico
+        nombre="Cantón"
+        openModal={openModal}
+        busquedaTipo={tiposBusquedas}
+        toggleShow={toggleShow}
+        rowsData={cantones}
+        parentCallback={handleCallbackChild}
+      />
       <Page title="Sucursal">
         <MenuMantenimiento modo nuevo={() => Nuevo()} grabar={() => Grabar()} volver={() => Volver()} />
         <Fade in style={{ transformOrigin: '0 0 0' }} timeout={1000}>
@@ -169,10 +227,16 @@ export default function FormularioSucursal() {
                       InputProps={{
                         readOnly: true,
                       }}
+                      sx={{
+                        backgroundColor: "#e5e8eb",
+                        border: "none",
+                        borderRadius: '10px',
+                        color: "#212B36"
+                      }}
                     />
                   </Grid>
                   <Grid item md={3} xs={12} sm={6}>
-                    <TextField
+                    <RequiredTextField
                       fullWidth
                       error={error}
                       size="small"
@@ -191,7 +255,7 @@ export default function FormularioSucursal() {
                 </Grid>
                 <Grid container item xs={12} spacing={1}>
                   <Grid item md={2} xs={12} sm={6}>
-                    <TextField
+                    <RequiredTextField
                       fullWidth
                       size="small"
                       error={error}
@@ -209,7 +273,7 @@ export default function FormularioSucursal() {
                     />
                   </Grid>
                   <Grid item md={3} xs={12} sm={6}>
-                    <TextField
+                    <RequiredTextField
                       fullWidth
                       size="small"
                       error={error}
@@ -229,7 +293,7 @@ export default function FormularioSucursal() {
                 </Grid>
                 <Grid container item xs={12} spacing={1}>
                   <Grid item md={2} xs={12} sm={6}>
-                    <TextField
+                    <RequiredTextField
                       fullWidth
                       size="small"
                       error={error}
@@ -247,7 +311,7 @@ export default function FormularioSucursal() {
                     />
                   </Grid>
                   <Grid item md={3} xs={12} sm={6}>
-                    <TextField
+                    <RequiredTextField
                       fullWidth
                       size="small"
                       error={error}
@@ -266,7 +330,7 @@ export default function FormularioSucursal() {
                 </Grid>
                 <Grid container item xs={12} spacing={1}>
                   <Grid item xs={12} md={5}>
-                    <TextField
+                    <RequiredTextField
                       fullWidth
                       size="small"
                       error={error}
@@ -289,22 +353,55 @@ export default function FormularioSucursal() {
                   </Grid>
                 </Grid>
                 <Grid container item md={5} xs={12} spacing={1}>
-                  <CajaGenerica
-                    nombremodal="Canton"
-                    url={`${URLAPIGENERAL}/cantones/listar`}
-                    disparador={async (e) => {
-                      setFormulario({
-                        ...formulario,
-                        canton: e.codigo,
-                        nombrecanton: e.nombre
-                      });
-                    }}
-                    estadoinicial={{ codigo: formulario.canton, nombre: formulario.nombrecanton }}
-                  />
+                  <Grid item container xs={12} spacing={1}>
+                    <Grid item md={4} sm={4} xs={12}>
+                      <TextField
+                        label="Código Cantón"
+                        fullWidth
+                        size="small"
+                        value={formulario.canton}
+                        onChange={(e) => {
+                          setFormulario({
+                            ...formulario,
+                            canton: e.target.value
+                          })
+                        }}
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <IconButton size="small"
+                                onClick={() => {
+                                  buscarCantones()
+                                }}>
+                                <SearchRounded />
+                              </IconButton>
+                            </InputAdornment>
+                          )
+                        }}
+                      />
+                    </Grid>
+                    <Grid item md={8} sm={8} xs={12}>
+                      <TextField
+                        disabled
+                        label="Nombre Cantón"
+                        fullWidth size="small"
+                        value={formulario.nombrecanton}
+                        InputProps={{
+                          readOnly: true
+                        }}
+                        sx={{
+                          backgroundColor: "#e5e8eb",
+                          border: "none",
+                          borderRadius: '10px',
+                          color: "#212B36"
+                        }}
+                      />
+                    </Grid>
+                  </Grid>
                 </Grid>
                 <Grid container item xs={12} spacing={1}>
                   <Grid item xs={12} md={5}>
-                    <TextField
+                    <RequiredTextField
                       fullWidth
                       size="small"
                       error={error}

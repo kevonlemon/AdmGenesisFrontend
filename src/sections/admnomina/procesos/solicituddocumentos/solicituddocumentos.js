@@ -21,6 +21,7 @@ import { URLAPIGENERAL, URLAPILOCAL } from "../../../../config";
 import HeaderBreadcrumbs from '../../../../components/HeaderBreadcrumbs';
 import { formaterarFecha, generarCodigo, obtenerMaquina } from '../../../../utils/sistema/funciones';
 import CircularProgreso from '../../../../components/Cargando';
+import RequiredTextField from '../../../../sistema/componentes/formulario/RequiredTextField';
 
 export default function SolicitudDocumentos() {
     const user = JSON.parse(window.localStorage.getItem('usuario'));
@@ -190,6 +191,26 @@ export default function SolicitudDocumentos() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
+    // -----------------------------------------------------------------------------------------------------
+    async function buscarEmpleados() {
+        try {
+            const { data } = await axios(`${URLAPILOCAL}/empleados/obtenerxcodigo?codigo=${formulario.codigoempleado === '' ? 'string' : formulario.codigoempleado}`, config)
+            if (data.length === 0) {
+                mensajeSistema('Código no encontrado', 'warning')
+                setOpenModal(true);
+            } else {
+                setFormulario({
+                    ...formulario,
+                    empleado: data.codigo,
+                    codigoempleado: data.codigo_Empleado,
+                    nombreempleado: data.nombres
+                })
+            }
+        } catch (error) {
+            console.log(error)
+        }
+    }
+    // -----------------------------------------------------------------------------------------------------
 
     return (
         <>
@@ -264,6 +285,12 @@ export default function SolicitudDocumentos() {
                                             fullWidth
                                             label="Número"
                                             value={numeroSolicitud}
+                                            sx={{
+                                                backgroundColor: "#e5e8eb",
+                                                border: "none",
+                                                borderRadius: '10px',
+                                                color: "#212B36"
+                                            }}
                                         />
                                     </Grid>
                                     <Grid item md={3} sm={6} xs={12}>
@@ -285,16 +312,21 @@ export default function SolicitudDocumentos() {
                                 </Grid>
                                 <Grid item container md={12} spacing={1}>
                                     <Grid item md={2} sm={6} xs={12}>
-                                        <TextField
+                                        <RequiredTextField
                                             size="small"
                                             fullWidth
-                                            label="Empleado"
+                                            label="Empleado*"
                                             value={formulario.codigoempleado}
+                                            onChange={(e) => {
+                                                setFormulario({
+                                                    ...formulario,
+                                                    codigoempleado: e.target.value
+                                                })
+                                            }}
                                             InputProps={{
-                                                readOnly: true,
                                                 endAdornment: (
                                                     <InputAdornment position="end">
-                                                        <IconButton size="small" onClick={() => { setOpenModal(true) }}>
+                                                        <IconButton size="small" onClick={() => { buscarEmpleados() }}>
                                                             <SearchRoundedIcon />
                                                         </IconButton>
                                                     </InputAdornment>
@@ -311,6 +343,12 @@ export default function SolicitudDocumentos() {
                                             InputProps={{
                                                 readOnly: true
                                             }}
+                                            sx={{
+                                                backgroundColor: "#e5e8eb",
+                                                border: "none",
+                                                borderRadius: '10px',
+                                                color: "#212B36"
+                                            }}
                                         />
                                     </Grid>
                                 </Grid>
@@ -326,28 +364,6 @@ export default function SolicitudDocumentos() {
                                             }}
                                         />
                                     </Grid>
-                                    {/* <Grid item md={1.5} sm={4}>
-                                        <FormControlLabel
-                                            onChange={(e) => {
-                                                setFormulario({
-                                                    ...formulario,
-                                                    estado: e.target.checked
-                                                })
-                                            }}
-                                            control={<Checkbox />} checked={formulario.estado} label="Estado"
-                                        />
-                                    </Grid>
-                                    <Grid item md={1.5} sm={4}>
-                                        <FormControlLabel
-                                            onChange={(e) => {
-                                                setFormulario({
-                                                    ...formulario,
-                                                    aprobado: e.target.checked
-                                                })
-                                            }}
-                                            control={<Checkbox />} checked={formulario.aprobado} label="Aprobado"
-                                        />
-                                    </Grid> */}
                                 </Grid>
                                 <Grid item container md={12} spacing={1}>
                                     <Grid item md={6} sm={12} xs={12}>
