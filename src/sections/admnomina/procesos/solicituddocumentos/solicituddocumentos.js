@@ -193,22 +193,27 @@ export default function SolicitudDocumentos() {
 
     // -----------------------------------------------------------------------------------------------------
     async function buscarEmpleados() {
-        try {
-            const { data } = await axios(`${URLAPILOCAL}/empleados/obtenerxcodigo?codigo=${formulario.codigoempleado === '' ? 'string' : formulario.codigoempleado}`, config)
-            if (data.length === 0) {
-                mensajeSistema('Código no encontrado', 'warning')
-                setOpenModal(true);
-            } else {
-                setFormulario({
-                    ...formulario,
-                    empleado: data.codigo,
-                    codigoempleado: data.codigo_Empleado,
-                    nombreempleado: data.nombres
-                })
+        if (formulario.codigoempleado === '') {
+            setOpenModal(true);
+        } else {
+            try {
+                const { data } = await axios(`${URLAPILOCAL}/empleados/obtenerxcodigo?codigo=${formulario.codigoempleado === '' ? 'string' : formulario.codigoempleado}`, config)
+                if (data.length === 0) {
+                    mensajeSistema('Código no encontrado', 'warning')
+                    setOpenModal(true);
+                } else {
+                    setFormulario({
+                        ...formulario,
+                        empleado: data.codigo,
+                        codigoempleado: data.codigo_Empleado,
+                        nombreempleado: data.nombres
+                    })
+                }
+            } catch (error) {
+                console.log(error)
             }
-        } catch (error) {
-            console.log(error)
         }
+        
     }
     // -----------------------------------------------------------------------------------------------------
 

@@ -263,39 +263,50 @@ export default function AprobacionSolicitud() {
     // -----------------------------------------------------------------------------------------------------
     async function buscarEmpleados(empleado) {
         if (empleado === 'desde') {
-            try {
-                const { data } = await axios(`${URLAPILOCAL}/empleados/obtenerxcodigo?codigo=${formulario.codigoempleadodesde === '' ? 'string' : formulario.codigoempleadodesde}`, config)
-                if (data.length === 0) {
-                    mensajeSistema('Código no encontrado', 'warning')
-                    setOpenModalD(true);
-                } else {
-                    setFormulario({
-                        ...formulario,
-                        empleadodesde: data.codigo,
-                        codigoempleadodesde: data.codigo_Empleado,
-                        nombreempleadodesde: data.nombres
-                    });
+            if (formulario.codigoempleadodesde === '') {
+                setOpenModalD(true);
+            } else {
+                try {
+                    const { data } = await axios(`${URLAPILOCAL}/empleados/obtenerxcodigo?codigo=${formulario.codigoempleadodesde === '' ? 'string' : formulario.codigoempleadodesde}`, config)
+                    if (data.length === 0) {
+                        mensajeSistema('Código no encontrado', 'warning')
+                        setOpenModalD(true);
+                    } else {
+                        setFormulario({
+                            ...formulario,
+                            empleadodesde: data.codigo,
+                            codigoempleadodesde: data.codigo_Empleado,
+                            nombreempleadodesde: data.nombres
+                        });
+                    }
+                } catch (error) {
+                    console.log(error)
                 }
-            } catch (error) {
-                console.log(error)
             }
+            
         } else {
-            try {
-                const { data } = await axios(`${URLAPILOCAL}/empleados/obtenerxcodigo?codigo=${formulario.codigoempleadohasta === '' ? 'string' : formulario.codigoempleadohasta}`, config)
-                if (data.length === 0) {
-                    mensajeSistema('Código no encontrado', 'warning')
-                    setOpenModalH(true);
-                } else {
-                    setFormulario({
-                        ...formulario,
-                        empleadohasta: data.codigo,
-                        codigoempleadohasta: data.codigo_Empleado,
-                        nombreempleadohasta: data.nombres
-                    });
+            // eslint-disable-next-line no-lonely-if
+            if (formulario.codigoempleadohasta === '') {
+                setOpenModalH(true);
+            } else {
+                try {
+                    const { data } = await axios(`${URLAPILOCAL}/empleados/obtenerxcodigo?codigo=${formulario.codigoempleadohasta === '' ? 'string' : formulario.codigoempleadohasta}`, config)
+                    if (data.length === 0) {
+                        mensajeSistema('Código no encontrado', 'warning')
+                        setOpenModalH(true);
+                    } else {
+                        setFormulario({
+                            ...formulario,
+                            empleadohasta: data.codigo,
+                            codigoempleadohasta: data.codigo_Empleado,
+                            nombreempleadohasta: data.nombres
+                        });
+                    }
+                } catch (error) {
+                    console.log(error)
                 }
-            } catch (error) {
-                console.log(error)
             }
+            
         }
     }
     // -----------------------------------------------------------------------------------------------------

@@ -203,23 +203,28 @@ export default function RegistroRol() {
 
   // -----------------------------------------------------------------------------------------------------
   async function buscarEmpleados() {
-    try {
-      const { data } = await axios(`${URLAPILOCAL}/empleados/obtenerxcodigo?codigo=${datosgenerales.codigoempleado === '' ? 'string' : datosgenerales.codigoempleado}`, config)
-      if (data.length === 0) {
-        mensajeSistema('Código no encontrado', 'warning')
-        setopenmodalEmpleados(true);
-      } else {
-        setdatosgenerales({
-          ...datosgenerales,
-          empleado: data.codigo,
-          codigoempleado: data.codigo_Empleado,
-          nombreempleado: data.nombres,
-          sueldobase: data.sueldoBase
-        })
+    if (datosgenerales.codigoempleado === '') {
+      setopenmodalEmpleados(true);
+    } else {
+      try {
+        const { data } = await axios(`${URLAPILOCAL}/empleados/obtenerxcodigo?codigo=${datosgenerales.codigoempleado === '' ? 'string' : datosgenerales.codigoempleado}`, config)
+        if (data.length === 0) {
+          mensajeSistema('Código no encontrado', 'warning')
+          setopenmodalEmpleados(true);
+        } else {
+          setdatosgenerales({
+            ...datosgenerales,
+            empleado: data.codigo,
+            codigoempleado: data.codigo_Empleado,
+            nombreempleado: data.nombres,
+            sueldobase: data.sueldoBase
+          })
+        }
+      } catch (error) {
+        console.log(error)
       }
-    } catch (error) {
-      console.log(error)
     }
+    
   }
   // -----------------------------------------------------------------------------------------------------
 

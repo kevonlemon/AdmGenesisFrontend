@@ -182,21 +182,26 @@ export default function FormularioSucursal() {
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
     async function buscarCantones() {
-      try {
-        const { data } = await axios(`${URLAPIGENERAL}/cantones/buscar?codigo=${formulario.canton === '' ? 'string' : formulario.canton}`, config)
-        if (data.length === 0) {
-          mensajeSistema('Código no encontrado', 'warning')
-          setOpenModal(true);
-        } else {
-          setFormulario({
-            ...formulario,
-            canton: data.codigo,
-            nombrecanton: data.nombre
-          })
+      if (formulario.canton === '') {
+        setOpenModal(true);
+      } else {
+        try {
+          const { data } = await axios(`${URLAPIGENERAL}/cantones/buscar?codigo=${formulario.canton === '' ? 'string' : formulario.canton}`, config)
+          if (data.length === 0) {
+            mensajeSistema('Código no encontrado', 'warning')
+            setOpenModal(true);
+          } else {
+            setFormulario({
+              ...formulario,
+              canton: data.codigo,
+              nombrecanton: data.nombre
+            })
+          }
+        } catch (error) {
+          console.log(error)
         }
-      } catch (error) {
-        console.log(error)
       }
+      
     }
     // ------------------------------------------------------------------------------------------
 

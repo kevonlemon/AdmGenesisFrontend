@@ -1104,21 +1104,26 @@ export default function FormularioEmpleado() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
     async function buscarDepartamentos() {
-        try {
-            const { data } = await axios(`${URLAPIGENERAL}/mantenimientogenerico/obtener?codigo=${formularioempleado.departamento === '' ? 'string' : formularioempleado.departamento}&tabla=ADM_DEPARTAMENTO`, config)
-            if (data.length === 0) {
-                mensajeSistema('Código no encontrado', 'warning')
-                setOpenModalD(true);
-            } else {
-                setFormularioEmpleado({
-                    ...formularioempleado,
-                    departamento: data.codigo,
-                    nombredepartamento: data.nombre
-                })
+        if (formularioempleado.departamento === '') {
+            setOpenModalD(true);
+        } else {
+            try {
+                const { data } = await axios(`${URLAPIGENERAL}/mantenimientogenerico/obtener?codigo=${formularioempleado.departamento === '' ? 'string' : formularioempleado.departamento}&tabla=ADM_DEPARTAMENTO`, config)
+                if (data.length === 0) {
+                    mensajeSistema('Código no encontrado', 'warning')
+                    setOpenModalD(true);
+                } else {
+                    setFormularioEmpleado({
+                        ...formularioempleado,
+                        departamento: data.codigo,
+                        nombredepartamento: data.nombre
+                    })
+                }
+            } catch (error) {
+                console.log(error)
             }
-        } catch (error) {
-            console.log(error)
         }
+        
     }
     // -----------------------------------------------------------------------------------------------------------------------------------
     const [tiposBusquedasC, setTiposBusquedaC] = React.useState([{ tipo: 'nombre' }, { tipo: 'codigo' }]);
@@ -1147,21 +1152,26 @@ export default function FormularioEmpleado() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
     async function buscarCargos() {
-        try {
-            const { data } = await axios(`${URLAPIGENERAL}/mantenimientogenerico/obtener?codigo=${formularioempleado.cargo === '' ? 'string' : formularioempleado.cargo}&tabla=ADM_CARGO`, config)
-            if (data.length === 0) {
-                mensajeSistema('Código no encontrado', 'warning')
-                setOpenModalC(true);
-            } else {
-                setFormularioEmpleado({
-                    ...formularioempleado,
-                    cargo: data.codigo,
-                    nombrecargo: data.nombre
-                })
+        if (formularioempleado.cargo === '') {
+            setOpenModalC(true);
+        } else {
+            try {
+                const { data } = await axios(`${URLAPIGENERAL}/mantenimientogenerico/obtener?codigo=${formularioempleado.cargo === '' ? 'string' : formularioempleado.cargo}&tabla=ADM_CARGO`, config)
+                if (data.length === 0) {
+                    mensajeSistema('Código no encontrado', 'warning')
+                    setOpenModalC(true);
+                } else {
+                    setFormularioEmpleado({
+                        ...formularioempleado,
+                        cargo: data.codigo,
+                        nombrecargo: data.nombre
+                    })
+                }
+            } catch (error) {
+                console.log(error)
             }
-        } catch (error) {
-            console.log(error)
         }
+        
     }
     // -----------------------------------------------------------------------------------------------------------------------------------
     const [tiposBusquedasE, setTiposBusquedaE] = React.useState([{ tipo: 'nombre' }, { tipo: 'codigo' }]);
@@ -1190,21 +1200,26 @@ export default function FormularioEmpleado() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
     async function buscarEstudios() {
-        try {
-            const { data } = await axios(`${URLAPIGENERAL}/mantenimientogenerico/obtener?codigo=${formularioempleado.nivelEstudio === '' ? 'string' : formularioempleado.nivelEstudio}&tabla=ADM_NIVEL_ESTUDIO`, config)
-            if (data.length === 0) {
-                mensajeSistema('Código no encontrado', 'warning')
-                setOpenModalE(true);
-            } else {
-                setFormularioEmpleado({
-                    ...formularioempleado,
-                    nivelEstudio: data.codigo,
-                    nombrenivelEstudio: data.nombre
-                })
+        if (formularioempleado.nivelEstudio === '') {
+            setOpenModalE(true);
+        } else {
+            try {
+                const { data } = await axios(`${URLAPIGENERAL}/mantenimientogenerico/obtener?codigo=${formularioempleado.nivelEstudio === '' ? 'string' : formularioempleado.nivelEstudio}&tabla=ADM_NIVEL_ESTUDIO`, config)
+                if (data.length === 0) {
+                    mensajeSistema('Código no encontrado', 'warning')
+                    setOpenModalE(true);
+                } else {
+                    setFormularioEmpleado({
+                        ...formularioempleado,
+                        nivelEstudio: data.codigo,
+                        nombrenivelEstudio: data.nombre
+                    })
+                }
+            } catch (error) {
+                console.log(error)
             }
-        } catch (error) {
-            console.log(error)
         }
+        
     }
     // -----------------------------------------------------------------------------------------------------------------------------------
 
