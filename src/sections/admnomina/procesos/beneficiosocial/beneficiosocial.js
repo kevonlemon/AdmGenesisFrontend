@@ -816,43 +816,55 @@ export default function beneficiosocial() {
     // -----------------------------------------------------------------------------------------------------
     async function buscarEmpleados(empleado) {
         if (empleado === 'desde') {
-            try {
-                const { data } = await axios(`${URLAPILOCAL}/empleados/obtenerxcodigo?codigo=${Datospaciente.codigo === '' ? 'string' : Datospaciente.codigo}`, config)
-                if (data.length === 0) {
-                    mensajeSistema('Código no encontrado', 'warning')
-                    setOpenModallistpacientes(true);
-                } else {
-                    setDatospaciente({
-                        ...Datospaciente,
-                        id: data.codigo,
-                        codigo: data.codigo_Empleado,
-                        nombre: data.nombres,
-                        cedula: data.cedula,
-                        sexo: data.sexo === 'M' ? 'MASCULINO' : 'FEMENINO',
-                    })
+            if (Datospaciente.codigo === '---') {
+                console.log('llega?')
+                setOpenModallistpacientes(true);
+            } else {
+                try {
+                    const { data } = await axios(`${URLAPILOCAL}/empleados/obtenerxcodigo?codigo=${Datospaciente.codigo === '' ? 'string' : Datospaciente.codigo}`, config)
+                    if (data.length === 0) {
+                        mensajeSistema('Código no encontrado', 'warning')
+                        setOpenModallistpacientes(true);
+                    } else {
+                        setDatospaciente({
+                            ...Datospaciente,
+                            id: data.codigo,
+                            codigo: data.codigo_Empleado,
+                            nombre: data.nombres,
+                            cedula: data.cedula,
+                            sexo: data.sexo === 'M' ? 'MASCULINO' : 'FEMENINO',
+                        })
+                    }
+                } catch (error) {
+                    console.log(error)
                 }
-            } catch (error) {
-                console.log(error)
             }
+            
         } else {
-            try {
-                const { data } = await axios(`${URLAPILOCAL}/empleados/obtenerxcodigo?codigo=${Datospaciente2.codigo === '' ? 'string' : Datospaciente2.codigo}`, config)
-                if (data.length === 0) {
-                    mensajeSistema('Código no encontrado', 'warning')
-                    setOpenModalProducto(true);
-                } else {
-                    setDatospaciente2({
-                        ...Datospaciente2,
-                        id: data.codigo,
-                        codigo: data.codigo_Empleado,
-                        nombre: data.nombres,
-                        cedula: data.cedula,
-                        sexo: data.sexo === 'M' ? 'MASCULINO' : 'FEMENINO',
-                    })
+            // eslint-disable-next-line no-lonely-if
+            if (Datospaciente2.codigo === '---') {
+                setOpenModalProducto(true);
+            } else {
+                try {
+                    const { data } = await axios(`${URLAPILOCAL}/empleados/obtenerxcodigo?codigo=${Datospaciente2.codigo === '' ? 'string' : Datospaciente2.codigo}`, config)
+                    if (data.length === 0) {
+                        mensajeSistema('Código no encontrado', 'warning')
+                        setOpenModalProducto(true);
+                    } else {
+                        setDatospaciente2({
+                            ...Datospaciente2,
+                            id: data.codigo,
+                            codigo: data.codigo_Empleado,
+                            nombre: data.nombres,
+                            cedula: data.cedula,
+                            sexo: data.sexo === 'M' ? 'MASCULINO' : 'FEMENINO',
+                        })
+                    }
+                } catch (error) {
+                    console.log(error)
                 }
-            } catch (error) {
-                console.log(error)
             }
+            
         }
     }
     // -----------------------------------------------------------------------------------------------------
