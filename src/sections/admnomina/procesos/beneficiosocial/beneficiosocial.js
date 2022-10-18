@@ -100,7 +100,6 @@ export default function Beneficiosocial() {
   const [openMensaje, setOpenMensaje] = useState(false);
   const [noExistePaciente, setNoExistePaciente] = useState(false);
   const [noExisteProducto, setNoExisteProducto] = useState(false);
-  const [noSesion, setNoSesion] = useState(false);
   const mensajeGenerico = (tipo, msj) => {
     setTexto(msj);
     setTipo(tipo);
@@ -108,11 +107,6 @@ export default function Beneficiosocial() {
   };
 
   const cerrarMensaje = () => {
-    if (noSesion) {
-      setOpenMensaje((p) => !p);
-      setNoSesion(false);
-      //   navigate(`${PATH_AUTH.login}`);
-    }
     if (noExistePaciente) {
       setOpenMensaje((p) => !p);
       setNoExistePaciente(false);
@@ -850,7 +844,7 @@ export default function Beneficiosocial() {
 
   return (
     <>
-    <MensajesGenericos openModal={openMensaje} closeModal={cerrarMensaje} texto={texto} tipo={tipo} />
+      <MensajesGenericos openModal={openMensaje} closeModal={cerrarMensaje} texto={texto} tipo={tipo} />
       <Cargando
         open={mostrarprogreso}
         handleClose1={() => {
