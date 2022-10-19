@@ -3,40 +3,45 @@ import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import axios from 'axios';
-import { useSnackbar } from 'notistack';
 import SearchRounded from '@mui/icons-material/SearchRounded';
-import { MenuMantenimiento } from "../../../../../components/sistema/menumatenimiento";
+import { MenuMantenimiento } from '../../../../../components/sistema/menumatenimiento';
 import { URLAPIGENERAL } from '../../../../../config';
-import ModalGenerico from "../../../../../components/modalgenerico";
+import ModalGenerico from '../../../../../components/modalgenerico';
 import Page from '../../../../../components/Page';
-import { noEsVacio, esCorreo } from "../../../../../utils/sistema/funciones";
+import { noEsVacio, esCorreo } from '../../../../../utils/sistema/funciones';
 import { PATH_AUTH, PATH_PAGE } from '../../../../../routes/paths';
 import RequiredTextField from '../../../../../sistema/componentes/formulario/RequiredTextField';
+import MensajesGenericos from '../../../../../components/sistema/mensajesgenerico';
 
 export default function FormularioSucursal() {
   document.body.style.overflowX = 'hidden';
   const usuario = JSON.parse(window.localStorage.getItem('usuario'));
   const config = {
     headers: {
-      'Authorization': `Bearer ${usuario.token}`
-    }
-  }
-  const { enqueueSnackbar } = useSnackbar();
+      Authorization: `Bearer ${usuario.token}`,
+    },
+  };
+  const [openModal2, setopenModal2] = React.useState(false);
+  const [mantenimmiento, setMantenimmiento] = React.useState(false);
+  const [codigomod, setCodigomod] = React.useState('');
+  const [nombre, setNombre] = React.useState('');
+  const [modoMantenimiento, setModoMantenimiento] = React.useState('');
+  const [texto, setTexto] = React.useState('');
+  const [tipo, setTipo] = React.useState('succes');
+  const [guardado, setGuardado] = React.useState(false);
   const navegacion = useNavigate();
   const [errorcorreo, setErrorcorreo] = React.useState(false);
 
   // MENSAJE GENERICO
-  const mensajeSistema = (mensaje, variante) => {
-    enqueueSnackbar(mensaje, {
-      variant: variante,
-      anchorOrigin: {
-        vertical: 'top',
-        horizontal: 'center',
-      },
-    });
-  };
   const messajeTool = (variant, msg) => {
-    enqueueSnackbar(msg, { variant, anchorOrigin: { vertical: 'top', horizontal: 'center' } });
+    const unTrue = true;
+    setCodigomod('');
+    setNombre('');
+    setModoMantenimiento('grabar');
+    setTexto(msg);
+    setTipo(variant);
+    setMantenimmiento(false);
+    setopenModal2(unTrue);
   };
 
   // FORMULARIO DE ENVIO
@@ -54,6 +59,7 @@ export default function FormularioSucursal() {
     canton: '',
     nombrecanton: '',
   });
+
   // METODO PARA LIMPIAR CAMPOS
   const limpiarCampos = () => {
     setFormulario({
@@ -78,7 +84,6 @@ export default function FormularioSucursal() {
   // GUARDAR INFORMACION
   // eslint-disable-next-line consistent-return
   const Grabar = async () => {
-
     try {
       // const noesvacio = noEsVacio(formulario);
       const nombre = formulario.nombre.length;
@@ -126,18 +131,17 @@ export default function FormularioSucursal() {
       }
       const { data } = await axios.post(`${URLAPIGENERAL}/sucursales`, formulario, config);
       if (data === 200) {
-        mensajeSistema('Registros guardado correctamente', 'success');
-        navegacion(`/sistema/parametros/sucursal`);
+        setGuardado(true);
+        messajeTool('succes', 'Registros guardado correctamente');
       }
     } catch (error) {
       if (error.response.status === 401) {
         navegacion(`${PATH_AUTH.login}`);
-        mensajeSistema("Su inicio de sesion expiro", "error");
-      }
-      else if (error.response.status === 500) {
+        messajeTool('error', 'Su inicio de sesion expiro');
+      } else if (error.response.status === 500) {
         navegacion(`${PATH_PAGE.page500}`);
       } else {
-        mensajeSistema("Problemas con la base de datos", "error");
+        messajeTool('error', 'Problemas con la base de datos');
       }
     }
   };
@@ -152,55 +156,76 @@ export default function FormularioSucursal() {
 
   const [tiposBusquedas, setTiposBusqueda] = React.useState([{ tipo: 'nombre' }, { tipo: 'codigo' }]);
   const [openModal, setOpenModal] = React.useState(false);
-  const toggleShow = () => setOpenModal(p => !p);
+  const toggleShow = () => setOpenModal((p) => !p);
   const handleCallbackChild = (e) => {
     const item = e.row;
     setFormulario({
       ...formulario,
       canton: item.codigo,
-      nombrecanton: item.nombre
-    })
+      nombrecanton: item.nombre,
+    });
     toggleShow();
-  }
+  };
   const [cantones, setCantones] = React.useState([]);
   React.useEffect(() => {
     async function getCantones() {
-      const { data } = await axios(`${URLAPIGENERAL}/cantones/listar`, config)
-      const cantones = data.map(m => ({
+      const { data } = await axios(`${URLAPIGENERAL}/cantones/listar`, config);
+      const cantones = data.map((m) => ({
         codigo: m.codigo,
-        nombre: m.nombre
+        nombre: m.nombre,
       }));
-      setCantones(cantones)
+      setCantones(cantones);
     }
-    getCantones()
+    getCantones();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, []);
   async function buscarCantones() {
     if (formulario.canton === '') {
       setOpenModal(true);
     } else {
       try {
-        const { data } = await axios(`${URLAPIGENERAL}/cantones/buscar?codigo=${formulario.canton === '' ? 'string' : formulario.canton}`, config)
+        const { data } = await axios(
+          `${URLAPIGENERAL}/cantones/buscar?codigo=${formulario.canton === '' ? 'string' : formulario.canton}`,
+          config
+        );
         if (data.length === 0) {
-          mensajeSistema('Código no encontrado', 'warning')
+          messajeTool('warning', 'Código no encontrado');
           setOpenModal(true);
         } else {
           setFormulario({
             ...formulario,
             canton: data.codigo,
-            nombrecanton: data.nombre
-          })
+            nombrecanton: data.nombre,
+          });
         }
       } catch (error) {
-        console.log(error)
+        console.log(error);
       }
     }
-    
   }
   // ------------------------------------------------------------------------------------------
 
+  const cerrarModalMensaje = () => {
+    if (guardado === true) {
+      setopenModal2((p) => !p);
+      setGuardado(false);
+      Volver();
+    }
+    setopenModal2((p) => !p);
+  };
+
   return (
     <>
+      <MensajesGenericos
+        openModal={openModal2}
+        closeModal={cerrarModalMensaje}
+        mantenimmiento={mantenimmiento}
+        codigo={codigomod}
+        nombre={nombre}
+        modomantenimiento={modoMantenimiento}
+        texto={texto}
+        tipo={tipo}
+      />
       <ModalGenerico
         nombre="Cantón"
         openModal={openModal}
@@ -233,10 +258,10 @@ export default function FormularioSucursal() {
                         readOnly: true,
                       }}
                       sx={{
-                        backgroundColor: "#e5e8eb",
-                        border: "none",
+                        backgroundColor: '#e5e8eb',
+                        border: 'none',
                         borderRadius: '10px',
-                        color: "#212B36"
+                        color: '#212B36',
                       }}
                     />
                   </Grid>
@@ -368,20 +393,22 @@ export default function FormularioSucursal() {
                         onChange={(e) => {
                           setFormulario({
                             ...formulario,
-                            canton: e.target.value
-                          })
+                            canton: e.target.value,
+                          });
                         }}
                         InputProps={{
                           endAdornment: (
                             <InputAdornment position="end">
-                              <IconButton size="small"
+                              <IconButton
+                                size="small"
                                 onClick={() => {
-                                  buscarCantones()
-                                }}>
+                                  buscarCantones();
+                                }}
+                              >
                                 <SearchRounded />
                               </IconButton>
                             </InputAdornment>
-                          )
+                          ),
                         }}
                       />
                     </Grid>
@@ -389,16 +416,17 @@ export default function FormularioSucursal() {
                       <TextField
                         disabled
                         label="Nombre Cantón"
-                        fullWidth size="small"
+                        fullWidth
+                        size="small"
                         value={formulario.nombrecanton}
                         InputProps={{
-                          readOnly: true
+                          readOnly: true,
                         }}
                         sx={{
-                          backgroundColor: "#e5e8eb",
-                          border: "none",
+                          backgroundColor: '#e5e8eb',
+                          border: 'none',
                           borderRadius: '10px',
-                          color: "#212B36"
+                          color: '#212B36',
                         }}
                       />
                     </Grid>

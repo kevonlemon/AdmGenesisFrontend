@@ -11,33 +11,31 @@ import { useSnackbar } from 'notistack';
 import HeaderBreadcrumbs from '../../../../components/HeaderBreadcrumbs';
 import CircularProgreso from '../../../../components/Cargando';
 import Page from '../../../../components/Page';
-import { PATH_AUTH, PATH_PAGE } from '../../../../routes/paths'
-import { URLAPIGENERAL } from "../../../../config";
-import { styleActive, styleInactive, estilosdetabla, estilosdatagrid } from "../../../../utils/csssistema/estilos";
-import { CustomNoRowsOverlay } from "../../../../utils/csssistema/iconsdatagrid";
-
+import { PATH_AUTH, PATH_PAGE } from '../../../../routes/paths';
+import { URLAPIGENERAL } from '../../../../config';
+import { styleActive, styleInactive, estilosdetabla, estilosdatagrid } from '../../../../utils/csssistema/estilos';
+import { CustomNoRowsOverlay } from '../../../../utils/csssistema/iconsdatagrid';
+import MensajesGenericos from '../../../../components/sistema/mensajesgenerico';
 
 export default function FormularioRegistroPersona() {
   const usuario = JSON.parse(window.localStorage.getItem('usuario'));
   const config = {
     headers: {
-      'Authorization': `Bearer ${usuario.token}`
-    }
-  }
+      Authorization: `Bearer ${usuario.token}`,
+    },
+  };
   const navegacion = useNavigate();
-  const { enqueueSnackbar } = useSnackbar();
   // MENSAJE GENERICO
-  const mensajeSistema = (mensaje, variante) => {
-    enqueueSnackbar(mensaje,
-      {
-        variant: variante,
-        anchorOrigin: {
-          vertical: 'top',
-          horizontal: 'center',
-        },
-      }
-    )
-  }
+  const messajeTool = (variant, msg) => {
+    const unTrue = true;
+    setCodigomod('');
+    setNombre('');
+    setModoMantenimiento('grabar');
+    setTexto(msg);
+    setTipo(variant);
+    setMantenimmiento(false);
+    setopenModal2(unTrue);
+  };
   const columns = [
     { field: 'codigo', headerName: 'Codigo', width: 100 },
     { field: 'codigo_Usuario', headerName: 'Codigo Usuario', width: 120 },
@@ -65,10 +63,18 @@ export default function FormularioRegistroPersona() {
         ),
     },
   ];
-  // const [, setItems] = React.useState([]);
   const [buscar, setBuscar] = React.useState('');
   const [resultadobusqueda, setResultadoBusqueda] = React.useState([]);
   const [datosfilas, setDatosFilas] = React.useState([]);
+  const [openModal2, setopenModal2] = React.useState(false);
+  const [mantenimmiento, setMantenimmiento] = React.useState(false);
+  const [codigomod, setCodigomod] = React.useState('');
+  const [nombre, setNombre] = React.useState('');
+  const [modoMantenimiento, setModoMantenimiento] = React.useState('');
+  const [texto, setTexto] = React.useState('');
+  const [tipo, setTipo] = React.useState('succes');
+  const [guardado, setGuardado] = React.useState(false);
+
   const Buscar = (e) => {
     // console.log(e.target.value);
     setBuscar(e.target.value);
@@ -82,6 +88,7 @@ export default function FormularioRegistroPersona() {
     );
     setDatosFilas(resultado);
   };
+
   const Editar = (e) => {
     console.log(e);
     navegacion(`/sistema/parametros/editarpersona`, { state: { id: e.id } });
@@ -96,30 +103,40 @@ export default function FormularioRegistroPersona() {
       } catch (error) {
         if (error.response.status === 401) {
           navegacion(`${PATH_AUTH.login}`);
-          mensajeSistema("Su inicio de sesion expiro", "error");
-        }
-        else if (error.response.status === 500) {
+          messajeTool('error', 'Su inicio de sesion expiro');
+        } else if (error.response.status === 500) {
           navegacion(`${PATH_PAGE.page500}`);
         } else {
-          mensajeSistema("Problemas al guardar verifique si se encuentra registrado", "error");
+          messajeTool('error', 'Problemas al guardar verifique si se encuentra registrado');
         }
       }
     }
     getDatos();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const cerrarModalMensaje = () => {
+    setopenModal2((p) => !p);
+  };
+
   return (
     <>
+      <MensajesGenericos
+        openModal={openModal2}
+        closeModal={cerrarModalMensaje}
+        mantenimmiento={mantenimmiento}
+        codigo={codigomod}
+        nombre={nombre}
+        modomantenimiento={modoMantenimiento}
+        texto={texto}
+        tipo={tipo}
+      />
       <Page title="Usuario">
         <Fade in style={{ transformOrigin: '0 0 0' }} timeout={1000}>
           <Box sx={{ ml: 3, mr: 3, p: 1 }}>
             <HeaderBreadcrumbs
               heading="Usuario"
-              links={[
-                { name: 'Parametros' },
-                { name: 'Usuario' },
-                { name: 'Lista' },
-              ]}
+              links={[{ name: 'Parametros' }, { name: 'Usuario' }, { name: 'Lista' }]}
               action={
                 <Button
                   fullWidth
@@ -157,9 +174,7 @@ export default function FormularioRegistroPersona() {
                 </Grid>
               </Grid>
             </Box>
-            <Box
-              sx={estilosdetabla}
-            >
+            <Box sx={estilosdetabla}>
               <div
                 style={{
                   padding: '0.5rem',

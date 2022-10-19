@@ -9,39 +9,45 @@ import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
 import ViewComfyRoundedIcon from '@mui/icons-material/ViewComfyRounded';
 import clsx from 'clsx';
 import axios from 'axios';
-import { useSnackbar } from 'notistack';
 import HeaderBreadcrumbs from '../../../../components/HeaderBreadcrumbs';
 import CircularProgreso from '../../../../components/Cargando';
 import Page from '../../../../components/Page';
-import { PATH_AUTH, PATH_PAGE } from '../../../../routes/paths'
-import { URLAPIGENERAL, URLAPILOCAL } from "../../../../config";
-import { styleActive, styleInactive, estilosdetabla, estilosdatagrid } from "../../../../utils/csssistema/estilos";
-import { CustomNoRowsOverlay } from "../../../../utils/csssistema/iconsdatagrid";
+import { PATH_AUTH, PATH_PAGE } from '../../../../routes/paths';
+import { URLAPIGENERAL, URLAPILOCAL } from '../../../../config';
+import { styleActive, styleInactive, estilosdetabla, estilosdatagrid } from '../../../../utils/csssistema/estilos';
+import { CustomNoRowsOverlay } from '../../../../utils/csssistema/iconsdatagrid';
 import { formaterarFecha } from '../../../../utils/sistema/funciones';
 import { fCurrency } from '../../../../utils/formatNumber';
-
+import MensajesGenericos from '../../../../components/sistema/mensajesgenerico';
 
 export default function Empleado() {
   const usuario = JSON.parse(window.localStorage.getItem('usuario'));
   const config = {
     headers: {
-      'Authorization': `Bearer ${usuario.token}`
-    }
-  }
+      Authorization: `Bearer ${usuario.token}`,
+    },
+  };
   const navegacion = useNavigate();
-  const { enqueueSnackbar } = useSnackbar();
+  const [openModal2, setopenModal2] = React.useState(false);
+  const [mantenimmiento, setMantenimmiento] = React.useState(false);
+  const [codigomod, setCodigomod] = React.useState('');
+  const [nombre, setNombre] = React.useState('');
+  const [modoMantenimiento, setModoMantenimiento] = React.useState('');
+  const [texto, setTexto] = React.useState('');
+  const [tipo, setTipo] = React.useState('succes');
+
   // MENSAJE GENERICO
-  const mensajeSistema = (mensaje, variante) => {
-    enqueueSnackbar(mensaje,
-      {
-        variant: variante,
-        anchorOrigin: {
-          vertical: 'top',
-          horizontal: 'center',
-        },
-      }
-    )
-  }
+  const messajeTool = (variant, msg) => {
+    const unTrue = true;
+    setCodigomod('');
+    setNombre('');
+    setModoMantenimiento('grabar');
+    setTexto(msg);
+    setTipo(variant);
+    setMantenimmiento(false);
+    setopenModal2(unTrue);
+  };
+
   const columns = [
     { field: 'codigo_Empleado', headerName: 'Codigo', width: 120 },
     { field: 'nombres', headerName: 'Nombre', width: 200 },
@@ -50,7 +56,10 @@ export default function Empleado() {
     { field: 'correo', headerName: 'Correo', width: 250 },
     { field: 'telefonos', headerName: 'Telefono', width: 100 },
     {
-      field: 'fecing', headerName: 'Fecha ingreso', width: 100, cellClassName: () => clsx('orangeCell'),
+      field: 'fecing',
+      headerName: 'Fecha ingreso',
+      width: 100,
+      cellClassName: () => clsx('orangeCell'),
       valueFormatter: (params) => {
         if (params.value == null) {
           return '--/--/----';
@@ -60,7 +69,9 @@ export default function Empleado() {
       },
     },
     {
-      field: 'fechaNac', headerName: 'Fecha Nacimiento', width: 150,
+      field: 'fechaNac',
+      headerName: 'Fecha Nacimiento',
+      width: 150,
       valueFormatter: (params) => {
         if (params.value == null) {
           return '--/--/----';
@@ -73,21 +84,25 @@ export default function Empleado() {
     // { field: 'departamento', headerName: 'Departamento', width: 250 },
     // { field: 'nivelestudio', headerName: 'Nivel Estudio', width: 200 },
     {
-      field: 'sexo', headerName: 'Sexo', width: 100,
+      field: 'sexo',
+      headerName: 'Sexo',
+      width: 100,
       valueFormatter: (params) => {
         if (params.value === 'M') {
           return 'MASCULINO';
         }
-        return 'FEMINIO'
+        return 'FEMINIO';
       },
     },
     {
-      field: 'sueldoBase', headerName: 'Sueldo Base', width: 100,
+      field: 'sueldoBase',
+      headerName: 'Sueldo Base',
+      width: 100,
       valueFormatter: (params) => {
         if (params.value == null) {
           return '----';
         }
-        return fCurrency(parseFloat(params.value))
+        return fCurrency(parseFloat(params.value));
       },
     },
     { field: 'observacion', headerName: 'Observacion', width: 250 },
@@ -107,6 +122,7 @@ export default function Empleado() {
         ),
     },
   ];
+
   // const [, setItems] = React.useState([]);
   const [buscar, setBuscar] = React.useState('');
   const [resultadobusqueda, setResultadoBusqueda] = React.useState([]);
@@ -118,17 +134,18 @@ export default function Empleado() {
     const texto = String(e.target.value).toLocaleUpperCase();
     const resultado = resultadobusqueda.filter(
       (b) =>
-
         String(b.codigo_Empleado).toLocaleUpperCase().includes(texto) ||
         String(b.nombres).toLocaleUpperCase().includes(texto) ||
         String(b.cedula).toLocaleUpperCase().includes(texto)
     );
     setDatosFilas(resultado);
   };
+
   const Editar = (e) => {
     console.log(e);
     navegacion(`/sistema/parametros/formularioempleado`, { state: { modo: 'editar', id: e.id } });
   };
+
   const Nuevo = () => {
     navegacion(`/sistema/parametros/formularioempleado`, { state: { modo: 'nuevo', id: 0 } });
   };
@@ -136,44 +153,61 @@ export default function Empleado() {
   React.useEffect(() => {
     async function getDatos() {
       try {
-        const { data } = await axios(`${URLAPIGENERAL}/empleados/listar`, config,setMostrarProgreso(true));
+        const { data } = await axios(`${URLAPIGENERAL}/empleados/listar`, config, setMostrarProgreso(true));
         setDatosFilas(data);
         setResultadoBusqueda(data);
       } catch (error) {
         if (error.response.status === 401) {
           navegacion(`${PATH_AUTH.login}`);
-          mensajeSistema("Su inicio de sesion expiro", "error");
-        }
-        else if (error.response.status === 500) {
+          messajeTool('error', 'Su inicio de sesion expiro');
+        } else if (error.response.status === 500) {
           navegacion(`${PATH_PAGE.page500}`);
         } else {
-          mensajeSistema("Problemas al guardar verifique si se encuentra registrado", "error");
+          messajeTool('error', 'Problemas al guardar verifique si se encuentra registrado');
         }
-      } finally{
-        setMostrarProgreso(false)
+      } finally {
+        setMostrarProgreso(false);
       }
     }
     getDatos();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const cerrarModalMensaje = () => {
+    setopenModal2((p) => !p);
+  };
+
   return (
     <>
-    <CircularProgreso open={mostrarprogreso} handleClose1={() => { setMostrarProgreso(false) }} />
+      <MensajesGenericos
+        openModal={openModal2}
+        closeModal={cerrarModalMensaje}
+        mantenimmiento={mantenimmiento}
+        codigo={codigomod}
+        nombre={nombre}
+        modomantenimiento={modoMantenimiento}
+        texto={texto}
+        tipo={tipo}
+      />
+      <CircularProgreso
+        open={mostrarprogreso}
+        handleClose1={() => {
+          setMostrarProgreso(false);
+        }}
+      />
       <Page title="Empleado">
         <Fade in style={{ transformOrigin: '0 0 0' }} timeout={1000}>
           <Box sx={{ ml: 3, mr: 3, p: 1 }}>
             <HeaderBreadcrumbs
               heading="Empleados"
-              links={[
-                { name: 'Parametros' },
-                { name: 'Empleado' },
-                { name: 'Lista' },
-              ]}
+              links={[{ name: 'Parametros' }, { name: 'Empleado' }, { name: 'Lista' }]}
               action={
                 <Button
                   fullWidth
                   variant="contained"
-                  onClick={() => { Nuevo() }}
+                  onClick={() => {
+                    Nuevo();
+                  }}
                   startIcon={<AddCircleRoundedIcon />}
                 >
                   Nuevo
@@ -230,11 +264,8 @@ export default function Empleado() {
                   </Grid>
                 </Grid>
               </Grid>
-
             </Box>
-            <Box
-              sx={estilosdetabla}
-            >
+            <Box sx={estilosdetabla}>
               <div
                 style={{
                   padding: '0.5rem',

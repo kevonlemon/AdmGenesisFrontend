@@ -174,6 +174,7 @@ export default function FormularioContador() {
         setMostrarProgreso(false);
       }
     }
+    
     obtenerContador();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.id]);

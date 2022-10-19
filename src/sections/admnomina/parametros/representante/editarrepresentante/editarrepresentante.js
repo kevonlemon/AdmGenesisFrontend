@@ -1,13 +1,4 @@
-import {
-  TextField,
-  Grid,
-  Card,
-  FormControlLabel,
-  Checkbox,
-  Fade,
-  InputAdornment,
-  IconButton,
-} from '@mui/material';
+import { TextField, Grid, Card, FormControlLabel, Checkbox, Fade, InputAdornment, IconButton } from '@mui/material';
 import * as React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
@@ -15,38 +6,49 @@ import AdapterDateFns from '@mui/lab/AdapterDateFns';
 import LocalizationProvider from '@mui/lab/LocalizationProvider';
 import MobileDatePicker from '@mui/lab/MobileDatePicker';
 import { SearchRounded } from '@mui/icons-material';
-import { useSnackbar } from 'notistack';
 import axios from 'axios';
-import { MenuMantenimiento } from "../../../../../components/sistema/menumatenimiento";
+import { MenuMantenimiento } from '../../../../../components/sistema/menumatenimiento';
 import { URLAPIGENERAL, URLRUC } from '../../../../../config';
 import Page from '../../../../../components/Page';
-import { noEsVacio, esCorreo } from "../../../../../utils/sistema/funciones";
+import { noEsVacio, esCorreo } from '../../../../../utils/sistema/funciones';
 import { PATH_AUTH, PATH_PAGE } from '../../../../../routes/paths';
 import RequiredTextField from '../../../../../sistema/componentes/formulario/RequiredTextField';
+import MensajesGenericos from '../../../../../components/sistema/mensajesgenerico';
 
 export default function FormularioRepresentanteLegal() {
   document.body.style.overflowX = 'hidden';
   const usuario = JSON.parse(window.localStorage.getItem('usuario'));
   const config = {
     headers: {
-      'Authorization': `Bearer ${usuario.token}`
-    }
-  }
+      Authorization: `Bearer ${usuario.token}`,
+    },
+  };
   const navegacion = useNavigate();
-  const { state } = useLocation()
+  const [openModal2, setopenModal2] = React.useState(false);
+  const [mantenimmiento, setMantenimmiento] = React.useState(false);
+  const [codigomod, setCodigomod] = React.useState('');
+  const [nombre, setNombre] = React.useState('');
+  const [modoMantenimiento, setModoMantenimiento] = React.useState('');
+  const [texto, setTexto] = React.useState('');
+  const [tipo, setTipo] = React.useState('succes');
+  const [guardado, setGuardado] = React.useState(false);
+  const { state } = useLocation();
   const { id } = state;
-  const { enqueueSnackbar } = useSnackbar();
   const [errorcorreo, setErrorcorreo] = React.useState(false);
   // const [id, setId] = React.useState([])
-  const mensajeSistema = (mensaje, variante) => {
-    enqueueSnackbar(mensaje, {
-      variant: variante,
-      anchorOrigin: {
-        vertical: 'top',
-        horizontal: 'center',
-      },
-    });
+
+  // MENSAJE GENERICO
+  const messajeTool = (variant, msg) => {
+    const unTrue = true;
+    setCodigomod('');
+    setNombre('');
+    setModoMantenimiento('grabar');
+    setTexto(msg);
+    setTipo(variant);
+    setMantenimmiento(false);
+    setopenModal2(unTrue);
   };
+
   const [formulario, setFormulario] = React.useState({
     codigo: '',
     ruc: '',
@@ -61,11 +63,9 @@ export default function FormularioRepresentanteLegal() {
     estado: true,
   });
 
-  const messajeTool = (variant, msg) => {
-    enqueueSnackbar(msg, { variant, anchorOrigin: { vertical: 'top', horizontal: 'center' } });
-  };
   // METODO PARA OBTENER EL RUC
   const [error, setError] = React.useState(false);
+
   // eslint-disable-next-line consistent-return
   const Grabar = async () => {
     console.log(formulario);
@@ -79,7 +79,7 @@ export default function FormularioRepresentanteLegal() {
       const correo = esCorreo(formulario);
       const direccion = formulario.direccion.trim();
       if (!noesvacio) {
-        mensajeSistema('Complete los campos requeridos', 'error');
+        messajeTool('error', 'Complete los campos requeridos');
         setError(true);
         return false;
       }
@@ -121,17 +121,14 @@ export default function FormularioRepresentanteLegal() {
       }
       const { data } = await axios.post(`${URLAPIGENERAL}/RepresentanteLegal/editar`, formulario, config);
       if (data === 200) {
-        mensajeSistema('Registros guardado correctamente', 'success');
-        Volver()
+        setGuardado(true);
+        messajeTool('succes', 'Registros guardado correctamente');
       }
     } catch (error) {
-      mensajeSistema('Error al guardar el registro', 'error');
+      messajeTool('error', 'Error al guardar el registro');
     }
   };
-  // const Eliminar = () => {
-  //   mensajeSistema('Eliminado Correctamente', 'success');
-  //   // limpiarCampos()
-  // };
+
   const limpiarCampos = () => {
     setFormulario({
       codigo: 0,
@@ -147,6 +144,7 @@ export default function FormularioRepresentanteLegal() {
       estado: true,
     });
   };
+
   const consultarRuc = async () => {
     try {
       const { data } = await axios(`${URLRUC}GetRucs?id=${formulario.ruc}`);
@@ -159,18 +157,17 @@ export default function FormularioRepresentanteLegal() {
           direccion: data[0].Direccion_completa,
         });
       } else {
-        mensajeSistema('No se encontro ninguna identificacion', 'error');
+        messajeTool('error', 'No se encontro ninguna identificacion');
         limpiarCampos();
       }
     } catch (error) {
       if (error.response.status === 401) {
         navegacion(`${PATH_AUTH.login}`);
-        mensajeSistema("Su inicio de sesion expiro", "error");
-      }
-      else if (error.response.status === 500) {
+        messajeTool('error', 'Su inicio de sesion expiro');
+      } else if (error.response.status === 500) {
         navegacion(`${PATH_PAGE.page500}`);
       } else {
-        mensajeSistema("Problemas con la base de datos", "error");
+        messajeTool('error', 'Problemas con la base de datos');
       }
     }
   };
@@ -183,26 +180,47 @@ export default function FormularioRepresentanteLegal() {
       } catch (error) {
         if (error.response.status === 401) {
           navegacion(`${PATH_AUTH.login}`);
-          mensajeSistema("Su inicio de sesion expiro", "error");
-        }
-        else if (error.response.status === 500) {
+          messajeTool('error', 'Su inicio de sesion expiro');
+        } else if (error.response.status === 500) {
           navegacion(`${PATH_PAGE.page500}`);
         } else {
-          mensajeSistema("Problemas con la base de datos", "error");
+          messajeTool('error', 'Problemas con la base de datos');
         }
       }
     }
     obtenerRepresentante();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
   const Volver = () => {
     navegacion(`/sistema/parametros/representante`);
   };
+
   const Nuevo = () => {
     navegacion(`/sistema/parametros/nuevorepresentante`);
   };
+
+  const cerrarModalMensaje = () => {
+    if (guardado === true) {
+      setopenModal2((p) => !p);
+      setGuardado(false);
+      Volver();
+    }
+    setopenModal2((p) => !p);
+  };
+
   return (
     <>
+      <MensajesGenericos
+        openModal={openModal2}
+        closeModal={cerrarModalMensaje}
+        mantenimmiento={mantenimmiento}
+        codigo={codigomod}
+        nombre={nombre}
+        modomantenimiento={modoMantenimiento}
+        texto={texto}
+        tipo={tipo}
+      />
       <Page title="Representantes">
         <MenuMantenimiento modo={false} nuevo={() => Nuevo()} grabar={() => Grabar()} volver={() => Volver()} />
         <Fade in style={{ transformOrigin: '0 0 0' }} timeout={1000}>
@@ -227,10 +245,10 @@ export default function FormularioRepresentanteLegal() {
                       }}
                       value={formulario.codigo}
                       sx={{
-                        backgroundColor: "#e5e8eb",
-                        border: "none",
+                        backgroundColor: '#e5e8eb',
+                        border: 'none',
                         borderRadius: '10px',
-                        color: "#212B36"
+                        color: '#212B36',
                       }}
                     />
                   </Grid>
