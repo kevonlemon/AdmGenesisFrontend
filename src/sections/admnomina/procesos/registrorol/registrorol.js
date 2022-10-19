@@ -4,24 +4,21 @@ import MobileDatePicker from '@mui/lab/MobileDatePicker';
 import AdapterDateFns from '@mui/lab/AdapterDateFns';
 import es from 'date-fns/locale/es';
 import { useState, useEffect } from 'react';
-import { useSnackbar } from 'notistack';
 import axios from 'axios';
 import SearchRounded from '@mui/icons-material/SearchRounded';
+import { NumericFormat } from 'react-number-format';
 import { obtenerMaquina } from '../../../../utils/sistema/funciones';
 import ModalGenerico from '../../../../components/modalgenerico';
 import { URLAPIGENERAL, URLAPILOCAL } from '../../../../config';
 import RequiredTextField from '../../../../sistema/componentes/formulario/RequiredTextField';
 // import CajaGenerica from '../../../../components/cajagenerica';
-
 import { MenuMantenimiento } from '../../../../components/sistema/menumatenimiento';
 import Page from '../../../../components/Page';
-
 import TipoCredito from './componentes/tipocredito';
-
 import MotivoCredito from './componentes/motivocredito';
+import MensajesGenericos from '../../../../components/sistema/mensajesgenerico';
 
 export default function RegistroRol() {
-  const { enqueueSnackbar } = useSnackbar();
   const usuario = JSON.parse(window.localStorage.getItem('usuario'));
   const config = {
     headers: {
@@ -37,6 +34,7 @@ export default function RegistroRol() {
     tipo: 'I',
     opcionesmonto: true,
     valormontocredito: 0,
+    valormontocreditoVer: '0',
     codigomonto: 'COMICI',
     porcentaje: 0,
     sueldobase: 0,
@@ -81,7 +79,7 @@ export default function RegistroRol() {
   };
   useEffect(() => {
     async function getDatos() {
-      const { data } = await axios(`${URLAPIGENERAL}/empleados/listar`);
+      const { data } = await axios(`${URLAPIGENERAL}/empleados/listar`, config);
       const lista = data.map((e) => ({
         id: e.codigo,
         codigo: e.codigo_Empleado,
@@ -119,7 +117,6 @@ export default function RegistroRol() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [datosgenerales.nombreempleado, datosgenerales.porcentaje]);
 
-  const [error, seterror] = useState(false);
   const Nuevo = () => {
     setdatosgenerales({
       fechaemision: new Date(),
@@ -130,6 +127,7 @@ export default function RegistroRol() {
       tipo: 'I',
       opcionesmonto: true,
       valormontocredito: 0,
+      valormontocreditoVer: '0',
       codigomonto: 'COMICI',
       porcentaje: 0,
       sueldobase: 0,
@@ -139,41 +137,58 @@ export default function RegistroRol() {
     });
     setactivarimoresion(true);
   };
-  // MENSAJE GENERICO
-  const mensajeSistema = (mensaje, variante) => {
-    enqueueSnackbar(mensaje, {
-      variant: variante,
-      anchorOrigin: {
-        vertical: 'top',
-        horizontal: 'center',
-      },
-    });
+  // Hook para mensajes genéricos
+  const [texto, setTexto] = useState('');
+  const [tipo, setTipo] = useState('succes');
+  const [openMensaje, setOpenMensaje] = useState(false);
+
+  const mensajeGenerico = (tipo, msj) => {
+    setTexto(msj);
+    setTipo(tipo);
+    setOpenMensaje(true);
   };
-  const messajeTool = (variant, msg) => {
-    enqueueSnackbar(msg, { variant, anchorOrigin: { vertical: 'top', horizontal: 'center' } });
+
+  const cerrarMensaje = () => {
+    setOpenMensaje((p) => !p);
   };
+
+  // MANEJADOR DE ERRORES
+  const [errorEmpleado, setErrorEmpleado] = useState(false);
+  const [errorMonto, setErrorMonto] = useState(false);
+  const [errorObservacion, setErrorObservacion] = useState(false);
+
+  const validacion = () => {
+    const empleado = datosgenerales.codigoempleado;
+    const empleadoNom = datosgenerales.nombreempleado;
+    const monto = datosgenerales.valormontocredito;
+    const observacion = datosgenerales.observacion;
+    const opcion = datosgenerales.opcionesmonto;
+
+    if (empleado === '' || empleadoNom === '') {
+      mensajeGenerico('error', 'Debe escoger un empleado');
+      setErrorEmpleado(true);
+      return false;
+    }
+    if (opcion === false && (monto === '' || monto === 0)) {
+      mensajeGenerico('error', 'Debe ingresar un monto manualmente');
+      setErrorMonto(true);
+      return false;
+    }
+    if (observacion === '') {
+      mensajeGenerico('error', 'Debe escoger una observación');
+      setErrorObservacion(true);
+      return false;
+    }
+    return true;
+  };
+
   // eslint-disable-next-line consistent-return
   const Grabar = async () => {
+    if (validacion() === false) {
+      return 0;
+    }
     try {
       const maquina = await obtenerMaquina();
-      const empleado = datosgenerales.empleado.length;
-      const tipo = datosgenerales.tipo.length;
-      const observacion = datosgenerales.observacion.trim();
-      if (empleado === '') {
-        messajeTool('error', 'Debe escoger un empleado');
-        seterror(true);
-        return false;
-      }
-      if (tipo === '') {
-        messajeTool('error', 'Debe escoger un tipo');
-        seterror(true);
-        return false;
-      }
-      if (observacion === '') {
-        messajeTool('error', 'Debe escoger una observacion');
-        seterror(true);
-        return false;
-      }
       // console.log(datosgenerales)
       const datosfinales = {
         empleado: datosgenerales.empleado,
@@ -187,16 +202,17 @@ export default function RegistroRol() {
       // console.log(datosfinales);
       const { data } = await axios.post(`${URLAPIGENERAL}/ingresoegresorol`, datosfinales, config);
       if (data === 200) {
-        mensajeSistema('Registro Guardados correctamente ', 'success');
+        mensajeGenerico('succes', 'Registro Guardados correctamente ');
         setactivarimoresion(false);
         const response = await axios(
-          `${URLAPIGENERAL}/ingresoegresorol/buscar?Codigodescr=${datosgenerales.codigomonto}`
+          `${URLAPIGENERAL}/ingresoegresorol/buscar?Codigodescr=${datosgenerales.codigomonto}`,
+          config
         );
         setdatosgenerales({ ...datosgenerales, debito: response.data.numero });
         Nuevo();
       }
     } catch {
-      messajeTool('error', 'Se Obtuvo un error ');
+      mensajeGenerico('error', 'Error en el servidor');
       console.log('Caimos al grabar');
     }
   };
@@ -207,9 +223,14 @@ export default function RegistroRol() {
       setopenmodalEmpleados(true);
     } else {
       try {
-        const { data } = await axios(`${URLAPILOCAL}/empleados/obtenerxcodigo?codigo=${datosgenerales.codigoempleado === '' ? 'string' : datosgenerales.codigoempleado}`, config)
+        const { data } = await axios(
+          `${URLAPIGENERAL}/empleados/obtenerxcodigo?codigo=${
+            datosgenerales.codigoempleado === '' ? 'string' : datosgenerales.codigoempleado
+          }`,
+          config
+        );
         if (data.length === 0) {
-          mensajeSistema('Código no encontrado', 'warning')
+          mensajeGenerico('warning', 'Código no encontrado');
           setopenmodalEmpleados(true);
         } else {
           setdatosgenerales({
@@ -217,19 +238,19 @@ export default function RegistroRol() {
             empleado: data.codigo,
             codigoempleado: data.codigo_Empleado,
             nombreempleado: data.nombres,
-            sueldobase: data.sueldoBase
-          })
+            sueldobase: data.sueldoBase,
+          });
         }
       } catch (error) {
-        console.log(error)
+        console.log(error);
       }
     }
-    
   }
   // -----------------------------------------------------------------------------------------------------
 
   return (
     <>
+      <MensajesGenericos openModal={openMensaje} closeModal={cerrarMensaje} texto={texto} tipo={tipo} />
       <ModalGenerico
         nombre="Empleados"
         rowsData={listarempleados}
@@ -265,7 +286,6 @@ export default function RegistroRol() {
                         label="Fecha Emision"
                         inputFormat="dd/MM/yyyy"
                         value={datosgenerales.fechaemision}
-                        error={error}
                         onChange={(newValue) => {
                           setdatosgenerales({
                             ...datosgenerales,
@@ -281,13 +301,14 @@ export default function RegistroRol() {
                       label="Empleado *"
                       fullWidth
                       size="small"
-                      error={error}
+                      error={errorEmpleado}
                       value={datosgenerales.codigoempleado}
                       onChange={(e) => {
                         setdatosgenerales({
                           ...datosgenerales,
                           codigoempleado: e.target.value,
                         });
+                        setErrorEmpleado(datosgenerales.empleado === '');
                       }}
                       InputProps={{
                         endAdornment: (
@@ -295,7 +316,7 @@ export default function RegistroRol() {
                             <IconButton
                               size="small"
                               onClick={() => {
-                                buscarEmpleados()
+                                buscarEmpleados();
                               }}
                             >
                               <SearchRounded />
@@ -310,7 +331,7 @@ export default function RegistroRol() {
                       label="Nombre Empleado *"
                       fullWidth
                       size="small"
-                      error={error}
+                      // error={error}
                       value={datosgenerales.nombreempleado}
                       onChange={(e) => {
                         setdatosgenerales({
@@ -322,10 +343,10 @@ export default function RegistroRol() {
                         readOnly: true,
                       }}
                       sx={{
-                        backgroundColor: "#e5e8eb",
-                        border: "none",
+                        backgroundColor: '#e5e8eb',
+                        border: 'none',
                         borderRadius: '10px',
-                        color: "#212B36"
+                        color: '#212B36',
                       }}
                     />
                   </Grid>
@@ -334,7 +355,7 @@ export default function RegistroRol() {
                   <Grid item md={4} sm={4} xs={12}>
                     <TextField
                       label="Sueldo Base"
-                      error={error}
+                      // error={error}
                       size="small"
                       fullWidth
                       value={datosgenerales.sueldobase}
@@ -344,10 +365,10 @@ export default function RegistroRol() {
                       })}
                       disabled
                       sx={{
-                        backgroundColor: "#e5e8eb",
-                        border: "none",
+                        backgroundColor: '#e5e8eb',
+                        border: 'none',
                         borderRadius: '10px',
-                        color: "#212B36"
+                        color: '#212B36',
                       }}
                     />
                   </Grid>
@@ -359,10 +380,10 @@ export default function RegistroRol() {
                       value={datosgenerales.debito}
                       onChange={(e) => setdatosgenerales({ ...datosgenerales, debito: e.target.value })}
                       sx={{
-                        backgroundColor: "#e5e8eb",
-                        border: "none",
+                        backgroundColor: '#e5e8eb',
+                        border: 'none',
                         borderRadius: '10px',
-                        color: "#212B36"
+                        color: '#212B36',
                       }}
                     />
                   </Grid>
@@ -386,7 +407,7 @@ export default function RegistroRol() {
                       select
                       label="Tipo de Movimiento"
                       fullWidth
-                      error={error}
+                      // error={error}
                       defaultValue="I"
                       size="small"
                       value={datosgenerales.tipo}
@@ -412,7 +433,7 @@ export default function RegistroRol() {
                       label=" % Sueldo Base"
                       size="small"
                       disabled
-                      error={error}
+                      // error={error}
                       onChange={(e) => {
                         setdatosgenerales({
                           ...datosgenerales,
@@ -421,10 +442,10 @@ export default function RegistroRol() {
                       }}
                       value={datosgenerales.porcentaje}
                       sx={{
-                        backgroundColor: "#e5e8eb",
-                        border: "none",
+                        backgroundColor: '#e5e8eb',
+                        border: 'none',
                         borderRadius: '10px',
-                        color: "#212B36"
+                        color: '#212B36',
                       }}
                     />
                   </Grid>
@@ -439,9 +460,12 @@ export default function RegistroRol() {
                       label="Opciones Monto Credito"
                       size="small"
                       fullWidth
-                      error={error}
+                      // error={error}
                       value={datosgenerales.opcionesmonto}
-                      onChange={(e) => setdatosgenerales({ ...datosgenerales, opcionesmonto: e.target.value })}
+                      onChange={(e) => {
+                        setdatosgenerales({ ...datosgenerales, opcionesmonto: e.target.value });
+                        // console.log(datosgenerales.opcionesmonto);
+                      }}
                     >
                       {opcionesMontocredito.map((f) => (
                         <MenuItem key={f.value} value={f.value}>
@@ -451,33 +475,56 @@ export default function RegistroRol() {
                     </TextField>
                   </Grid>
                   <Grid item md={4} sm={4} xs={12}>
-                    <TextField
+                    <NumericFormat
+                      disabled={datosgenerales.opcionesmonto}
+                      error={errorMonto}
+                      label={'Monto Crédito'}
+                      customInput={RequiredTextField}
+                      value={parseFloat(datosgenerales.valormontocreditoVer)}
+                      onValueChange={(e) => {
+                        setdatosgenerales({
+                          ...datosgenerales,
+                          valormontocredito: e.value,
+                          valormontocreditoVer: e.formattedValue,
+                        });
+                        setErrorMonto(datosgenerales.valormontocredito === '');
+                      }}
+                      prefix={'$'}
+                      size="small"
+                      type="text"
+                      thousandSeparator
+                    />
+                    {/* <TextField
                       disabled={datosgenerales.opcionesmonto}
                       type="number"
-                      error={error}
+                      error={errorMonto}
                       label="Monto Credito"
                       size="small"
                       fullWidth
                       value={parseFloat(datosgenerales.valormontocredito)}
-                      onChange={(e) => setdatosgenerales({ ...datosgenerales, valormontocredito: e.target.value })}
-                    />
+                      onChange={(e) => {
+                        setdatosgenerales({ ...datosgenerales, valormontocredito: e.target.value });
+                        setErrorMonto(datosgenerales.valormontocredito === '');
+                      }}
+                    /> */}
                   </Grid>
                 </Grid>
                 <Grid container item spacing={1}>
                   <Grid item md={12} sm={12} xs={12}>
-                    <TextField
+                    <RequiredTextField
                       label="Observacion"
                       type="text"
                       size="small"
-                      error={error}
+                      error={errorObservacion}
                       fullWidth
                       value={datosgenerales.observacion}
-                      onChange={(e) =>
+                      onChange={(e) => {
                         setdatosgenerales({
                           ...datosgenerales,
-                          observacion: e.target.value,
-                        })
-                      }
+                          observacion: e.target.value.toUpperCase(),
+                        });
+                        setErrorObservacion(datosgenerales.observacion === '');
+                      }}
                     />
                   </Grid>
                 </Grid>
