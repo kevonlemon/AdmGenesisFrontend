@@ -1,52 +1,48 @@
-import {
-  TextField, Button, Grid, Card, FormControlLabel, MenuItem,
-  InputAdornment, IconButton, Checkbox
-} from "@mui/material";
+import { TextField, Button, Grid, Card, FormControlLabel, MenuItem, Checkbox } from '@mui/material';
 import Box from '@mui/material/Box';
 import * as React from 'react';
 import axios from 'axios';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
-import { useSnackbar } from 'notistack';
-import SearchIcon from '@mui/icons-material/Search';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
 import AddCircleRoundedIcon from '@mui/icons-material/AddCircle';
 import ArrowCircleLeftRoundedIcon from '@mui/icons-material/ArrowCircleLeftRounded';
-import ModalGenericoDelete from "../Componentes/ModalGenericoDelete";
 import CircularProgreso from '../../../../../components/Cargando';
-import { obtenerMaquina } from '../../../../../utils/sistema/funciones'
-import { CORS, URLAPILOCAL } from '../../../../../config';
+import { obtenerMaquina } from '../../../../../utils/sistema/funciones';
+import { CORS, URLAPIGENERAL, URLAPILOCAL } from '../../../../../config';
 import { PATH_AUTH, PATH_PAGE } from '../../../../../routes/paths';
 import ModalGenerico from '../../../../../components/modalgenerico';
 import Page from '../../../../../components/Page';
 import RequiredTextField from '../../../../../sistema/componentes/formulario/RequiredTextField';
-
+import MensajesGenericos from '../../../../../components/sistema/mensajesgenerico';
 
 // ----------------------------------------------------------------------
-
-
-
 
 export default function EditarBancoCia() {
   const usuario = JSON.parse(window.localStorage.getItem('usuario'));
   const config = {
     headers: {
-      'Authorization': `Bearer ${usuario.token}`
-    }
-  }
+      Authorization: `Bearer ${usuario.token}`,
+    },
+  };
   //  eslint-disable-next-line react-hooks/rules-of-hooks
   const { state } = useLocation();
-  const codigo = state.id
+  const [openModal2, setopenModal2] = React.useState(false);
+  const [mantenimmiento, setMantenimmiento] = React.useState(false);
+  const [codigomod, setCodigomod] = React.useState('');
+  const [nombre, setNombre] = React.useState('');
+  const [modoMantenimiento, setModoMantenimiento] = React.useState('');
+  const [texto, setTexto] = React.useState('');
+  const [tipo, setTipo] = React.useState('succes');
+  const [guardado, setGuardado] = React.useState(false);
+  const codigo = state.id;
   // Contador Automatico
   const [contadorAuto, setContadorauto] = React.useState(true);
-
   // seteo del Ultimo cheque
   const [switchUcheque, setUcheque] = React.useState(true);
-
   // Modal Progreso/ Carga
   const [mostrarprogreso, setMostrarProgreso] = React.useState(false);
-
   const [error, setError] = React.useState(false); // Inicial
   const [error1, setError1] = React.useState(false); // Nombre banco
   const [error2, setError2] = React.useState(false); // nº de cuenta
@@ -55,25 +51,19 @@ export default function EditarBancoCia() {
   const [error5, setError5] = React.useState(false); // N cuenta
   const [error6, setError6] = React.useState(false); // N ultimo cheque
 
-
-  const { enqueueSnackbar } = useSnackbar();
-
   const navigate = useNavigate();
 
   const messajeTool = (variant, msg) => {
-    enqueueSnackbar(msg, { variant, anchorOrigin: { vertical: 'top', horizontal: 'center' }, autoHideDuration: 5000 });
+    const unTrue = true;
+    setCodigomod('');
+    setNombre('');
+    setModoMantenimiento('grabar');
+    setTexto(msg);
+    setTipo(variant);
+    setMantenimmiento(false);
+    setopenModal2(unTrue);
   };
-  const mensajeSistema = (mensaje, variante) => {
-    enqueueSnackbar(mensaje,
-      {
-        variant: variante,
-        anchorOrigin: {
-          vertical: 'top',
-          horizontal: 'center',
-        },
-      }
-    )
-  }
+
   const fechaActual = new Date();
 
   const [dataBanco, setbanco] = React.useState({
@@ -97,12 +87,15 @@ export default function EditarBancoCia() {
     sucursal: 0,
   });
 
-
   // eslint-disable-next-line react-hooks/rules-of-hooks
   React.useEffect(() => {
     async function obtenermotv() {
       try {
-        const { data } = await axios(`${URLAPILOCAL}/bancos/obtener?codigo=${codigo}`, config, setMostrarProgreso(true));
+        const { data } = await axios(
+          `${URLAPIGENERAL}/bancos/obtener?codigo=${codigo}`,
+          config,
+          setMostrarProgreso(true)
+        );
         setbanco(data);
 
         if (data.tipo_Cuenta === 'COR') {
@@ -124,12 +117,11 @@ export default function EditarBancoCia() {
       } catch {
         if (error.response.status === 401) {
           navigate(`${PATH_AUTH.login}`);
-          mensajeSistema("Su inicio de sesion expiro", "error");
-        }
-        else if (error.response.status === 500) {
+          messajeTool('error', 'Su inicio de sesion expiro');
+        } else if (error.response.status === 500) {
           navigate(`${PATH_PAGE.page500}`);
         } else {
-          mensajeSistema("Problemas con la base de datos", "error");
+          messajeTool('error', 'Problemas con la base de datos');
         }
       } finally {
         setMostrarProgreso(false);
@@ -138,7 +130,7 @@ export default function EditarBancoCia() {
     obtenermotv();
   }, [codigo]);
 
-  // -------- Axios atrae las cuentas contables 
+  // -------- Axios atrae las cuentas contables
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const [cateProv, setCateProv] = React.useState({});
@@ -151,7 +143,8 @@ export default function EditarBancoCia() {
   const toggleShownivel1 = () => setOpenModalnivel1((p) => !p);
   const handleCallbackChildnivel1 = (e) => {
     const item = e.row;
-    setbanco({ ...dataBanco, cuenta: item.codigo, nombre_cuenta: item.nombre }); toggleShownivel1();
+    setbanco({ ...dataBanco, cuenta: item.codigo, nombre_cuenta: item.nombre });
+    toggleShownivel1();
   };
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const [cateProv2, setCateProv2] = React.useState({});
@@ -168,7 +161,6 @@ export default function EditarBancoCia() {
     setbanco({ ...dataBanco, cuenta_Cheque_Fecha: item.codigo, nombre_cta_cheque_fecha: item.nombre });
     toggleShownivel2();
   };
-
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
   // React.useEffect(() => {
@@ -201,50 +193,45 @@ export default function EditarBancoCia() {
   //   getDatos();
   // }, []);
 
-
   const [tipoCtas, setTipocuentabanco] = React.useState({});
   React.useEffect(() => {
     async function getTipoCuenta() {
       try {
-        const response = await axios(`${URLAPILOCAL}/mantenimientogenerico/listarportabla?tabla=CNT_TIPOCUENTABANCO`, config);
+        const response = await axios(
+          `${URLAPIGENERAL}/mantenimientogenerico/listarportabla?tabla=CNT_TIPOCUENTABANCO`,
+          config
+        );
         const dataRes = response.data;
-        const tipocuentas = dataRes.map(el => ({
+        const tipocuentas = dataRes.map((el) => ({
           codigo: el.codigo,
-          nombre: el.nombre
-        }))
+          nombre: el.nombre,
+        }));
         setTipocuentabanco(tipocuentas);
       } catch (error) {
         if (error.response.status === 401) {
           navigate(`${PATH_AUTH.login}`);
-          mensajeSistema("Su inicio de sesion expiro", "error");
-        }
-        else if (error.response.status === 500) {
+          messajeTool('error', 'Su inicio de sesion expiro');
+        } else if (error.response.status === 500) {
           navigate(`${PATH_PAGE.page500}`);
         } else {
-          mensajeSistema("Problemas con la base de datos", "error");
+          messajeTool('error', 'Problemas con la base de datos');
         }
       }
-
     }
 
-    getTipoCuenta()
-
+    getTipoCuenta();
   }, []);
-
-
 
   const tipocuenta = (e) => {
     const tipocuenta = e.target.value;
     if (dataBanco.tipo_Cuenta === 'AHO') {
-
       setContadorauto(false);
       setUcheque(false);
       setbanco({
         ...dataBanco,
         ultimo_Cheque: 0,
       });
-    };
-
+    }
 
     if (dataBanco.tipo_Cuenta === 'COR') {
       setContadorauto(true);
@@ -253,42 +240,33 @@ export default function EditarBancoCia() {
         ...dataBanco,
         ultimo_Cheque: 0,
       });
-
-    };
+    }
     setbanco({
       ...dataBanco,
       tipo_Cuenta: tipocuenta,
       ultimo_Cheque: 0,
       contador_Automatico: false,
-    })
-
-  }
+    });
+  };
 
   const actioncheckbox = (event) => {
-
-    setUcheque(event.target.checked && dataBanco.tipo_Cuenta === 'COR')
+    setUcheque(event.target.checked && dataBanco.tipo_Cuenta === 'COR');
 
     setbanco({
       ...dataBanco,
       contador_Automatico: event.target.checked,
-      ultimo_Cheque: 0
-
+      ultimo_Cheque: 0,
     });
-
   };
 
   const ultimocheque = (event) => {
-    setbanco({ ...dataBanco, ultimo_Cheque: event.target.value })
+    setbanco({ ...dataBanco, ultimo_Cheque: event.target.value });
   };
 
   const validation = () => {
-
-
     // implementar valdiadcion con motibo movimiento banco
 
     // CXP_PAGOS                NO DEBE EXISTIR EN ESAS DOS TABLAS PARA PODER ELIMINAR
-
-
 
     const Cuenta = dataBanco.cuenta;
     const Nombre = dataBanco.nombre.length;
@@ -315,7 +293,6 @@ export default function EditarBancoCia() {
       return false;
     }
 
-
     if (ucheque === '') {
       messajeTool('error', 'Debe ingresar el ultimo cheque.');
       setError6(true);
@@ -335,24 +312,17 @@ export default function EditarBancoCia() {
     }
 
     return true;
-  }
-
-
+  };
 
   const actualizar = async () => {
-
     if (validation() === false) {
       return 0;
     }
 
-    
     const maquina = await obtenerMaquina();
     const { codigo } = JSON.parse(window.localStorage.getItem('usuario'));
 
-
-    const Json =
-    {
-
+    const Json = {
       Codigo: dataBanco.codigo,
       inicial_Banco: dataBanco.inicial_Banco,
       cuenta: dataBanco.cuenta,
@@ -371,26 +341,24 @@ export default function EditarBancoCia() {
       fechaRegistro: new Date(),
       maquina: `${maquina}`,
       usuario: codigo,
-      // sucursal: 0, 
-
-    }
+      // sucursal: 0,
+    };
 
     try {
-      const { data } = await axios.post(`${URLAPILOCAL}/bancos/editar`, Json, config, setMostrarProgreso(true));
+      const { data } = await axios.post(`${URLAPIGENERAL}/bancos/editar`, Json, config, setMostrarProgreso(true));
       if (data === 200) {
-        navigate(`/sistema/parametros/bancocia`);
-        mensajeSistema('Registro guardado correctamente', 'success')
+        setGuardado(true);
+        messajeTool('succes', 'Registro guardado correctamente');
       }
       setError(false);
     } catch (error) {
       if (error.response.status === 401) {
         navigate(`${PATH_AUTH.login}`);
-        mensajeSistema("Su inicio de sesion expiro", "error");
-      }
-      else if (error.response.status === 500) {
+        messajeTool('error', 'Su inicio de sesion expiro');
+      } else if (error.response.status === 500) {
         navigate(`${PATH_PAGE.page500}`);
       } else {
-        mensajeSistema("Problemas con la base de datos", "error");
+        messajeTool('error', 'Problemas con la base de datos');
       }
     } finally {
       setMostrarProgreso(false);
@@ -410,12 +378,11 @@ export default function EditarBancoCia() {
     } catch {
       if (error.response.status === 401) {
         navigate(`${PATH_AUTH.login}`);
-        mensajeSistema("Su inicio de sesion expiro", "error");
-      }
-      else if (error.response.status === 500) {
+        messajeTool('error', 'Su inicio de sesion expiro');
+      } else if (error.response.status === 500) {
         navigate(`${PATH_PAGE.page500}`);
       } else {
-        mensajeSistema("Problemas con la base de datos", "error");
+        messajeTool('error', 'Problemas con la base de datos');
       }
     }
   };
@@ -448,12 +415,29 @@ export default function EditarBancoCia() {
     fecha: dataBanco.fecha_ing,
     usuario: dataBanco.usuario,
     sucursal: dataBanco.sucursal,
-
   };
 
+  const cerrarModalMensaje = () => {
+    if (guardado === true) {
+      setopenModal2((p) => !p);
+      setGuardado(false);
+      navigate(`/sistema/parametros/bancocia`);
+    }
+    setopenModal2((p) => !p);
+  };
 
   return (
     <>
+      <MensajesGenericos
+        openModal={openModal2}
+        closeModal={cerrarModalMensaje}
+        mantenimmiento={mantenimmiento}
+        codigo={codigomod}
+        nombre={nombre}
+        modomantenimiento={modoMantenimiento}
+        texto={texto}
+        tipo={tipo}
+      />
       <CircularProgreso
         open={mostrarprogreso}
         handleClose1={() => {
@@ -492,41 +476,59 @@ export default function EditarBancoCia() {
       <Page title="Editar Banco">
         <Box sx={{ ml: 3, mr: 3, p: 0 }}>
           <Grid container spacing={1} justifyContent="flex-end">
-
             <Grid item md={1.2} sm={2} xs={6}>
               <Button
-                fullWidth variant="text"
+                fullWidth
+                variant="text"
                 component={RouterLink}
-                to="/sistema/parametros/nuevobancocia" size="small"
-                startIcon={<AddCircleRoundedIcon />}> Nuevo </Button>
+                to="/sistema/parametros/nuevobancocia"
+                size="small"
+                startIcon={<AddCircleRoundedIcon />}
+              >
+                {' '}
+                Nuevo{' '}
+              </Button>
             </Grid>
 
+            <Grid item md={1.2} sm={2} xs={6}>
+              <Button fullWidth variant="text" startIcon={<SaveRoundedIcon />} size="small" onClick={actualizar}>
+                {' '}
+                Grabar{' '}
+              </Button>
+            </Grid>
             <Grid item md={1.2} sm={2} xs={6}>
               <Button
-                fullWidth variant="text" startIcon={<SaveRoundedIcon />} size="small"
-                onClick={actualizar}> Grabar </Button>
-
-            </Grid>
-            <Grid item md={1.2} sm={2} xs={6}>
-              <Button disabled fullWidth variant="text" startIcon={<DeleteRoundedIcon />} onClick={Eliminar} size="small">
+                disabled
+                fullWidth
+                variant="text"
+                startIcon={<DeleteRoundedIcon />}
+                onClick={Eliminar}
+                size="small"
+              >
                 Eliminar
               </Button>
             </Grid>
             <Grid item md={1.2} sm={2} xs={6}>
-              <Button fullWidth variant="text" size="small"
+              <Button
+                fullWidth
+                variant="text"
+                size="small"
                 component={RouterLink}
                 to="/sistema/parametros/bancocia"
-                startIcon={<ArrowCircleLeftRoundedIcon />}> Volver </Button>
+                startIcon={<ArrowCircleLeftRoundedIcon />}
+              >
+                {' '}
+                Volver{' '}
+              </Button>
             </Grid>
-
           </Grid>
         </Box>
         <Box sx={{ ml: 3, mr: 3, p: 1 }} style={{ fontWeight: '400px' }}>
           <h1>Editar Banco</h1>
         </Box>
-        <Card elevation={3} sx={{ ml: 3, mr: 3, mb: 2, p: 1 }} >
+        <Card elevation={3} sx={{ ml: 3, mr: 3, mb: 2, p: 1 }}>
           <Box sx={{ width: '100%', p: 2 }}>
-            <Grid container spacing={2} >
+            <Grid container spacing={2}>
               <Grid container item xs={12} sm={12} md={6} spacing={1} sx={{ mb: 1 }}>
                 <Box sx={{ width: '100%' }}>
                   <Grid item md={12} xs={12} sm={12}>
@@ -553,11 +555,11 @@ export default function EditarBancoCia() {
                     value={dataBanco.inicial_Banco}
                     id="outlined-size-small"
                     sx={{
-                        backgroundColor: "#e5e8eb",
-                        border: "none",
-                        borderRadius: '10px',
-                        color: "#212B36"
-                      }}
+                      backgroundColor: '#e5e8eb',
+                      border: 'none',
+                      borderRadius: '10px',
+                      color: '#212B36',
+                    }}
                   />
                 </Grid>
                 <Grid item md={7.5} xs={12} sm={7}>
@@ -578,11 +580,11 @@ export default function EditarBancoCia() {
                     }}
                     value={dataBanco.nombre}
                     sx={{
-                        backgroundColor: "#e5e8eb",
-                        border: "none",
-                        borderRadius: '10px',
-                        color: "#212B36"
-                      }}
+                      backgroundColor: '#e5e8eb',
+                      border: 'none',
+                      borderRadius: '10px',
+                      color: '#212B36',
+                    }}
                   />
                 </Grid>
 
@@ -604,41 +606,40 @@ export default function EditarBancoCia() {
                       value={dataBanco.numero_Cuenta}
                       id="outlined-size-small"
                       sx={{
-                        backgroundColor: "#e5e8eb",
-                        border: "none",
+                        backgroundColor: '#e5e8eb',
+                        border: 'none',
                         borderRadius: '10px',
-                        color: "#212B36"
+                        color: '#212B36',
                       }}
                     />
                   </Grid>
                   <Grid item md={4} xs={12} sm={4}>
-                    <RequiredTextField 
+                    <RequiredTextField
                       select
                       error={error3}
                       label="Tipo de Cuenta"
                       value={dataBanco.tipo_Cuenta}
                       onChange={tipocuenta}
-                      fullWidth size="small"
+                      fullWidth
+                      size="small"
                     >
-                      {
-                        Object.values(tipoCtas).map(
-                          (val) => (
-                            <MenuItem key={val.nombre} value={val.codigo}>{val.nombre}</MenuItem>
-                          )
-                        )
-                      }
+                      {Object.values(tipoCtas).map((val) => (
+                        <MenuItem key={val.nombre} value={val.codigo}>
+                          {val.nombre}
+                        </MenuItem>
+                      ))}
                     </RequiredTextField>
                   </Grid>
                 </Grid>
-
-
 
                 <Grid container item xs={12} spacing={1} sx={{ mb: 1 }}>
                   <Grid item md={5} xs={12} sm={5}>
                     <TextField
                       fullWidth
                       error={error6}
-                      disabled={switchUcheque && dataBanco.tipo_Cuenta === 'AHO' || dataBanco.contador_Automatico === true}
+                      disabled={
+                        (switchUcheque && dataBanco.tipo_Cuenta === 'AHO') || dataBanco.contador_Automatico === true
+                      }
                       size="small"
                       type="number"
                       // InputProps={{
@@ -649,17 +650,19 @@ export default function EditarBancoCia() {
                     />
                   </Grid>
 
-
                   <Grid item md={6} xs={12} sm={6} sx={{ ml: 3 }}>
                     <FormControlLabel
                       disabled={contadorAuto}
-                      control={<Checkbox
-
-                        checked={dataBanco.contador_Automatico && dataBanco.tipo_Cuenta === 'COR'}
-                        // value={dataBanco.contador_Automatico}
-                        onChange={actioncheckbox}
-                      />}
-                      label="Contador Automatico" name="contador_automatico" />
+                      control={
+                        <Checkbox
+                          checked={dataBanco.contador_Automatico && dataBanco.tipo_Cuenta === 'COR'}
+                          // value={dataBanco.contador_Automatico}
+                          onChange={actioncheckbox}
+                        />
+                      }
+                      label="Contador Automatico"
+                      name="contador_automatico"
+                    />
                   </Grid>
                 </Grid>
 
@@ -799,11 +802,15 @@ export default function EditarBancoCia() {
                   </Grid>
                 </Grid> */}
 
-                <Grid container item xs={12} spacing={1} direction="row"
+                <Grid
+                  container
+                  item
+                  xs={12}
+                  spacing={1}
+                  direction="row"
                   justifyContent="space-between"
                   alignItems="center"
                 >
-
                   {/* <Grid item md={2} xs={12} sm={2}>
                     <TextField
                       fullWidth
@@ -824,12 +831,19 @@ export default function EditarBancoCia() {
                     />
                   </Grid> */}
                   <Grid item md={2} xs={12} sm={2} sx={{ ml: 3 }}>
-                    <FormControlLabel control={<Checkbox checked={dataBanco.estado}
-                      disabled
-                      onChange={(e) => {
-                        setbanco({ ...dataBanco, estado: e.target.checked })
-                      }} />}
-                      label="Activo" name="estado" />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={dataBanco.estado}
+                          disabled
+                          onChange={(e) => {
+                            setbanco({ ...dataBanco, estado: e.target.checked });
+                          }}
+                        />
+                      }
+                      label="Activo"
+                      name="estado"
+                    />
                   </Grid>
                 </Grid>
               </Grid>

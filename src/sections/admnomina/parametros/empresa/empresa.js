@@ -12,14 +12,23 @@ import { URLAPIGENERAL } from '../../../../config';
 import { PATH_AUTH, PATH_PAGE } from '../../../../routes/paths';
 import Page from '../../../../components/Page';
 import RequiredTextField from '../../../../sistema/componentes/formulario/RequiredTextField';
+import MensajesGenericos from '../../../../components/sistema/mensajesgenerico';
 
 export default function Homeempresa() {
   const usuario = JSON.parse(window.localStorage.getItem('usuario'));
   const config = {
     headers: {
-      'Authorization': `Bearer ${usuario.token}`
-    }
-  }
+      Authorization: `Bearer ${usuario.token}`,
+    },
+  };
+  const [openModal2, setopenModal2] = React.useState(false);
+  const [mantenimmiento, setMantenimmiento] = React.useState(false);
+  const [codigomod, setCodigomod] = React.useState('');
+  const [nombre, setNombre] = React.useState('');
+  const [modoMantenimiento, setModoMantenimiento] = React.useState('');
+  const [texto, setTexto] = React.useState('');
+  const [tipo, setTipo] = React.useState('succes');
+  const [guardado, setGuardado] = React.useState(false);
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const [code, setCODE] = React.useState({ codigo: 0 });
   // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -48,10 +57,8 @@ export default function Homeempresa() {
   const [datacontribuyentes, setDatacontribuyentes] = React.useState({ contribuyente: '' });
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const [mostrarprogreso, setMostrarProgreso] = React.useState(false);
-
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const navegacion = useNavigate();
-
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const [formulario, setFormulario] = React.useState({
     codigo: 0,
@@ -71,9 +78,19 @@ export default function Homeempresa() {
     direccion: '',
   });
 
+  const messajeTool = (variant, msg) => {
+    const unTrue = true;
+    setCodigomod('');
+    setNombre('');
+    setModoMantenimiento('grabar');
+    setTexto(msg);
+    setTipo(variant);
+    setMantenimmiento(false);
+    setopenModal2(unTrue);
+  };
+
   // eslint-disable-next-line react-hooks/rules-of-hooks
   React.useEffect(() => {
-
     async function getDatos() {
       try {
         const { data } = await axios(`${URLAPIGENERAL}/empresa/listar`, config, setMostrarProgreso(true));
@@ -100,12 +117,11 @@ export default function Homeempresa() {
       } catch (error) {
         if (error.response.status === 401) {
           navegacion(`${PATH_AUTH.login}`);
-          mensajeSistema("Su inicio de sesion expiro", "error");
-        }
-        else if (error.response.status === 500) {
+          messajeTool('error', 'Su inicio de sesion expiro');
+        } else if (error.response.status === 500) {
           navegacion(`${PATH_PAGE.page500}`);
         } else {
-          mensajeSistema("Problemas con la base de datos", "error");
+          messajeTool('error', 'Problemas con la base de datos');
         }
       } finally {
         setMostrarProgreso(false);
@@ -117,7 +133,6 @@ export default function Homeempresa() {
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
   React.useEffect(() => {
-
     async function getasigcontribuyente() {
       try {
         const response = await axios(`${URLAPIGENERAL}/Contribuyentes/listar`, config);
@@ -135,22 +150,19 @@ export default function Homeempresa() {
       } catch (error) {
         if (error.response.status === 401) {
           navegacion(`${PATH_AUTH.login}`);
-          mensajeSistema("Su inicio de sesion expiro", "error");
-        }
-        else if (error.response.status === 500) {
+          messajeTool('error', 'Su inicio de sesion expiro');
+        } else if (error.response.status === 500) {
           navegacion(`${PATH_PAGE.page500}`);
         } else {
-          mensajeSistema("Problemas con la base de datos", "error");
+          messajeTool('error', 'Problemas con la base de datos');
         }
       }
-
     }
     getasigcontribuyente();
   }, []);
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
   React.useEffect(() => {
-
     async function getasigrepresetante() {
       try {
         const response = await axios(`${URLAPIGENERAL}/RepresentanteLegal/listar`, config);
@@ -168,15 +180,13 @@ export default function Homeempresa() {
       } catch (error) {
         if (error.response.status === 401) {
           navegacion(`${PATH_AUTH.login}`);
-          mensajeSistema("Su inicio de sesion expiro", "error");
-        }
-        else if (error.response.status === 500) {
+          messajeTool('error', 'Su inicio de sesion expiro');
+        } else if (error.response.status === 500) {
           navegacion(`${PATH_PAGE.page500}`);
         } else {
-          mensajeSistema("Problemas con la base de datos", "error");
+          messajeTool('error', 'Problemas con la base de datos');
         }
       }
-
     }
 
     getasigrepresetante();
@@ -184,7 +194,6 @@ export default function Homeempresa() {
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
   React.useEffect(() => {
-
     async function getasigcontador() {
       try {
         const response = await axios(`${URLAPIGENERAL}/contadores/listar`, config);
@@ -198,30 +207,16 @@ export default function Homeempresa() {
       } catch (error) {
         if (error.response.status === 401) {
           navegacion(`${PATH_AUTH.login}`);
-          mensajeSistema("Su inicio de sesion expiro", "error");
-        }
-        else if (error.response.status === 500) {
+          messajeTool('error', 'Su inicio de sesion expiro');
+        } else if (error.response.status === 500) {
           navegacion(`${PATH_PAGE.page500}`);
         } else {
-          mensajeSistema("Problemas con la base de datos", "error");
+          messajeTool('error', 'Problemas con la base de datos');
         }
       }
-
     }
     getasigcontador();
   }, []);
-
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const { enqueueSnackbar } = useSnackbar();
-
-  const Enviocorrecto = () => {
-    enqueueSnackbar('Actualizado con exito!!', {
-      anchorOrigin: {
-        vertical: 'top',
-        horizontal: 'center',
-      },
-    });
-  };
 
   const validation = () => {
     // const codigo = dataNuevo.codigo.trim().length;
@@ -263,10 +258,6 @@ export default function Homeempresa() {
     return true;
   };
 
-  const messajeTool = (variant, msg) => {
-    enqueueSnackbar(msg, { variant, anchorOrigin: { vertical: 'top', horizontal: 'center' } });
-  };
-
   const actualizar = async () => {
     // console.log(formulario);
 
@@ -279,44 +270,44 @@ export default function Homeempresa() {
       const { data } = await axios.post(`${URLAPIGENERAL}/empresa/editar`, formulario, config);
 
       if (data === 200) {
-        Enviocorrecto();
-        // navegacion(`${PATH_SISTEMA.parametros_del_sistema.mantenimiento.empresa.inicio}`);
+        setGuardado(true);
+        messajeTool('succes', 'Registro actualizado correctamente');
       }
       // setError(false);
     } catch (error) {
-      mensajeSistema('Error al guardar el registro', 'error');
+      messajeTool('error', 'Error al guardar el registro');
     } finally {
       setMostrarProgreso(false);
     }
   };
-  const mensajeSistema = async () => {
-    enqueueSnackbar('Error, por favor verifique los datos...', {
-      anchorOrigin: {
-        vertical: 'top',
-        horizontal: 'center',
-      },
-    });
+
+  const cerrarModalMensaje = () => {
+    if (guardado === true) {
+      setopenModal2((p) => !p);
+      setGuardado(false);
+    }
+    setopenModal2((p) => !p);
   };
 
   return (
     <>
-      {/* <CircularProgreso
-        open={mostrarprogreso}
-        handleClose1={() => {
-          setMostrarProgreso(false);
-        }}
-      /> */}
+      <MensajesGenericos
+        openModal={openModal2}
+        closeModal={cerrarModalMensaje}
+        mantenimmiento={mantenimmiento}
+        codigo={codigomod}
+        nombre={nombre}
+        modomantenimiento={modoMantenimiento}
+        texto={texto}
+        tipo={tipo}
+      />
       <Fade in style={{ transformOrigin: '0 0 0' }} timeout={1000}>
         <Page title="Empresa">
           <Box sx={{ ml: 3, mr: 3, p: 0 }}>
             <Box>
               <HeaderBreadcrumbs
                 heading="Empresa"
-                links={[
-                  { name: 'Parametros' },
-                  { name: 'Empresa' },
-                  { name: 'Mantenimiento' },
-                ]}
+                links={[{ name: 'Parametros' }, { name: 'Empresa' }, { name: 'Mantenimiento' }]}
                 action={
                   <Grid item xs={12} sm={12} md={12}>
                     <Grid item md={1.2} sm={2} xs={6}>
@@ -329,7 +320,6 @@ export default function Homeempresa() {
               />
             </Box>
           </Box>
-
 
           <Card elevation={3} sx={{ ml: 3, mr: 3, mb: 2, mt: 2, p: 1 }}>
             <Box sx={{ width: '100%', p: 2 }}>
@@ -350,10 +340,10 @@ export default function Homeempresa() {
                       }}
                       value={formulario.codigo}
                       sx={{
-                        backgroundColor: "#e5e8eb",
-                        border: "none",
+                        backgroundColor: '#e5e8eb',
+                        border: 'none',
                         borderRadius: '10px',
-                        color: "#212B36"
+                        color: '#212B36',
                       }}
                     />
                   </Grid>
@@ -388,10 +378,10 @@ export default function Homeempresa() {
                       }}
                       value={formulario.ruc}
                       sx={{
-                        backgroundColor: "#e5e8eb",
-                        border: "none",
+                        backgroundColor: '#e5e8eb',
+                        border: 'none',
                         borderRadius: '10px',
-                        color: "#212B36"
+                        color: '#212B36',
                       }}
                     />
                   </Grid>

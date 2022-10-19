@@ -8,14 +8,14 @@ import AddCircleRoundedIcon from '@mui/icons-material/AddCircle';
 import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
 import ViewComfyRoundedIcon from '@mui/icons-material/ViewComfyRounded';
 import axios from 'axios';
-import { useSnackbar } from 'notistack';
 import HeaderBreadcrumbs from '../../../../components/HeaderBreadcrumbs';
 import Page from '../../../../components/Page';
 import { URLAPIGENERAL, URLAPILOCAL } from '../../../../config';
 import { PATH_AUTH, PATH_PAGE } from '../../../../routes/paths';
-import { styleActive, styleInactive, estilosdetabla, estilosdatagrid } from "../../../../utils/csssistema/estilos";
-import { CustomNoRowsOverlay } from "../../../../utils/csssistema/iconsdatagrid";
+import { styleActive, styleInactive, estilosdetabla, estilosdatagrid } from '../../../../utils/csssistema/estilos';
+import { CustomNoRowsOverlay } from '../../../../utils/csssistema/iconsdatagrid';
 import CircularProgreso from '../../../../components/Cargando';
+import MensajesGenericos from '../../../../components/sistema/mensajesgenerico';
 
 // ----------------------------------------------------------------------
 
@@ -25,34 +25,34 @@ export default function CntBancoCia() {
   const usuario = JSON.parse(window.localStorage.getItem('usuario'));
   const config = {
     headers: {
-      'Authorization': `Bearer ${usuario.token}`
-    }
-  }
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const { enqueueSnackbar } = useSnackbar();
+      Authorization: `Bearer ${usuario.token}`,
+    },
+  };
+  const [openModal2, setopenModal2] = React.useState(false);
+  const [mantenimmiento, setMantenimmiento] = React.useState(false);
+  const [codigomod, setCodigomod] = React.useState('');
+  const [nombre, setNombre] = React.useState('');
+  const [modoMantenimiento, setModoMantenimiento] = React.useState('');
+  const [texto, setTexto] = React.useState('');
+  const [tipo, setTipo] = React.useState('succes');
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const navigate = useNavigate();
-
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const [mostrarprogreso, setMostrarProgreso] = React.useState(false);
-  const messajeTool = (variant, msg) => {
-    enqueueSnackbar(msg, { variant, anchorOrigin: { vertical: 'top', horizontal: 'center' } });
-  };
   // NAVEGACION
   const navegacion = useNavigate();
 
   // MENSAJE GENERICO
-  const mensajeSistema = (mensaje, variante) => {
-    enqueueSnackbar(mensaje,
-      {
-        variant: variante,
-        anchorOrigin: {
-          vertical: 'top',
-          horizontal: 'center',
-        },
-      }
-    )
-  }
+  const messajeTool = (variant, msg) => {
+    const unTrue = true;
+    setCodigomod('');
+    setNombre('');
+    setModoMantenimiento('grabar');
+    setTexto(msg);
+    setTipo(variant);
+    setMantenimmiento(false);
+    setopenModal2(unTrue);
+  };
 
   const columns = [
     // { field: 'codigo', headerName: 'Codigo', width: 150 },
@@ -61,13 +61,15 @@ export default function CntBancoCia() {
     { field: 'cuenta', headerName: 'Cuenta', width: 140, cellClassName: () => clsx('blueCell') },
     { field: 'numero_Cuenta', headerName: 'Numero de Cuenta', width: 140, cellClassName: () => clsx('orangeCell') },
     {
-      field: 'tipo_Cuenta', headerName: 'Tipo de Cuenta', width: 150, align: 'center',
+      field: 'tipo_Cuenta',
+      headerName: 'Tipo de Cuenta',
+      width: 150,
+      align: 'center',
       renderCell: (param) =>
         // console.log("mira",param)
-        param.row.tipo_Cuenta === 'COR' ? ('CORRIENTE') : ('AHORRO'),
+        param.row.tipo_Cuenta === 'COR' ? 'CORRIENTE' : 'AHORRO',
     },
     { field: 'ultimo_Cheque', headerName: 'Ultimo Cheque', width: 140, align: 'center' },
-
 
     {
       field: 'contador_Automatico',
@@ -117,7 +119,7 @@ export default function CntBancoCia() {
   React.useEffect(() => {
     async function getDatos() {
       try {
-        const { data } = await axios(`${URLAPILOCAL}/bancos/listar`, config, setMostrarProgreso(true));
+        const { data } = await axios(`${URLAPIGENERAL}/bancos/listar`, config, setMostrarProgreso(true));
         setDatosFilas(data);
         setResultadoBusqueda(data);
         setDatosFilas(data);
@@ -127,12 +129,11 @@ export default function CntBancoCia() {
       } catch (error) {
         if (error.response.status === 401) {
           navigate(`${PATH_AUTH.login}`);
-          mensajeSistema("Su inicio de sesion expiro", "error");
-        }
-        else if (error.response.status === 500) {
+          messajeTool('error', 'Su inicio de sesion expiro');
+        } else if (error.response.status === 500) {
           navegacion(`${PATH_PAGE.page500}`);
         } else {
-          mensajeSistema("Problemas con la base de datos", "error");
+          messajeTool('error', 'Problemas con la base de datos');
         }
       } finally {
         setMostrarProgreso(false);
@@ -165,8 +166,22 @@ export default function CntBancoCia() {
     setItems(resultado);
   };
 
+  const cerrarModalMensaje = () => {
+    setopenModal2((p) => !p);
+  };
+
   return (
     <>
+      <MensajesGenericos
+        openModal={openModal2}
+        closeModal={cerrarModalMensaje}
+        mantenimmiento={mantenimmiento}
+        codigo={codigomod}
+        nombre={nombre}
+        modomantenimiento={modoMantenimiento}
+        texto={texto}
+        tipo={tipo}
+      />
       <CircularProgreso
         open={mostrarprogreso}
         handleClose1={() => {
@@ -178,11 +193,7 @@ export default function CntBancoCia() {
           <Box sx={{ ml: 3, mr: 3, p: 1 }}>
             <HeaderBreadcrumbs
               heading=" Banco Cia"
-              links={[
-                { name: 'Parametros' },
-                { name: 'Banco Cia' },
-                { name: 'Lista' },
-              ]}
+              links={[{ name: 'Parametros' }, { name: 'Banco Cia' }, { name: 'Lista' }]}
               action={
                 <Button
                   fullWidth
@@ -252,9 +263,7 @@ export default function CntBancoCia() {
                   </Grid>
                 </Grid>
               </Box>
-              <Box
-                sx={estilosdetabla}
-              >
+              <Box sx={estilosdetabla}>
                 <div
                   style={{
                     padding: '1rem',
