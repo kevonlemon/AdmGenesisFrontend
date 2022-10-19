@@ -6,22 +6,23 @@ import { SearchRounded } from '@mui/icons-material';
 import axios from 'axios';
 import { useSnackbar } from 'notistack';
 import TipoPersona from '../components/tipopersona';
-import Page from '../../../../../components/Page'
-import { URLAPIGENERAL, URLRUC } from "../../../../../config";
-import { esCedula, noEsVacio, esCorreo, obtenerMaquina } from "../../../../../utils/sistema/funciones";
-import { MenuMantenimiento } from "../../../../../components/sistema/menumatenimiento";
-import CircularProgreso from "../../../../../components/Cargando";
-import { PATH_AUTH, PATH_PAGE } from '../../../../../routes/paths'
+import Page from '../../../../../components/Page';
+import { URLAPIGENERAL, URLRUC } from '../../../../../config';
+import { esCedula, noEsVacio, esCorreo, obtenerMaquina } from '../../../../../utils/sistema/funciones';
+import { MenuMantenimiento } from '../../../../../components/sistema/menumatenimiento';
+import CircularProgreso from '../../../../../components/Cargando';
+import { PATH_AUTH, PATH_PAGE } from '../../../../../routes/paths';
 import RequiredTextField from '../../../../../sistema/componentes/formulario/RequiredTextField';
+import MensajesGenericos from '../../../../../components/sistema/mensajesgenerico';
 
 export default function FormularioRegisroPersona() {
   document.body.style.overflowX = 'hidden';
   const usuario = JSON.parse(window.localStorage.getItem('usuario'));
   const config = {
     headers: {
-      'Authorization': `Bearer ${usuario.token}`
-    }
-  }
+      Authorization: `Bearer ${usuario.token}`,
+    },
+  };
   const [formulario, setFormulario] = React.useState({
     codigo: 0,
     codigo_Usuario: '',
@@ -36,7 +37,7 @@ export default function FormularioRegisroPersona() {
     estado: true,
     fecha_ing: new Date(),
     maquina: '',
-    usuario: usuario.codigo
+    usuario: usuario.codigo,
   });
   function cambiar(param) {
     let apellido = [];
@@ -63,6 +64,26 @@ export default function FormularioRegisroPersona() {
       estado: true,
     });
   };
+  const [openModal2, setopenModal2] = React.useState(false);
+  const [mantenimmiento, setMantenimmiento] = React.useState(false);
+  const [codigomod, setCodigomod] = React.useState('');
+  const [nombre, setNombre] = React.useState('');
+  const [modoMantenimiento, setModoMantenimiento] = React.useState('');
+  const [texto, setTexto] = React.useState('');
+  const [tipo, setTipo] = React.useState('succes');
+  const [guardado, setGuardado] = React.useState(false);
+
+  // MENSAJE GENERICO
+  const messajeTool = (variant, msg) => {
+    const unTrue = true;
+    setCodigomod('');
+    setNombre('');
+    setModoMantenimiento('grabar');
+    setTexto(msg);
+    setTipo(variant);
+    setMantenimmiento(false);
+    setopenModal2(unTrue);
+  };
   const consultarCedula = async () => {
     try {
       const { data } = await axios(`${URLRUC}GetCedulas?id=${formulario.cedula}`);
@@ -76,33 +97,18 @@ export default function FormularioRegisroPersona() {
           direccion: data[0].Direccion,
         });
       } else {
-        mensajeSistema('No se encontro ninguna identificacion', 'error');
+        messajeTool('error', 'No se encontro ninguna identificacion');
         limpiarCampos();
       }
     } catch (error) {
-      mensajeSistema('Revisar que la credencial sea la correcta', 'error');
+      messajeTool('error', 'Revisar que la credencial sea la correcta');
       limpiarCampos();
     }
   };
   const navegacion = useNavigate();
   const { state } = useLocation();
-  const { id } = state
-  const { enqueueSnackbar } = useSnackbar();
+  const { id } = state;
 
-  const mensajeSistema = (mensaje, variante) => {
-    enqueueSnackbar(mensaje, {
-      variant: variante,
-      anchorOrigin: {
-        vertical: 'top',
-        horizontal: 'center',
-      },
-    });
-  };
-  // const [id, setId] = React.useState([])
-
-  const messajeTool = (variant, msg) => {
-    enqueueSnackbar(msg, { variant, anchorOrigin: { vertical: 'top', horizontal: 'center' } });
-  };
   const noEsVacio = (formulario, propiedades = []) => {
     try {
       let valido = false;
@@ -140,12 +146,13 @@ export default function FormularioRegisroPersona() {
       return false;
     }
   };
+
   // eslint-disable-next-line consistent-return
   const Grabar = async () => {
     console.log(formulario);
     try {
       formulario.maquina = await obtenerMaquina();
-      
+
       const noesvacio = noEsVacio(formulario);
       const nombre = formulario.nombre.length;
       const apellido = formulario.apellido.length;
@@ -156,7 +163,7 @@ export default function FormularioRegisroPersona() {
 
       const direccion = formulario.direccion.trim();
       if (!noesvacio) {
-        mensajeSistema('Complete los campos requeridos', 'error');
+        messajeTool('error', 'Complete los campos requeridos');
         setError(true);
         return false;
       }
@@ -198,49 +205,67 @@ export default function FormularioRegisroPersona() {
       }
       const { data } = await axios.post(`${URLAPIGENERAL}/usuarios/editar`, formulario, config);
       if (data === 200) {
-        mensajeSistema('Registros guardado correctamente', 'success');
-        navegacion(`/sistema/parametros/persona`);
+        setGuardado(true);
+        messajeTool('succes', 'Registros guardado correctamente');
       }
     } catch (error) {
       if (error.response.status === 401) {
         navegacion(`${PATH_AUTH.login}`);
-        mensajeSistema("Su inicio de sesion expiro", "error");
+        messajeTool('error', 'Su inicio de sesion expiro');
       }
-      mensajeSistema("Revisar si la informacion ingresada ya se encuentra registrada", "error");
+      messajeTool('error', 'Revisar si la informacion ingresada ya se encuentra registrada');
     }
   };
-  // const Eliminar = () => {
-  //   mensajeSistema('Eliminado Correctamente', 'success');
-  //   // limpiarCampos()
-  // };
+
   React.useEffect(() => {
     async function obtenerRegistroPersona() {
       try {
         const { data } = await axios(`${URLAPIGENERAL}/usuarios/buscar?codigo=${id}`, config);
-        console.log(data)
+        console.log(data);
         setFormulario(data);
       } catch (error) {
         if (error.response.status === 401) {
           navegacion(`${PATH_AUTH.login}`);
-          mensajeSistema("Su inicio de sesion expiro", "error");
-        }
-        else if (error.response.status === 500) {
+          messajeTool('error', 'Su inicio de sesion expiro');
+        } else if (error.response.status === 500) {
           navegacion(`${PATH_PAGE.page500}`);
         } else {
-          mensajeSistema("Problemas al guardar verifique si se encuentra registrado", "error");
+          messajeTool('error', 'Problemas al guardar verifique si se encuentra registrado');
         }
       }
     }
     obtenerRegistroPersona();
   }, [id]);
+
   const Volver = () => {
     navegacion(`/sistema/parametros/persona`);
   };
+
   const Nuevo = () => {
     navegacion(`/sistema/parametros/nuevopersona`);
   };
+
+  const cerrarModalMensaje = () => {
+    if (guardado === true) {
+      setopenModal2((p) => !p);
+      setGuardado(false);
+      Volver();
+    }
+    setopenModal2((p) => !p);
+  };
+
   return (
     <>
+      <MensajesGenericos
+        openModal={openModal2}
+        closeModal={cerrarModalMensaje}
+        mantenimmiento={mantenimmiento}
+        codigo={codigomod}
+        nombre={nombre}
+        modomantenimiento={modoMantenimiento}
+        texto={texto}
+        tipo={tipo}
+      />
       <Page title="Usuario">
         <MenuMantenimiento modo={false} nuevo={() => Nuevo()} grabar={() => Grabar()} volver={() => Volver()} />
         <Fade in style={{ transformOrigin: '0 0 0' }} timeout={1000}>
@@ -266,10 +291,10 @@ export default function FormularioRegisroPersona() {
                       }}
                       value={formulario.codigo}
                       sx={{
-                        backgroundColor: "#e5e8eb",
-                        border: "none",
+                        backgroundColor: '#e5e8eb',
+                        border: 'none',
                         borderRadius: '10px',
-                        color: "#212B36"
+                        color: '#212B36',
                       }}
                     />
                   </Grid>
