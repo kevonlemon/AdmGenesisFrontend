@@ -241,7 +241,7 @@ export default function SolicitudDocumentos() {
     } else {
       try {
         const { data } = await axios(
-          `${URLAPILOCAL}/empleados/obtenerxcodigo?codigo=${
+          `${URLAPIGENERAL}/empleados/obtenerxcodigo?codigo=${
             formulario.codigoempleado === '' ? 'string' : formulario.codigoempleado
           }`,
           config
