@@ -12,6 +12,8 @@ import NotistackProvider from './components/NotistackProvider';
 import ThemeColorPresets from './components/ThemeColorPresets';
 import ThemeLocalization from './components/ThemeLocalization';
 import MotionLazyContainer from './components/animate/MotionLazyContainer';
+import MensajeGeneral from './components/admnomina/MensajeGeneral';
+import Cargando from './components/admnomina/CargandoGenerico';
 
 // ----------------------------------------------------------------------
 
@@ -28,6 +30,8 @@ export default function App() {
                 <Settings />
                 <ScrollToTop />
                 <Router />
+                <MensajeGeneral />
+                <Cargando />
               </MotionLazyContainer>
             </NotistackProvider>
           </RtlLayout>
