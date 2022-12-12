@@ -436,6 +436,7 @@ export default function FormularioEmpleado() {
     nombrenivelEstudio: '',
     sexo: 'M',
     sueldoBase: 0,
+    estadocivil: 'S',
     afiliadoSeguro: true,
     beneficioSocial: true,
     fondoReserva: true,
@@ -1151,8 +1152,7 @@ export default function FormularioEmpleado() {
     } else {
       try {
         const { data } = await axios(
-          `${URLAPIGENERAL}/mantenimientogenerico/obtener?codigo=${
-            formularioempleado.departamento === '' ? 'string' : formularioempleado.departamento
+          `${URLAPIGENERAL}/mantenimientogenerico/obtener?codigo=${formularioempleado.departamento === '' ? 'string' : formularioempleado.departamento
           }&tabla=ADM_DEPARTAMENTO`,
           config
         );
@@ -1203,8 +1203,7 @@ export default function FormularioEmpleado() {
     } else {
       try {
         const { data } = await axios(
-          `${URLAPIGENERAL}/mantenimientogenerico/obtener?codigo=${
-            formularioempleado.cargo === '' ? 'string' : formularioempleado.cargo
+          `${URLAPIGENERAL}/mantenimientogenerico/obtener?codigo=${formularioempleado.cargo === '' ? 'string' : formularioempleado.cargo
           }&tabla=ADM_CARGO`,
           config
         );
@@ -1258,8 +1257,7 @@ export default function FormularioEmpleado() {
     } else {
       try {
         const { data } = await axios(
-          `${URLAPIGENERAL}/mantenimientogenerico/obtener?codigo=${
-            formularioempleado.nivelEstudio === '' ? 'string' : formularioempleado.nivelEstudio
+          `${URLAPIGENERAL}/mantenimientogenerico/obtener?codigo=${formularioempleado.nivelEstudio === '' ? 'string' : formularioempleado.nivelEstudio
           }&tabla=ADM_NIVEL_ESTUDIO`,
           config
         );
@@ -1345,6 +1343,7 @@ export default function FormularioEmpleado() {
                   <Tab label="Datos Empleado" {...a11yProps(0)} />
                   <Tab label="Certificados" {...a11yProps(1)} />
                   <Tab label="Cargas" {...a11yProps(2)} />
+                  <Tab label="Adicionales" {...a11yProps(3)} />
                 </Tabs>
               </Box>
               <TabPanel value={tabs} index={0}>
@@ -1728,6 +1727,24 @@ export default function FormularioEmpleado() {
                     </Grid>
                   </Grid>
                   <Grid container item md={6} xs={12} spacing={1}>
+                    <Grid item md={6} sm={6} xs={12}>
+                      <RequiredTextField
+                        select
+                        label="Estado Civil"
+                        value={formularioempleado.estadocivil}
+                        onChange={(e) => {
+                          setFormularioEmpleado({
+                            ...formularioempleado,
+                            estadocivil: e.target.value,
+                          });
+                        }}
+                        fullWidth
+                        size="small"
+                      >
+                        <MenuItem value="S"> SOLTERO(A)</MenuItem>
+                        <MenuItem value="C"> CASADO(A) </MenuItem>
+                      </RequiredTextField>
+                    </Grid>
                     <Grid item md={12} sm={12} xs={12}>
                       <TextField
                         fullWidth
@@ -1821,9 +1838,6 @@ export default function FormularioEmpleado() {
                         control={<Checkbox defaultChecked disabled />}
                         label="Activo"
                       />
-                    </Grid>
-                    <Grid item md={12} sm={12} xs={12}>
-                      {/*  */}
                     </Grid>
                     <Grid item md={12} sm={12} xs={12}>
                       {/*  */}
@@ -2247,6 +2261,11 @@ export default function FormularioEmpleado() {
                 ) : (
                   ''
                 )}
+              </TabPanel>
+              <TabPanel value={tabs} index={2}>
+                <Grid>
+                  {/*  */}
+                </Grid>
               </TabPanel>
             </Box>
           </Card>
