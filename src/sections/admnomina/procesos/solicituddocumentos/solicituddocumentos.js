@@ -1,4 +1,5 @@
-import React from 'react';
+import * as React from 'react';
+import { useState } from 'react';
 import {
   TextField,
   Button,
@@ -33,6 +34,7 @@ import HeaderBreadcrumbs from '../../../../components/HeaderBreadcrumbs';
 import { formaterarFecha, generarCodigo, obtenerMaquina } from '../../../../utils/sistema/funciones';
 import CircularProgreso from '../../../../components/Cargando';
 import RequiredTextField from '../../../../sistema/componentes/formulario/RequiredTextField';
+import MensajesGenericos from '../../../../components/sistema/mensajesgenerico';
 
 export default function SolicitudDocumentos() {
   const user = JSON.parse(window.localStorage.getItem('usuario'));
@@ -43,17 +45,38 @@ export default function SolicitudDocumentos() {
   };
 
   const navegacion = useNavigate();
-  const { enqueueSnackbar } = useSnackbar();
-  // MENSAJE GENERICO
-  const mensajeSistema = (mensaje, variante) => {
-    enqueueSnackbar(mensaje, {
-      variant: variante,
-      anchorOrigin: {
-        vertical: 'top',
-        horizontal: 'center',
-      },
-    });
+  // Hook para mensajes genéricos
+  const [texto, setTexto] = useState('');
+  const [tipo, setTipo] = useState('succes');
+  const [openMensaje, setOpenMensaje] = useState(false);
+  const [noSesion, setNoSesion] = useState(false);
+  const [noExisteEmpleado, setNoExisteEmpleado] = useState(false);
+
+  const mensajeGenerico = (tipo, msj) => {
+    setTexto(msj);
+    setTipo(tipo);
+    setOpenMensaje(true);
   };
+
+  const cerrarMensaje = () => {
+    if (noSesion) {
+      setOpenMensaje((p) => !p);
+      setNoSesion(false);
+      navegacion(`${PATH_AUTH.login}`);
+    }
+    if (noExisteEmpleado) {
+      setOpenMensaje((p) => !p);
+      setNoExisteEmpleado(false);
+      setOpenModal(true);
+      setOpenMensaje((p) => !p);
+    }
+    setOpenMensaje((p) => !p);
+  };
+
+  // MANEJADOR DE ERRORES
+  const [errorEmpleado, setErrorEmpleado] = useState(false);
+  //   const [errorMonto, setErrorMonto] = useState(false);
+  //   const [errorObservacion, setErrorObservacion] = useState(false);
 
   const [empleado, setEmpleado] = React.useState([]);
   const [numeroSolicitud, SetNumeroSolicitud] = React.useState(0);
@@ -99,7 +122,22 @@ export default function SolicitudDocumentos() {
     toggleShow();
   };
 
+  const validacion = () => {
+    const empleado = formulario.codigoempleado;
+    const empleadoNom = formulario.nombreempleado;
+
+    if (empleado === '' || empleadoNom === '') {
+      setErrorEmpleado(true);
+      mensajeGenerico('error', 'Seleccione un empleado');
+      return false;
+    }
+    return true;
+  };
+
   const grabarSolicitudDocumento = async () => {
+    if (validacion() === false) {
+      return 0;
+    }
     try {
       const ip = await obtenerMaquina();
       const form = {
@@ -121,18 +159,18 @@ export default function SolicitudDocumentos() {
       };
       const { data } = await axios.post(`${URLAPIGENERAL}/SolicitudDocumentos`, form, config, setMostrarProgreso(true));
       if (data === 200) {
-        mensajeSistema('Datos registrados correctamente', 'success');
+        mensajeGenerico('succes', 'Datos registrados con éxito');
         limpiarCampos();
       }
       limpiarCampos();
     } catch (error) {
       if (error.response.status === 401) {
-        navegacion(`${PATH_AUTH.login}`);
-        mensajeSistema('Su inicio de sesión expiró', 'error');
+        setNoSesion(true);
+        mensajeGenerico('error', 'Su sesión expiró');
       } else if (error.response.status === 500) {
         navegacion(`${PATH_PAGE.page500}`);
       } else {
-        mensajeSistema('Problemas al guardar verifique los datos e inténtelo nuevamente', 'error');
+        mensajeGenerico('error', 'Problemas al guardar verifique los datos e inténtelo nuevamente');
       }
     } finally {
       setMostrarProgreso(false);
@@ -153,12 +191,12 @@ export default function SolicitudDocumentos() {
         setEmpleado(listaempleado);
       } catch (error) {
         if (error.response.status === 401) {
-          navegacion(`${PATH_AUTH.login}`);
-          mensajeSistema('Su inicio de sesión expiró', 'error');
+          setNoSesion(true);
+          mensajeGenerico('error', 'Su sesión expiró');
         } else if (error.response.status === 500) {
           navegacion(`${PATH_PAGE.page500}`);
         } else {
-          mensajeSistema('Problemas al obtener datos, inténtelo nuevamente', 'error');
+          mensajeGenerico('error', 'Problemas al obtener datos, inténtelo nuevamente');
         }
       } finally {
         setMostrarProgreso(false);
@@ -167,35 +205,34 @@ export default function SolicitudDocumentos() {
     getDatos();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [numeroSolicitud]);
-  React.useEffect(() => {
-    async function getDatosEmpleado() {
-      try {
-        const { data } = await axios(`${URLAPIGENERAL}/empleados/listar`, config);
-        console.log(data);
-        const listaempleado = data.map((m) => ({ id: m.codigo, codigo: m.codigo_Empleado, nombre: m.nombres }));
-        setEmpleado(listaempleado);
-        setFormulario({
-          ...formulario,
-          empleado: listaempleado[0].id,
-          codigoempleado: listaempleado[0].codigo,
-          nombreempleado: listaempleado[0].nombre,
-        });
-      } catch (error) {
-        if (error.response.status === 401) {
-          navegacion(`${PATH_AUTH.login}`);
-          mensajeSistema('Su inicio de sesión expiró', 'error');
-        } else if (error.response.status === 500) {
-          navegacion(`${PATH_PAGE.page500}`);
-        } else {
-          mensajeSistema('Problemas al obtener datos, inténtelo nuevamente', 'error');
-        }
-      } finally {
-        setMostrarProgreso(false);
-      }
-    }
-    getDatosEmpleado();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  //   React.useEffect(() => {
+  //     async function getDatosEmpleado() {
+  //       try {
+  //         const { data } = await axios(`${URLAPIGENERAL}/empleados/listar`, config);
+  //         const listaempleado = data.map((m) => ({ id: m.codigo, codigo: m.codigo_Empleado, nombre: m.nombres }));
+  //         setEmpleado(listaempleado);
+  //         setFormulario({
+  //           ...formulario,
+  //           empleado: listaempleado[0].id,
+  //           codigoempleado: listaempleado[0].codigo,
+  //           nombreempleado: listaempleado[0].nombre,
+  //         });
+  //       } catch (error) {
+  //         if (error.response.status === 401) {
+  //           setNoSesion(true);
+  //           mensajeGenerico('error', 'Su sesión expiró');
+  //         } else if (error.response.status === 500) {
+  //           navegacion(`${PATH_PAGE.page500}`);
+  //         } else {
+  //           mensajeGenerico('error', 'Problemas al obtener datos, inténtelo nuevamente');
+  //         }
+  //       } finally {
+  //         setMostrarProgreso(false);
+  //       }
+  //     }
+  //     getDatosEmpleado();
+  //     // eslint-disable-next-line react-hooks/exhaustive-deps
+  //   }, []);
 
   // -----------------------------------------------------------------------------------------------------
   async function buscarEmpleados() {
@@ -210,8 +247,8 @@ export default function SolicitudDocumentos() {
           config
         );
         if (data.length === 0) {
-          mensajeSistema('Código no encontrado', 'warning');
-          setOpenModal(true);
+          setNoExisteEmpleado(true);
+          mensajeGenerico('warning', 'Código no encontrado');
         } else {
           setFormulario({
             ...formulario,
@@ -229,13 +266,13 @@ export default function SolicitudDocumentos() {
 
   return (
     <>
+      <MensajesGenericos openModal={openMensaje} closeModal={cerrarMensaje} texto={texto} tipo={tipo} />
       <CircularProgreso
         open={mostrarprogreso}
         handleClose1={() => {
           setMostrarProgreso(false);
         }}
       />
-
       <ModalGenerico
         nombre="Empleados"
         openModal={openModal}
@@ -244,7 +281,6 @@ export default function SolicitudDocumentos() {
         rowsData={empleado}
         parentCallback={handleCallbackChild}
       />
-
       <Page title="Solicitud de Documentos">
         <Fade in style={{ transformOrigin: '0 0 0' }} timeout={1000}>
           <Box sx={{ ml: 3, mr: 3, p: 1 }}>
@@ -396,7 +432,7 @@ export default function SolicitudDocumentos() {
                     <TextField
                       multiline
                       rows={4}
-                      maxRows={4}
+                      // maxRows={4}
                       size="normal"
                       fullWidth
                       label="Observación"
