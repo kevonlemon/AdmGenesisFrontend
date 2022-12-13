@@ -12,31 +12,39 @@ import { URLAPIGENERAL } from '../../../../config';
 import Page from '../../../../components/Page';
 import { PATH_AUTH, PATH_PAGE } from '../../../../routes/paths';
 import HeaderBreadcrumbs from '../../../../components/HeaderBreadcrumbs';
-import { styleActive, styleInactive, estilosdetabla, estilosdatagrid } from "../../../../utils/csssistema/estilos";
-import { CustomNoRowsOverlay } from "../../../../utils/csssistema/iconsdatagrid";
-import { formaterarFecha } from "../../../../utils/sistema/funciones";
+import { styleActive, styleInactive, estilosdetabla, estilosdatagrid } from '../../../../utils/csssistema/estilos';
+import { CustomNoRowsOverlay } from '../../../../utils/csssistema/iconsdatagrid';
+import { formaterarFecha } from '../../../../utils/sistema/funciones';
+import MensajesGenericos from '../../../../components/sistema/mensajesgenerico';
 
 export default function FormularioRepresentanteLegal() {
   const usuario = JSON.parse(window.localStorage.getItem('usuario'));
   const config = {
     headers: {
-      'Authorization': `Bearer ${usuario.token}`
-    }
-  }
+      Authorization: `Bearer ${usuario.token}`,
+    },
+  };
+  const [openModal2, setopenModal2] = React.useState(false);
+  const [mantenimmiento, setMantenimmiento] = React.useState(false);
+  const [codigomod, setCodigomod] = React.useState('');
+  const [nombre, setNombre] = React.useState('');
+  const [modoMantenimiento, setModoMantenimiento] = React.useState('');
+  const [texto, setTexto] = React.useState('');
+  const [tipo, setTipo] = React.useState('succes');
   const navegacion = useNavigate();
-  const { enqueueSnackbar } = useSnackbar();
+
   // MENSAJE GENERICO
-  const mensajeSistema = (mensaje, variante) => {
-    enqueueSnackbar(mensaje,
-      {
-        variant: variante,
-        anchorOrigin: {
-          vertical: 'top',
-          horizontal: 'center',
-        },
-      }
-    )
-  }
+  const messajeTool = (variant, msg, modoman) => {
+    const unTrue = true;
+    setCodigomod('');
+    setNombre('');
+    setModoMantenimiento(modoman);
+    setTexto(msg);
+    setTipo(variant);
+    setMantenimmiento(true);
+    setopenModal2(unTrue);
+  };
+
   const columns = [
     { field: 'codigo', headerName: 'Codigo', width: 120 },
     { field: 'ruc', headerName: 'Ruc', width: 120, cellClassName: () => clsx('blueCell') },
@@ -46,7 +54,10 @@ export default function FormularioRepresentanteLegal() {
     { field: 'telefono', headerName: 'Telefono', width: 100 },
     { field: 'correo', headerName: 'Correo', width: 200 },
     {
-      field: 'fecha_Ingreso', headerName: 'Fecha ingreso', width: 130, valueFormatter: (params) => {
+      field: 'fecha_Ingreso',
+      headerName: 'Fecha ingreso',
+      width: 130,
+      valueFormatter: (params) => {
         if (params.value == null) {
           return '--/--/----';
         }
@@ -55,7 +66,10 @@ export default function FormularioRepresentanteLegal() {
       },
     },
     {
-      field: 'fecha_Salida', headerName: 'Fecha Salida', width: 130, valueFormatter: (params) => {
+      field: 'fecha_Salida',
+      headerName: 'Fecha Salida',
+      width: 130,
+      valueFormatter: (params) => {
         if (params.value == null) {
           return '--/--/----';
         }
@@ -98,7 +112,7 @@ export default function FormularioRepresentanteLegal() {
     setDatosFilas(resultado);
   };
   const Editar = (e) => {
-    console.log(e);
+    // console.log(e);
     navegacion(`/sistema/parametros/editarrepresentante`, { state: { id: e.id } });
     // Navigate(`editarrepresentante/${e.id}}`)
   };
@@ -112,30 +126,40 @@ export default function FormularioRepresentanteLegal() {
       } catch (error) {
         if (error.response.status === 401) {
           navegacion(`${PATH_AUTH.login}`);
-          mensajeSistema("Su inicio de sesion expiro", "error");
-        }
-        else if (error.response.status === 500) {
+          messajeTool('error', 'Su inicio de sesion expiro', '');
+        } else if (error.response.status === 500) {
           navegacion(`${PATH_PAGE.page500}`);
         } else {
-          mensajeSistema("Problemas con la base de datos", "error");
+          messajeTool('error', 'Problemas con la base de datos', '');
         }
       }
     }
     getDatos();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const cerrarModalMensaje = () => {
+    setopenModal2((p) => !p);
+  };
+
   return (
     <>
+      <MensajesGenericos
+        openModal={openModal2}
+        closeModal={cerrarModalMensaje}
+        mantenimmiento={mantenimmiento}
+        codigo={codigomod}
+        nombre={nombre}
+        modomantenimiento={modoMantenimiento}
+        texto={texto}
+        tipo={tipo}
+      />
       <Page title="Menu">
         <Fade in style={{ transformOrigin: '0 0 0' }} timeout={1000}>
           <Box sx={{ ml: 3, mr: 3, p: 1 }}>
             <HeaderBreadcrumbs
               heading="Representante Legal"
-              links={[
-                { name: 'Parametros' },
-                { name: 'Representante Legal' },
-                { name: 'Lista' },
-              ]}
+              links={[{ name: 'Parametros' }, { name: 'Representante Legal' }, { name: 'Lista' }]}
               action={
                 <Button
                   fullWidth
@@ -173,9 +197,7 @@ export default function FormularioRepresentanteLegal() {
                 </Grid>
               </Grid>
             </Box>
-            <Box
-              sx={estilosdetabla}
-            >
+            <Box sx={estilosdetabla}>
               <div
                 style={{
                   padding: '0.5rem',

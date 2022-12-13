@@ -9,7 +9,7 @@ import Page from '../../../../../components/Page';
 import { URLAPIGENERAL, URLRUC } from '../../../../../config';
 import { esCorreo, obtenerMaquina } from '../../../../../utils/sistema/funciones';
 import { MenuMantenimiento } from '../../../../../components/sistema/menumatenimiento';
-import { PATH_AUTH, PATH_PAGE } from '../../../../../routes/paths';
+import { PATH_AUTH } from '../../../../../routes/paths';
 import RequiredTextField from '../../../../../sistema/componentes/formulario/RequiredTextField';
 import MensajesGenericos from '../../../../../components/sistema/mensajesgenerico';
 
@@ -33,14 +33,14 @@ export default function FormularioRegistroPersona() {
   const [errorcorreo, setErrorcorreo] = React.useState(false);
 
   // MENSAJE GENERICO
-  const messajeTool = (variant, msg) => {
+  const messajeTool = (variant, msg, modoman) => {
     const unTrue = true;
-    setCodigomod('');
-    setNombre('');
-    setModoMantenimiento('grabar');
+    setCodigomod(formulario.codigo_Usuario);
+    setNombre(formulario.nombre);
+    setModoMantenimiento(modoman);
     setTexto(msg);
     setTipo(variant);
-    setMantenimmiento(false);
+    setMantenimmiento(true);
     setopenModal2(unTrue);
   };
 
@@ -116,66 +116,102 @@ export default function FormularioRegistroPersona() {
   // METODO PARA OBTENER EL RUC
   const [error, setError] = React.useState(false);
 
+  const validation = () => {
+    // const noesvacio = noEsVacio(formulario);
+    const nombre = formulario.nombre.length;
+    const apellido = formulario.apellido.length;
+    const tipopersona = formulario.tipo_persona;
+    const cedula = formulario.cedula.length;
+    const celular = formulario.celular.trim();
+    const correo = esCorreo(formulario.correo);
+    const coduser = formulario.codigo_Usuario.length;
+    const clave = formulario.clave.length;
+    const direccion = formulario.direccion.trim();
+    // if (!noesvacio) {
+    //   mensajeSistema('Complete los campos requeridos', 'error');
+    //   setError(true);
+    //   return false;
+    // }
+    if (cedula <= 9) {
+      messajeTool('error', 'Debe ingresar una Cédula');
+      setError(true);
+      return false;
+    }
+    if (coduser <= 2) {
+      messajeTool('error', 'Debe ingresar un Código de Usuario');
+      setError(true);
+      return false;
+    }
+    if (clave <= 2) {
+      messajeTool('error', 'Debe ingresar una Clave');
+      setError(true);
+      return false;
+    }
+    if (nombre < 3) {
+      messajeTool('error', 'Debe ingresar un Nombre.');
+      setError(true);
+      return false;
+    }
+    if (apellido < 3) {
+      messajeTool('error', 'Debe ingresar un Apellido');
+      setError(true);
+      return false;
+    }
+    if (tipopersona === '----') {
+      messajeTool('error', 'Debe seleccionar un tipo de persona');
+      setError(true);
+      return false;
+    }
+
+    if (celular <= 10) {
+      messajeTool('error', 'Debe ingresar un número de Celular');
+      setError(true);
+      return false;
+    }
+    if (!correo) {
+      messajeTool('error', 'Debe ingresar un Correo');
+      setError(true);
+      return false;
+    }
+    if (direccion === '') {
+      messajeTool('error', 'Debe ingresar una Dirección');
+      setError(true);
+      return false;
+    }
+    return true;
+  };
+
   // GUARDAR INFORMACION
   // eslint-disable-next-line consistent-return
   const Grabar = async () => {
-    console.log(formulario);
+    const maquina = await obtenerMaquina();
+    // const { codigo } = JSON.parse(window.localStorage.getItem('session'));
+    if (validation() === false) {
+      return 0;
+    }
+    // console.log(formulario);
     try {
-      formulario.maquina = await obtenerMaquina();
-      // const noesvacio = noEsVacio(formulario);
-      const nombre = formulario.nombre.length;
-      const apellido = formulario.apellido.length;
-      const tipopersona = formulario.tipo_persona;
-      const cedula = formulario.cedula.length;
-      const celular = formulario.celular.trim();
-      const correo = esCorreo(formulario.correo);
-
-      const direccion = formulario.direccion.trim();
-      // if (!noesvacio) {
-      //   mensajeSistema('Complete los campos requeridos', 'error');
-      //   setError(true);
-      //   return false;
-      // }
-
-      if (nombre < 3) {
-        messajeTool('error', 'Verifique su nombre.');
-        setError(true);
-        return false;
-      }
-      if (apellido === '') {
-        messajeTool('error', 'Verifique su apellido.');
-        setError(true);
-        return false;
-      }
-      if (tipopersona === '----') {
-        messajeTool('error', 'Seleccione su tipo de persona.');
-        setError(true);
-        return false;
-      }
-      if (cedula <= 9) {
-        messajeTool('error', 'Verifique su cedula');
-        setError(true);
-        return false;
-      }
-      if (celular === '') {
-        messajeTool('error', 'Verifique su celular.');
-        setError(true);
-        return false;
-      }
-      if (!correo) {
-        messajeTool('error', 'Verifique su correo.');
-        setError(true);
-        return false;
-      }
-      if (direccion === '') {
-        messajeTool('error', 'Verifique su  direccion.');
-        setError(true);
-        return false;
-      }
-      const { data } = await axios.post(`${URLAPIGENERAL}/usuarios`, formulario, config);
+      const Json = {
+        fecha_ing: new Date(),
+        maquina: `${maquina}`,
+        codigo: formulario.codigo,
+        codigo_Usuario: formulario.codigo_Usuario,
+        nombre: formulario.nombre,
+        apellido: formulario.apellido,
+        tipo_persona: formulario.tipo_persona,
+        cedula: formulario.cedula,
+        celular: formulario.celular,
+        correo: formulario.correo,
+        clave: formulario.clave,
+        direccion: formulario.direccion,
+        observacion: formulario.observacion,
+        usuario: formulario.usuario,
+        estado: formulario.estado,
+      };
+      const { data } = await axios.post(`${URLAPIGENERAL}/usuarios`, Json, config);
       if (data === 200) {
         setGuardado(true);
-        messajeTool('succes', 'Registros guardado correctamente');
+        messajeTool('succes', '', 'Grabar');
       }
     } catch (error) {
       if (error.response.status === 401) {
@@ -198,7 +234,7 @@ export default function FormularioRegistroPersona() {
     if (guardado === true) {
       setopenModal2((p) => !p);
       setGuardado(false);
-      Volver();
+      window.location.reload(true);
     }
     setopenModal2((p) => !p);
   };
@@ -226,8 +262,8 @@ export default function FormularioRegistroPersona() {
           <Card elevation={3} sx={{ ml: 3, mr: 3, mb: 2, p: 1 }}>
             <Box sx={{ width: '100%', p: 2 }}>
               <Grid container spacing={1}>
-                <Grid container item xs={12} spacing={1}>
-                  <Grid item md={2} xs={12} sm={6}>
+                <Grid container item xs={12} spacing={1} pb={1}>
+                  <Grid item md={4} sm={3} xs={12}>
                     <TextField
                       fullWidth
                       disabled
@@ -246,87 +282,13 @@ export default function FormularioRegistroPersona() {
                       }}
                     />
                   </Grid>
-                  <Grid item md={2} xs={12} sm={6}>
-                    <RequiredTextField
-                      fullWidth
-                      size="small"
-                      error={error}
-                      type="text"
-                      label="Codigo Usuario *"
-                      onChange={(e) => {
-                        setFormulario({
-                          ...formulario,
-                          codigo_Usuario: e.target.value,
-                        });
-                      }}
-                      value={formulario.codigo_Usuario}
-                    />
-                  </Grid>
-                </Grid>
-
-                <Grid container item xs={12} spacing={1}>
-                  <Grid item md={2.5} xs={12} sm={6}>
-                    <RequiredTextField
-                      fullWidth
-                      size="small"
-                      error={error}
-                      type="text"
-                      label="Nombre *"
-                      variant="outlined"
-                      onChange={(e) => {
-                        setFormulario({
-                          ...formulario,
-                          nombre: e.target.value,
-                        });
-                      }}
-                      value={formulario.nombre}
-                    />
-                  </Grid>
-                  <Grid item md={2.5} xs={12} sm={6}>
-                    <RequiredTextField
-                      fullWidth
-                      size="small"
-                      error={error}
-                      type="text"
-                      label="Apellido *"
-                      variant="outlined"
-                      onChange={(e) => {
-                        setFormulario({
-                          ...formulario,
-                          apellido: e.target.value,
-                        });
-                      }}
-                      value={formulario.apellido}
-                    />
-                  </Grid>
-                  <Grid item md={2.5} xs={12} sm={6}>
-                    <RequiredTextField
-                      fullWidth
-                      size="small"
-                      error={error}
-                      type="password"
-                      label="Clave *"
-                      variant="outlined"
-                      onChange={(e) => {
-                        setFormulario({
-                          ...formulario,
-                          clave: e.target.value,
-                        });
-                      }}
-                      value={formulario.clave}
-                    />
-                  </Grid>
-                </Grid>
-                <Grid container item xs={12} spacing={1}>
-                  <Grid item md={2.5} xs={12} sm={6}>
-                    <TipoPersona data={formulario} />
-                  </Grid>
-                  <Grid item md={2.5} xs={12} sm={6}>
+                  <Grid item md={4} sm={3} xs={12}>
                     <RequiredTextField
                       fullWidth
                       size="small"
                       error={error}
                       label="Cedula *"
+                      helperText="La Cédula debe tener 10 dígitos"
                       variant="outlined"
                       onChange={(e) => {
                         setFormulario({
@@ -347,15 +309,90 @@ export default function FormularioRegistroPersona() {
                     />
                   </Grid>
                 </Grid>
+                <Grid container item xs={12} spacing={1} pb={1}>
+                  <Grid item md={4} sm={3} xs={12}>
+                    <RequiredTextField
+                      fullWidth
+                      size="small"
+                      error={error}
+                      type="text"
+                      label="Codigo Usuario *"
+                      helperText="El Código de Usuario debe tener al menos 3 caracteres"
+                      onChange={(e) => {
+                        setFormulario({
+                          ...formulario,
+                          codigo_Usuario: e.target.value,
+                        });
+                      }}
+                      value={formulario.codigo_Usuario}
+                    />
+                  </Grid>
+                  <Grid item md={4} sm={3} xs={12}>
+                    <RequiredTextField
+                      fullWidth
+                      size="small"
+                      error={error}
+                      type="password"
+                      label="Clave *"
+                      variant="outlined"
+                      onChange={(e) => {
+                        setFormulario({
+                          ...formulario,
+                          clave: e.target.value,
+                        });
+                      }}
+                      value={formulario.clave}
+                    />
+                  </Grid>
+                </Grid>
+                <Grid container item xs={12} spacing={1} pb={1}>
+                  <Grid item md={4} sm={3} xs={12}>
+                    <RequiredTextField
+                      fullWidth
+                      size="small"
+                      error={error}
+                      type="text"
+                      label="Nombre *"
+                      helperText="El Nombre debe tener al menos 3 caracteres"
+                      variant="outlined"
+                      onChange={(e) => {
+                        setFormulario({
+                          ...formulario,
+                          nombre: e.target.value,
+                        });
+                      }}
+                      value={formulario.nombre}
+                    />
+                  </Grid>
+                  <Grid item md={4} sm={3} xs={12}>
+                    <RequiredTextField
+                      fullWidth
+                      size="small"
+                      error={error}
+                      type="text"
+                      label="Apellido *"
+                      helperText="El Apellido debe tener al menos 3 caracteres"
+                      variant="outlined"
+                      onChange={(e) => {
+                        setFormulario({
+                          ...formulario,
+                          apellido: e.target.value,
+                        });
+                      }}
+                      value={formulario.apellido}
+                    />
+                  </Grid>
+                </Grid>
 
-                <Grid container item xs={12} spacing={1}>
-                  <Grid item md={2} xs={12} sm={6}>
+                <Grid container item xs={12} spacing={1} pb={1}>
+                  <Grid item md={4} sm={3} xs={12}>
                     <RequiredTextField
                       fullWidth
                       size="small"
                       error={error}
                       type="number"
                       label="Celular *"
+                      helperText="El Celular debe tener al menos 10 dígitos"
                       variant="outlined"
                       onChange={(e) => {
                         setFormulario({
@@ -366,7 +403,8 @@ export default function FormularioRegistroPersona() {
                       value={formulario.celular}
                     />
                   </Grid>
-                  <Grid item md={3} xs={12} sm={6}>
+
+                  <Grid item md={4} sm={3} xs={12}>
                     <RequiredTextField
                       fullWidth
                       size="small"
@@ -390,8 +428,8 @@ export default function FormularioRegistroPersona() {
                   </Grid>
                 </Grid>
 
-                <Grid container item xs={12} spacing={1}>
-                  <Grid item xs={12} md={5}>
+                <Grid container item xs={12} spacing={1} pb={1}>
+                  <Grid item md={8} sm={3} xs={12}>
                     <RequiredTextField
                       fullWidth
                       size="small"
@@ -410,14 +448,13 @@ export default function FormularioRegistroPersona() {
                   </Grid>
                 </Grid>
 
-                <Grid container item xs={12} spacing={1}>
-                  <Grid item xs={12} md={5}>
+                <Grid container item xs={12} spacing={1} pb={1}>
+                  <Grid item md={8} sm={3} xs={12}>
                     <RequiredTextField
                       fullWidth
                       size="small"
-                      error={error}
                       type="text"
-                      label="Observacion *"
+                      label="Observacion"
                       variant="outlined"
                       onChange={(e) => {
                         setFormulario({
@@ -429,8 +466,12 @@ export default function FormularioRegistroPersona() {
                     />
                   </Grid>
                 </Grid>
-                <Grid container item xs={12} spacing={1}>
-                  <Grid item md={3} xs={12} sm={6}>
+
+                <Grid container item xs={12} spacing={1} pb={1}>
+                  <Grid item md={4} sm={3} xs={12}>
+                    <TipoPersona data={formulario} />
+                  </Grid>
+                  {/* <Grid item md={4} sm={3} xs={12}>
                     <FormControlLabel
                       onChange={(e) => {
                         setFormulario({
@@ -442,7 +483,7 @@ export default function FormularioRegistroPersona() {
                       control={<Checkbox defaultChecked disabled />}
                       label="Estado"
                     />
-                  </Grid>
+                  </Grid> */}
                 </Grid>
               </Grid>
             </Box>
