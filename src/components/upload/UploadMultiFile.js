@@ -27,6 +27,7 @@ UploadMultiFile.propTypes = {
   files: PropTypes.array,
   onRemove: PropTypes.func,
   onRemoveAll: PropTypes.func,
+  onUpload: PropTypes.func,
   helperText: PropTypes.node,
   sx: PropTypes.object,
 };
@@ -37,6 +38,7 @@ export default function UploadMultiFile({
   files,
   onRemove,
   onRemoveAll,
+  onUpload,
   helperText,
   sx,
   ...other
@@ -65,7 +67,7 @@ export default function UploadMultiFile({
 
       {fileRejections.length > 0 && <RejectionFiles fileRejections={fileRejections} />}
 
-      <MultiFilePreview files={files} showPreview={showPreview} onRemove={onRemove} onRemoveAll={onRemoveAll} />
+      <MultiFilePreview files={files} showPreview={showPreview} onRemove={onRemove} onRemoveAll={onRemoveAll} onUpload={onUpload}/>
 
       {helperText && helperText}
     </Box>

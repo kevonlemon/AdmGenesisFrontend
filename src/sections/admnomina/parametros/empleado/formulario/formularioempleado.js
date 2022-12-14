@@ -27,8 +27,11 @@ import Tab from '@mui/material/Tab';
 import { SearchRounded } from '@mui/icons-material';
 import axios from 'axios';
 import { useSnackbar } from 'notistack';
+import { NumericFormat } from 'react-number-format';
 import Page from '../../../../../components/Page';
 import { URLAPIGENERAL, URLRUC, URLAPILOCAL } from '../../../../../config';
+import serviciosLocaciones from '../../../../../servicios/parametros_del_sistema/servicios_locaciones';
+import serviciosMantenimientoGenerico from '../../../../../servicios/parametros_del_sistema/servicios_genericos';
 import {
   esCedula,
   esCorreo,
@@ -37,6 +40,8 @@ import {
   obtenerMaquina,
 } from '../../../../../utils/sistema/funciones';
 import { MenuMantenimiento } from '../../../../../components/sistema/menumatenimiento';
+import { UploadMultiFile } from '../../../../../components/upload';
+import useCargando from '../../../../../hooks/admnomina/useCargando';
 import CircularProgreso from '../../../../../components/Cargando';
 import ModalGenerico from '../../../../../components/modalgenerico';
 import { PATH_AUTH, PATH_PAGE } from '../../../../../routes/paths';
@@ -45,6 +50,8 @@ import { styleActive, styleInactive, estilosdetabla, estilosdatagrid } from '../
 import { CustomNoRowsOverlay } from '../../../../../utils/csssistema/iconsdatagrid';
 import RequiredTextField from '../../../../../sistema/componentes/formulario/RequiredTextField';
 import MensajesGenericos from '../../../../../components/sistema/mensajesgenerico';
+import CajaGenerica from '../../../../../components/admnomina/CajaGenerica';
+import * as serviciosEmpleados from '../services/EmpleadoServices';
 
 const meses = [
   { id: 1, nombre: 'Enero' },
@@ -443,11 +450,33 @@ export default function FormularioEmpleado() {
     pagoMensualDecimoTercero: true,
     pagoMensualDecimoCuarto: true,
     observacion: '',
+    esdiscapacitado: false,
+    porcentajediscapacidadview: 0,
+    porcentajediscapacidad: 0,
+    acargodiscapacitado: false,
+    modoejecucion: '',
     estado: true,
     fecha_ing: new Date(),
     maquina: '',
     usuario: 1,
+    urlDocumentos: ''
   });
+
+  const [datosProvincia, setDatosProvincia] = React.useState({
+    provincia: '',
+    nombre_provincia: '----',
+  });
+  const [datosCanton, setDatosCanton] = React.useState({
+    canton: '',
+    nombre_canton: '----',
+  });
+  const [datosParroquia, setDatosParroquia] = React.useState({
+    parroquia: '',
+    nombre_parroquia: '----',
+  });
+  const [provincias, setProvincias] = React.useState([]);
+  const [cantones, setCantones] = React.useState([]);
+  const [parroquias, setParroquias] = React.useState([]);
 
   const [formulariocertificado, setFormularioCertificado] = React.useState({
     empleado: 1,
@@ -469,6 +498,96 @@ export default function FormularioEmpleado() {
     cedula: '',
     direccion: '',
   });
+
+  const [listafunciones, setListaFunciones] = React.useState([])
+  const [funciones, setFunciones] = React.useState({
+    codigo: '',
+    nombre: ''
+  })
+
+  const [listajornadas, setListaJornadas] = React.useState([])
+  const [jornadas, setJornadas] = React.useState({
+    codigo: '',
+    nombre: ''
+  })
+
+  const [listaformapago, setListaFormaPago] = React.useState([])
+  const [formapago, setFormaPago] = React.useState({
+    codigo: '',
+    nombre: ''
+  })
+
+  const [listamodoejecucion, setListaModoEjecucion] = React.useState([]);
+
+  // SUBIDA DE DOCUMENTOS
+  const { empezarCarga, terminarCarga } = useCargando();
+  const [archivo, setArchivo] = React.useState([]);
+  const cargarArchivos = React.useCallback(
+    (archivos) => {
+      const noEsPdf = archivos.at(0).type !== 'application/pdf';
+      if (noEsPdf) {
+        messajeTool('warning', 'Solo puede subir un archivo en formato .pdf');
+        return;
+      }
+      if (archivo.length >= 1) {
+        messajeTool('warning', 'Solo puede subir un archivo');
+        return;
+      }
+      if (archivos.at(0).size / 1000000 > 2) {
+        messajeTool('warning', 'Solo puede subir un archivo que pese máximo 2mb');
+        return;
+      }
+      const nuevosArchivos = archivos.map((file) =>
+        Object.assign(file, {
+          preview: URL.createObjectURL(file),
+        })
+      );
+      setArchivo([...archivo, ...nuevosArchivos]);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [archivo]
+  );
+  const removerArchivo = (archivoRemovido) => {
+    const archivosEliminados = archivo.filter((file) => file !== archivoRemovido);
+    setArchivo(archivosEliminados);
+  };
+  const removerTodosLosArchivos = () => setArchivo([]);
+  const enviarArchivos = () => {
+    if (formularioempleado.urlDocumentos === null) {
+      const nombre = formularioempleado.nombres;
+      const codigo = formularioempleado.codigo_Empleado;
+      const fechahoy = new Date().toISOString();
+      const nombrepdf = `${nombre}_${codigo}_${fechahoy.substring(0, 10)}.pdf`
+      const lecturArchivo = new FileReader();
+      lecturArchivo.readAsDataURL(archivo.at(0));
+      lecturArchivo.onloadend = (e) => {
+        const datos = {
+          codigoempleado: formularioempleado.codigo_Empleado,
+          // `${formularioempleado.nombres}_${formularioempleado.codigo_Empleado}_${fechahoy.toLocaleDateString()}.pdf`
+          nombreArchivo: nombrepdf,
+          archivo: e.target.result.split('base64,')[1]
+        }
+        empezarCarga();
+        serviciosEmpleados.subirArchivos(datos)
+          .then((res) => {
+            if (res !== 200) {
+              messajeTool('error', 'Error al subir el documento');
+              return;
+            }
+            messajeTool('succes', 'Documento subido con éxito');
+            limpiarCampos();
+          })
+          .catch(() => {
+            messajeTool('error', 'Problemas con el servidor contácte con soporte');
+          })
+          .finally(() => {
+            terminarCarga();
+          })
+      }
+    } else {
+      messajeTool('warning', 'El empleado seleccionado ya posee un documento adjunto o aún no ha sido creado, por favor asegúrese de primero crear el empleado y luego subir el documento correspondiente');
+    }
+  };
 
   // METODO PARA OBTENER EL RUC
 
@@ -740,8 +859,10 @@ export default function FormularioEmpleado() {
           fechaNac: formularioempleado.fechaNac,
           cargo: formularioempleado.cargo,
           departamento: formularioempleado.departamento,
+          funciones: funciones.codigo,
           nivelEstudio: formularioempleado.nivelEstudio,
           sexo: formularioempleado.sexo,
+          estadoCivl: formularioempleado.estadocivil,
           sueldoBase: parseFloat(formularioempleado.sueldoBase),
           afiliadoSeguro: formularioempleado.afiliadoSeguro,
           beneficioSocial: formularioempleado.beneficioSocial,
@@ -749,6 +870,16 @@ export default function FormularioEmpleado() {
           pagoMensualDecimoTercero: formularioempleado.pagoMensualDecimoTercero,
           pagoMensualDecimoCuarto: formularioempleado.pagoMensualDecimoCuarto,
           observacion: formularioempleado.observacion,
+          discapacidad: formularioempleado.esdiscapacitado,
+          porcentajeDiscapacidad: formularioempleado.porcentajediscapacidad,
+          responsableDiscapacitado: formularioempleado.acargodiscapacitado,
+          urlDocumentos: null,
+          jornada: jornadas.codigo,
+          modoEjecucion: formularioempleado.modoejecucion,
+          provincina: datosProvincia.provincia,
+          canton: datosCanton.canton,
+          parroquia: datosParroquia.parroquia,
+          formaPago: formapago.codigo,
           estado: formularioempleado.estado,
           fecha_ing: new Date(),
           maquina,
@@ -756,12 +887,12 @@ export default function FormularioEmpleado() {
           carga: [...tablacarga],
           certificado: [...tablacertificado],
         };
-        // console.log(enviarjson);
-        const { data } = await axios.post(`${URLAPIGENERAL}/empleados`, enviarjson, config, setMostrarProgreso(true));
+        console.log(enviarjson);
+        const { data } = await axios.post(`${URLAPILOCAL}/empleados`, enviarjson, config, setMostrarProgreso(true));
         if (data === 200) {
           setGuardado(true);
           messajeTool('succes', 'Registro guardado correctamente');
-          Volver();
+          // Volver();
           // limpiarCampos();
           // setTabs(0)
           // const inicial = await axios(`${URLAPIGENERAL}/iniciales/buscar?opcion=ADM`, config);
@@ -796,8 +927,10 @@ export default function FormularioEmpleado() {
           fechaNac: formularioempleado.fechaNac,
           cargo: formularioempleado.cargo,
           departamento: formularioempleado.departamento,
+          funciones: funciones.codigo,
           nivelEstudio: formularioempleado.nivelEstudio,
           sexo: formularioempleado.sexo,
+          estadoCivl: formularioempleado.estadocivil,
           sueldoBase: parseFloat(formularioempleado.sueldoBase),
           afiliadoSeguro: formularioempleado.afiliadoSeguro,
           beneficioSocial: formularioempleado.beneficioSocial,
@@ -805,6 +938,16 @@ export default function FormularioEmpleado() {
           pagoMensualDecimoTercero: formularioempleado.pagoMensualDecimoTercero,
           pagoMensualDecimoCuarto: formularioempleado.pagoMensualDecimoCuarto,
           observacion: formularioempleado.observacion,
+          discapacidad: formularioempleado.esdiscapacitado,
+          porcentajeDiscapacidad: formularioempleado.porcentajediscapacidad,
+          responsableDiscapacitado: formularioempleado.acargodiscapacitado,
+          urlDocumentos: null,
+          jornada: jornadas.codigo,
+          modoEjecucion: formularioempleado.modoejecucion,
+          provincina: datosProvincia.provincia,
+          canton: datosCanton.canton,
+          parroquia: datosParroquia.parroquia,
+          formaPago: formapago.codigo,
           estado: formularioempleado.estado,
           fecha_ing: new Date(),
           maquina,
@@ -813,10 +956,11 @@ export default function FormularioEmpleado() {
           certificado: [...tablacertificado, ...tablacertificadoedit],
         };
         // console.log("mira edit", enviarjson)
-        const { data } = await axios.put(`${URLAPIGENERAL}/empleados`, enviarjson, config, setMostrarProgreso(true));
+        const { data } = await axios.put(`${URLAPILOCAL}/empleados`, enviarjson, config, setMostrarProgreso(true));
         if (data === 200) {
           setGuardado(true);
           messajeTool('succes', 'Registro guardado correctamente');
+          Volver();
           // setTabs(0)
           // const inicial = await axios(`${URLAPIGENERAL}/iniciales/buscar?opcion=ADM`, config);
           // const codigogenerado = generarCodigo('EM', inicial.data[0].numero, '0000')
@@ -828,6 +972,7 @@ export default function FormularioEmpleado() {
         console.log(data);
       }
     } catch (error) {
+
       if (error.response.status === 401) {
         navegacion(`${PATH_AUTH.login}`);
         messajeTool('error', 'Su inicio de sesion expiro');
@@ -1052,6 +1197,21 @@ export default function FormularioEmpleado() {
             ...formularioempleado,
             codigo_Empleado: codigogenerado,
           });
+
+          Promise.all([
+            serviciosLocaciones.listarProvincias(),
+            serviciosMantenimientoGenerico.listarPorTabla({ tabla: 'NOM_FUNCION' }),
+            serviciosMantenimientoGenerico.listarPorTabla({ tabla: 'NOM_JORDANA' }),
+            serviciosMantenimientoGenerico.listarPorTabla({ tabla: 'NOM_FORMAPAGO' }),
+            serviciosMantenimientoGenerico.listarPorTabla({ tabla: 'NOM_MODOEJECUCION' })
+          ])
+            .then(res => {
+              setProvincias(res[0].map((m) => ({ ...m, codigoalternativo: m.codigo })));
+              setListaFunciones(res[1].map((m) => ({ ...m, codigoalternativo: m.codigo })));
+              setListaJornadas(res[2].map((m) => ({ ...m, codigoalternativo: m.codigo })));
+              setListaFormaPago(res[3].map((m) => ({ ...m, codigoalternativo: m.codigo })));
+              setListaModoEjecucion(res[4]);
+            })
         }
         if (modo === 'editar') {
           const empleado = await axios(
@@ -1059,7 +1219,21 @@ export default function FormularioEmpleado() {
             config,
             setMostrarProgreso(true)
           );
-
+          console.log(empleado)
+          Promise.all([
+            serviciosLocaciones.listarProvincias(),
+            serviciosMantenimientoGenerico.listarPorTabla({ tabla: 'NOM_FUNCION' }),
+            serviciosMantenimientoGenerico.listarPorTabla({ tabla: 'NOM_JORDANA' }),
+            serviciosMantenimientoGenerico.listarPorTabla({ tabla: 'NOM_FORMAPAGO' }),
+            serviciosMantenimientoGenerico.listarPorTabla({ tabla: 'NOM_MODOEJECUCION' })
+          ])
+            .then(res => {
+              setProvincias(res[0].map((m) => ({ ...m, codigoalternativo: m.codigo })));
+              setListaFunciones(res[1].map((m) => ({ ...m, codigoalternativo: m.codigo })));
+              setListaJornadas(res[2].map((m) => ({ ...m, codigoalternativo: m.codigo })));
+              setListaFormaPago(res[3].map((m) => ({ ...m, codigoalternativo: m.codigo })));
+              setListaModoEjecucion(res[4]);
+            })
           setFormularioEmpleado({
             codigo: empleado.data.codigo,
             codigo_Empleado: empleado.data.codigo_Empleado,
@@ -1077,6 +1251,7 @@ export default function FormularioEmpleado() {
             nivelEstudio: empleado.data.nivelEstudio,
             nombrenivelEstudio: empleado.data.nombreNivelEstudio,
             sexo: empleado.data.sexo,
+            estadocivil: empleado.data.estadoCivl,
             sueldoBase: empleado.data.sueldoBase,
             afiliadoSeguro: empleado.data.afiliadoSeguro,
             beneficioSocial: empleado.data.beneficioSocial,
@@ -1084,8 +1259,38 @@ export default function FormularioEmpleado() {
             pagoMensualDecimoTercero: empleado.data.pagoMensualDecimoTercero,
             pagoMensualDecimoCuarto: empleado.data.pagoMensualDecimoCuarto,
             observacion: empleado.data.observacion,
+            esdiscapacitado: empleado.data.discapacidad,
+            porcentajediscapacidadview: empleado.data.porcentajeDiscapacidad,
+            porcentajediscapacidad: empleado.data.porcentajeDiscapacidad,
+            acargodiscapacitado: empleado.data.responsableDiscapacitado,
+            modoejecucion: empleado.data.modoEjecucion,
             estado: empleado.data.estado,
+            urlDocumentos: empleado.data.urlDocumentos
           });
+          setDatosProvincia({
+            provincia: empleado.data.provincina,
+            nombre_provincia: empleado.data.nombreProvincia
+          })
+          setDatosCanton({
+            canton: empleado.data.canton,
+            nombre_canton: empleado.data.nombreCanton
+          })
+          setDatosParroquia({
+            parroquia: empleado.data.parroquia,
+            nombre_parroquia: empleado.data.nombreParroquia
+          })
+          setFunciones({
+            codigo: empleado.data.funciones,
+            nombre: empleado.data.nombreFuncion
+          })
+          setJornadas({
+            codigo: empleado.data.jornada,
+            nombre: empleado.data.nombreJornada
+          })
+          setFormaPago({
+            codigo: empleado.data.formaPago,
+            nombre: empleado.data.nombreFormaPago
+          })
           // let idc = 0;
           // let idce = 0;
 
@@ -1344,8 +1549,10 @@ export default function FormularioEmpleado() {
                   <Tab label="Certificados" {...a11yProps(1)} />
                   <Tab label="Cargas" {...a11yProps(2)} />
                   <Tab label="Adicionales" {...a11yProps(3)} />
+                  <Tab label="Subir Documentos" {...a11yProps(4)} />
                 </Tabs>
               </Box>
+              {/* formulario empleado */}
               <TabPanel value={tabs} index={0}>
                 <Grid container spacing={1}>
                   <Grid container item md={6} xs={12} spacing={1}>
@@ -1849,22 +2056,110 @@ export default function FormularioEmpleado() {
                       {/*  */}
                     </Grid>
                     <Grid item md={12} sm={12} xs={12}>
-                      {/*  */}
+                      <CajaGenerica
+                        estadoInicial={{
+                          codigoAlternativo: datosProvincia.provincia,
+                          nombre: datosProvincia.nombre_provincia,
+                        }}
+                        tituloTexto={{ nombre: 'Cod. Prov.', descripcion: 'Provincia' }}
+                        tituloModal="Provincias"
+                        retornarDatos={(e) => {
+                          setDatosProvincia({
+                            ...datosProvincia,
+                            provincia: e.codigo,
+                            nombre_provincia: e.nombre,
+                          });
+                          serviciosLocaciones.listarCantones({ provincia: e.codigo }).then((res) => {
+                            setCantones(res.map((m) => ({ ...m, codigoalternativo: m.codigo })));
+                          });
+                          setDatosCanton({
+                            canton: '',
+                            nombre_canton: '----',
+                          });
+                          setDatosParroquia({
+                            parroquia: '',
+                            nombre_parroquia: '----',
+                          });
+                        }}
+                        activarDependencia
+                        ejecutarDependencia={(e) => {
+                          setDatosProvincia({
+                            ...datosProvincia,
+                            provincia: String(e.target.value).toUpperCase(),
+                            nombre_provincia: '----',
+                          });
+                          setDatosCanton({
+                            canton: '',
+                            nombre_canton: '----',
+                          });
+                          setDatosParroquia({
+                            parroquia: '',
+                            nombre_parroquia: '----',
+                          });
+                        }}
+                        datos={provincias}
+                      />
                     </Grid>
                     <Grid item md={12} sm={12} xs={12}>
-                      {/*  */}
+                      <CajaGenerica
+                        estadoInicial={{
+                          codigoAlternativo: datosCanton.canton,
+                          nombre: datosCanton.nombre_canton,
+                        }}
+                        tituloTexto={{ nombre: 'Cod. Cant.', descripcion: 'Canton' }}
+                        tituloModal="Cantones"
+                        retornarDatos={(e) => {
+                          setDatosCanton({
+                            ...datosCanton,
+                            canton: e.codigo,
+                            nombre_canton: e.nombre,
+                          });
+                          serviciosLocaciones.listarParroquias({ canton: e.codigo }).then((res) => {
+                            setParroquias(res.map((m) => ({ ...m, codigoalternativo: m.codigo })));
+                          });
+                          setDatosParroquia({
+                            parroquia: '',
+                            nombre_parroquia: '----',
+                          });
+                        }}
+                        activarDependencia
+                        ejecutarDependencia={(e) => {
+                          setDatosCanton({
+                            canton: String(e.target.value).toUpperCase(),
+                            nombre_canton: '----',
+                          });
+                          setDatosParroquia({
+                            parroquia: '',
+                            nombre_parroquia: '----',
+                          });
+                        }}
+                        datos={cantones}
+                      />
                     </Grid>
                     <Grid item md={12} sm={12} xs={12}>
-                      {/*  */}
-                    </Grid>
-                    <Grid item md={12} sm={12} xs={12}>
-                      {/*  */}
-                    </Grid>
-                    <Grid item md={12} sm={12} xs={12}>
-                      {/*  */}
-                    </Grid>
-                    <Grid item md={12} sm={12} xs={12}>
-                      {/*  */}
+                      <CajaGenerica
+                        estadoInicial={{
+                          codigoAlternativo: datosParroquia.parroquia,
+                          nombre: datosParroquia.nombre_parroquia,
+                        }}
+                        tituloTexto={{ nombre: 'Cod. Parrq.', descripcion: 'Parroquia' }}
+                        tituloModal="Parroquias"
+                        retornarDatos={(e) => {
+                          setDatosParroquia({
+                            ...datosParroquia,
+                            parroquia: e.codigo,
+                            nombre_parroquia: e.nombre,
+                          });
+                        }}
+                        activarDependencia
+                        ejecutarDependencia={(e) => {
+                          setDatosParroquia({
+                            parroquia: String(e.target.value).toUpperCase(),
+                            nombre_parroquia: '----',
+                          });
+                        }}
+                        datos={parroquias}
+                      />
                     </Grid>
                     <Grid item md={12} sm={12} xs={12}>
                       {/*  */}
@@ -1893,6 +2188,7 @@ export default function FormularioEmpleado() {
                   </Grid>
                 </Grid>
               </TabPanel>
+              {/* Certificados */}
               <TabPanel value={tabs} index={1}>
                 <Grid container spacing={1}>
                   <Grid item container md={12} sm={12} xs={12} spacing={1}>
@@ -2112,6 +2408,7 @@ export default function FormularioEmpleado() {
                   ''
                 )}
               </TabPanel>
+              {/* Cargas */}
               <TabPanel value={tabs} index={2}>
                 <Grid container spacing={1}>
                   <Grid item container md={12} sm={12} xs={12} spacing={1}>
@@ -2262,9 +2559,148 @@ export default function FormularioEmpleado() {
                   ''
                 )}
               </TabPanel>
-              <TabPanel value={tabs} index={2}>
-                <Grid>
-                  {/*  */}
+              {/* Adicionales */}
+              <TabPanel value={tabs} index={3}>
+                <Grid container spacing={1}>
+                  <Grid item container spacing={1} md={6}>
+                    <Grid item xs={12}>
+                      <CajaGenerica
+                        estadoInicial={{
+                          codigoAlternativo: funciones.codigo,
+                          nombre: funciones.nombre
+                        }}
+                        tituloTexto={{ nombre: 'Cod. Función', descripcion: 'Función' }}
+                        tituloModal="Funciones"
+                        retornarDatos={(e) => {
+                          setFunciones({
+                            codigo: e.codigo,
+                            nombre: e.nombre
+                          })
+                        }}
+                        datos={listafunciones}
+                      />
+                    </Grid>
+                  </Grid>
+                  <Grid item md={1.5}>
+                    <FormControlLabel
+                      onChange={(e) => {
+                        setFormularioEmpleado({
+                          ...formularioempleado,
+                          esdiscapacitado: e.target.checked,
+                        });
+                      }}
+                      value={formularioempleado.esdiscapacitado}
+                      control={<Checkbox />}
+                      label="Discapacitado"
+                    />
+                  </Grid>
+                  <Grid item md={2.5}>
+                    <NumericFormat
+                      disabled={!formularioempleado.esdiscapacitado}
+                      label='Porcentaje'
+                      customInput={RequiredTextField}
+                      value={formularioempleado.porcentajediscapacidadview}
+                      onValueChange={(e) => {
+                        setFormularioEmpleado({
+                          ...formularioempleado,
+                          porcentajediscapacidadview: e.formattedValue,
+                          porcentajediscapacidad: e.value
+                        })
+                      }}
+                      suffix={'%'}
+                      size='small'
+                      type="text"
+                      thousandSeparator
+                    />
+                  </Grid>
+                  <Grid item md={2}>
+                    <FormControlLabel
+                      onChange={(e) => {
+                        setFormularioEmpleado({
+                          ...formularioempleado,
+                          acargodiscapacitado: e.target.checked,
+                        });
+                      }}
+                      value={formularioempleado.acargodiscapacitado}
+                      control={<Checkbox />}
+                      label="A Cargo de un Discapacitado"
+                    />
+                  </Grid>
+                  <Grid item container spacing={1} md={6}>
+                    <Grid item xs={12}>
+                      <CajaGenerica
+                        estadoInicial={{
+                          codigoAlternativo: jornadas.codigo,
+                          nombre: jornadas.nombre
+                        }}
+                        tituloTexto={{ nombre: 'Cod. Jornada', descripcion: 'Jornada' }}
+                        tituloModal="Jornadas"
+                        retornarDatos={(e) => {
+                          setJornadas({
+                            codigo: e.codigo,
+                            nombre: e.nombre
+                          })
+                        }}
+                        datos={listajornadas}
+                      />
+                    </Grid>
+                  </Grid>
+                  <Grid item container spacing={1} md={6}>
+                    <Grid item xs={12}>
+                      <CajaGenerica
+                        estadoInicial={{
+                          codigoAlternativo: formapago.codigo,
+                          nombre: formapago.nombre
+                        }}
+                        tituloTexto={{ nombre: 'Cod. Pago', descripcion: 'Forma de Pago' }}
+                        tituloModal="Formas de Pago"
+                        retornarDatos={(e) => {
+                          setFormaPago({
+                            codigo: e.codigo,
+                            nombre: e.nombre
+                          })
+                        }}
+                        datos={listaformapago}
+                      />
+                    </Grid>
+                  </Grid>
+                  <Grid item md={4} sm={6} xs={12}>
+                    <TextField
+                      select
+                      label="Modo Ejecución"
+                      value={formularioempleado.modoejecucion}
+                      onChange={(e) => {
+                        setFormularioEmpleado({
+                          ...formularioempleado,
+                          modoejecucion: e.target.value,
+                        });
+                      }}
+                      fullWidth
+                      size="small"
+                    >
+                      {listamodoejecucion.map((m) => (
+                        <MenuItem key={m.codigo} value={m.codigo}>
+                          {' '}
+                          {m.nombre}{' '}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
+                </Grid>
+              </TabPanel>
+              {/* Subida de documentos */}
+              <TabPanel value={tabs} index={4}>
+                <Grid container spacing={1}>
+                  <Grid item xs={12}>
+                    <UploadMultiFile
+                      multiple
+                      files={archivo}
+                      onDrop={cargarArchivos}
+                      onRemove={removerArchivo}
+                      onRemoveAll={removerTodosLosArchivos}
+                      onUpload={() => enviarArchivos()}
+                    />
+                  </Grid>
                 </Grid>
               </TabPanel>
             </Box>
