@@ -49,11 +49,11 @@ export default function Empleado() {
   };
 
   const columns = [
-    { field: 'codigo_Empleado', headerName: 'Codigo', width: 120 },
-    { field: 'nombres', headerName: 'Nombre', width: 200 },
+    { field: 'codigo_Empleado', headerName: 'Codigo', width: 85 },
+    { field: 'nombres', headerName: 'Nombre', width: 350 },
     { field: 'cedula', headerName: 'Cedula', width: 100 },
     { field: 'direccion', headerName: 'Direccion', width: 200, cellClassName: () => clsx('yellowCell') },
-    { field: 'correo', headerName: 'Correo', width: 250 },
+    { field: 'correo', headerName: 'Correo', width: 350 },
     { field: 'telefonos', headerName: 'Telefono', width: 100 },
     {
       field: 'fecing',

@@ -37,6 +37,7 @@ import ModalEmpleadosH from './components/modalempleadosh';
 import { estilosdetabla, estilosdatagrid, estilosacordeon } from '../../../../utils/csssistema/estilos';
 import Page from '../../../../components/Page';
 import { formaterarFecha, generarCodigo, obtenerMaquina } from '../../../../utils/sistema/funciones';
+import serviciosMantenimientoGenerico from '../../../../servicios/parametros_del_sistema/servicios_genericos';
 import RequiredTextField from '../../../../sistema/componentes/formulario/RequiredTextField';
 import MensajesGenericos from '../../../../components/sistema/mensajesgenerico';
 
@@ -108,7 +109,7 @@ export default function AprobacionSolicitud() {
       },
     },
     { field: 'motivo', headerName: 'Motivo', width: 250 },
-    { field: 'empleado', headerName: 'Empleado', width: 300 },
+    { field: 'empleado', headerName: 'Empleado', width: 350 },
     {
       headerAlign: 'center',
       headerName: 'APROBAR',
@@ -130,9 +131,10 @@ export default function AprobacionSolicitud() {
     nombreempleadohasta: '',
     fechadesde: new Date(),
     fechahasta: new Date(),
+    motivo: 'todos'
   });
   const [listAprobados, setListAprobados] = React.useState([]);
-  console.log('aprobados', listAprobados);
+  const [listamotivos, setListaMotivos] = React.useState([]);
   const [openModalD, setOpenModalD] = React.useState(false);
   const [openModalH, setOpenModalH] = React.useState(false);
 
@@ -179,6 +181,7 @@ export default function AprobacionSolicitud() {
       nombreempleadohasta: '',
       fechadesde: firstDay,
       fechahasta: lastDay,
+      motivo: 'todos'
     });
     setRows([]);
   };
@@ -210,12 +213,12 @@ export default function AprobacionSolicitud() {
     }
     const fechadesde = formatDate(formulario.fechadesde);
     const fechahasta = formatDate(formulario.fechahasta);
-    try {
+    try { 
       const { data } = await axios.get(
-        `${URLAPIGENERAL}/AprobacionSolicitudes/Listar?empleadodesde=${formulario.empleadodesde}&empleadohasta=${formulario.empleadohasta}&fechadesde=${fechadesde}&fechahasta=${fechahasta}`
+        `${URLAPIGENERAL}/AprobacionSolicitudes/Listar?empleadodesde=${formulario.empleadodesde}&empleadohasta=${formulario.empleadohasta}&fechadesde=${fechadesde}&fechahasta=${fechahasta}&motivo=${formulario.motivo}`
       );
       if (data.length === 0) {
-        mensajeGenerico('error', 'No se encontraron solicitudes para los datos dados');
+        mensajeGenerico('warning', 'No se encontraron solicitudes para los datos dados');
       } else {
         let codigo = 0;
         data.forEach((f) => {
@@ -267,6 +270,10 @@ export default function AprobacionSolicitud() {
   React.useEffect(() => {
     async function getDatos() {
       try {
+        serviciosMantenimientoGenerico.listarPorTabla({ tabla: 'NOM_MOTIVO_SOLICITUD' })
+        .then(res => {
+          setListaMotivos(res)
+        })
         const { data } = await axios(`${URLAPIGENERAL}/empleados/listar`, config, setMostrarProgreso(true));
         const listaempleadodesde = data.map((m) => ({ id: m.codigo, codigo: m.codigo_Empleado, nombre: m.nombres }));
         const listaempleadohasta = data.map((m) => ({ id: m.codigo, codigo: m.codigo_Empleado, nombre: m.nombres }));
@@ -285,7 +292,7 @@ export default function AprobacionSolicitud() {
           nombreempleadodesde: listaempleadodesde[0].nombre,
           empleadohasta: lastItem.id,
           codigoempleadohasta: lastItem.codigo,
-          nombreempleadohasta: lastItem.nombre,
+          nombreempleadohasta: lastItem.nombre
         });
       } catch (error) {
         if (error.response.status === 401) {
@@ -311,8 +318,7 @@ export default function AprobacionSolicitud() {
       } else {
         try {
           const { data } = await axios(
-            `${URLAPILOCAL}/empleados/obtenerxcodigo?codigo=${
-              formulario.codigoempleadodesde === '' ? 'string' : formulario.codigoempleadodesde
+            `${URLAPILOCAL}/empleados/obtenerxcodigo?codigo=${formulario.codigoempleadodesde === '' ? 'string' : formulario.codigoempleadodesde
             }`,
             config
           );
@@ -338,8 +344,7 @@ export default function AprobacionSolicitud() {
       } else {
         try {
           const { data } = await axios(
-            `${URLAPILOCAL}/empleados/obtenerxcodigo?codigo=${
-              formulario.codigoempleadohasta === '' ? 'string' : formulario.codigoempleadohasta
+            `${URLAPILOCAL}/empleados/obtenerxcodigo?codigo=${formulario.codigoempleadohasta === '' ? 'string' : formulario.codigoempleadohasta
             }`,
             config
           );
@@ -449,6 +454,7 @@ export default function AprobacionSolicitud() {
                                       ...formulario,
                                       fechadesde: newValue,
                                     });
+                                    setRows([]);
                                   }}
                                   renderInput={(params) => <TextField {...params} fullWidth size="small" />}
                                 />
@@ -465,6 +471,7 @@ export default function AprobacionSolicitud() {
                                       ...formulario,
                                       fechahasta: newValue,
                                     });
+                                    setRows([]);
                                   }}
                                   renderInput={(params) => <TextField {...params} fullWidth size="small" />}
                                 />
@@ -484,6 +491,7 @@ export default function AprobacionSolicitud() {
                                       ...formulario,
                                       codigoempleadodesde: e.target.value,
                                     });
+                                    setRows([]);
                                   }}
                                   InputProps={{
                                     endAdornment: (
@@ -532,6 +540,7 @@ export default function AprobacionSolicitud() {
                                       ...formulario,
                                       codigoempleadohasta: e.target.value,
                                     });
+                                    setRows([]);
                                   }}
                                   InputProps={{
                                     endAdornment: (
@@ -568,6 +577,30 @@ export default function AprobacionSolicitud() {
                                 />
                               </Grid>
                             </Grid>
+                          </Grid>
+                          <Grid item md={3} sm={6} xs={12}>
+                            <TextField
+                              select
+                              label="Motivo"
+                              value={formulario.motivo}
+                              onChange={(e) => {
+                                setFormulario({
+                                  ...formulario,
+                                  motivo: e.target.value,
+                                });
+                                setRows([]);
+                              }}
+                              fullWidth
+                              size="small"
+                            >
+                              <MenuItem key="todos" value="todos">TODOS</MenuItem>
+                              {listamotivos.map((m) => (
+                                <MenuItem key={m.codigo} value={m.codigo}>
+                                  {' '}
+                                  {m.nombre}{' '}
+                                </MenuItem>
+                              ))}
+                            </TextField>
                           </Grid>
                         </Grid>
                       </Box>
@@ -613,35 +646,6 @@ export default function AprobacionSolicitud() {
                   <Typography sx={{ fontWeight: 'bold' }}>Solicitudes</Typography>
                 </AccordionSummary>
                 <AccordionDetails sx={{ borderRadius: '0.5rem' }}>
-                  <Box mb={1}>
-                    {/* <Grid container spacing={1} justifyContent="flex-end" >
-                                            <Grid item md={1.2} sm={2} xs={6}>
-                                                <Button
-                                                    fullWidth
-                                                    disabled={rows.length <= 0}
-                                                    variant="text"
-                                                    // eslint-disable-next-line camelcase
-                                                    href={`${URLAPIGENERAL}/beneficioempleado/generarexcel?Anio=${anio.anio}&Mes=${getmes.month}&Empleado1=${Datospaciente.id}&Empleado2=${Datospaciente2.id}&Operador=${codigooperador}`}
-                                                    // target="_blank"
-                                                    startIcon={<ViewComfyRoundedIcon />}
-                                                >
-                                                    Excel
-                                                </Button>
-                                            </Grid>
-                                            <Grid item md={1.2} sm={2} xs={6}>
-                                                <Button
-                                                    fullWidth
-                                                    disabled={rows.length <= 0}
-                                                    variant="text"
-                                                    href={`${URLAPIGENERAL}/beneficioempleado/generarpdf?Anio=${anio.anio}&Mes=${getmes.month}&Empleado1=${Datospaciente.id}&Empleado2=${Datospaciente2.id}&Operador=${codigooperador}`}
-                                                    target="_blank"
-                                                    startIcon={<PictureAsPdfRoundedIcon />}
-                                                >
-                                                    Pdf
-                                                </Button>
-                                            </Grid>
-                                        </Grid> */}
-                  </Box>
                   <Box sx={estilosdetabla}>
                     <div
                       style={{
