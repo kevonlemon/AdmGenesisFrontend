@@ -1,25 +1,40 @@
-import axios from 'axios';
+// @KF-14/12/2022
 import { URLAPIGENERAL } from '../../../../../config';
+import axiosInst from '../../../../../utils/admnomina/axiosBirobid';
 
 export function getEmpleados() {
-  const user = JSON.parse(window.localStorage.getItem('usuario'));
-  const config = {
-    headers: {
-      Authorization: `Bearer ${user.token}`,
-    },
-  };
-  const funcion = async () => {
+  const url = `${URLAPIGENERAL}/empleados/listar`;
+  return async () => {
     try {
-      const res = await axios(`${URLAPIGENERAL}/empleados/listar`, config);
-      const clientesJson = res.data.map((m) => ({
+      const res = await axiosInst.get(url);
+      const EmpleadosJson = res.data.map((m) => ({
         codigoalternativo: m.codigo_Empleado,
         nombre: m.nombres,
         codigo: m.codigo,
       }));
-      return clientesJson;
+      return EmpleadosJson;
     } catch (error) {
       return error;
     }
   };
-  funcion();
 }
+
+export function getTipoContrato() {
+  const url = `${URLAPIGENERAL}/TipoContrato/listar`;
+  return async () => {
+    try {
+      const res = await axiosInst.get(url);
+      const TipoContratoJson = res.data.map((m) => ({
+        tabla: m.tabla,
+        nombre: m.nombre,
+        codigo: m.codigo,
+        estado: m.estado,
+        id: m.codigo,
+      }));
+      return TipoContratoJson;
+    } catch (error) {
+      return error;
+    }
+  };
+}
+
