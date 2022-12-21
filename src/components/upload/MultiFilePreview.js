@@ -34,9 +34,10 @@ MultiFilePreview.propTypes = {
   showPreview: PropTypes.bool,
   onRemove: PropTypes.func,
   onRemoveAll: PropTypes.func,
+  onUpload: PropTypes.func,
 };
 
-export default function MultiFilePreview({ showPreview = false, files, onRemove, onRemoveAll }) {
+export default function MultiFilePreview({ showPreview = false, files, onRemove, onRemoveAll, onUpload }) {
   const hasFile = files.length > 0;
 
   return (
