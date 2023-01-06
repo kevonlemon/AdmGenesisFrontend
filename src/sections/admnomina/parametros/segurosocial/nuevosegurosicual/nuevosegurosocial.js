@@ -1,29 +1,19 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import {
-  Grid,
-  TextField,
-  Box,
-  Card,
-  Fade,
-  Checkbox,
-  FormControlLabel,
-  Button,
-  MenuItem,
-  InputAdornment,
-} from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { Grid, TextField, Box, Card, Fade, Checkbox, FormControlLabel, Button, MenuItem } from '@mui/material';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
+import { NumericFormat } from 'react-number-format';
 import InsertDriveFileRoundedIcon from '@mui/icons-material/InsertDriveFileRounded';
 import ArrowCircleLeftRoundedIcon from '@mui/icons-material/ArrowCircleLeftRounded';
 import CircularProgreso from '../../../../../components/Cargando';
 // import { MenuMantenimiento } from "../../../../../sistema/componentes/opciones";
-import { PATH_DASHBOARD, PATH_OPSISTEMA } from '../../../../../routes/paths';
-import { URLAPIGENERAL, CORS } from '../../../../../config';
+import { URLAPIGENERAL } from '../../../../../config';
 import Page from '../../../../../components/Page';
 import RequiredTextField from '../../../../../sistema/componentes/formulario/RequiredTextField';
 import MensajesGenericos from '../../../../../components/sistema/mensajesgenerico';
+import { obtenerMaquina } from '../../../../../components/sistema/funciones';
 
 export default function newnominasegurosocial() {
   // eslint-disable-next-line camelcase
@@ -72,7 +62,7 @@ export default function newnominasegurosocial() {
     porcentaje: 0, // float
     tipo: '',
     ingegremp: '', // cuenta
-    estado: false,
+    estado: true,
     aplicarol: false,
     segurosocial: false,
     sistema: false,
@@ -136,14 +126,14 @@ export default function newnominasegurosocial() {
   ];
 
   // MENSAJE GENERICO
-  const messajeTool = (variant, msg) => {
+  const messajeTool = (variant, msg, modoman) => {
     const unTrue = true;
-    setCodigomod('');
-    setNombre('');
-    setModoMantenimiento('grabar');
+    setCodigomod(dataNuevo.codigo);
+    setNombre(dataNuevo.nombre);
+    setModoMantenimiento(modoman);
     setTexto(msg);
     setTipo2(variant);
-    setMantenimmiento(false);
+    setMantenimmiento(true);
     setopenModal2(unTrue);
   };
 
@@ -151,14 +141,8 @@ export default function newnominasegurosocial() {
     // Validar nombre
     const nombre = dataNuevo.nombre.length;
 
-    if (nombre < 3) {
-      messajeTool('error', 'El Nombre debe tener al menos 3 caracteres.');
-      setError(true);
-      return false;
-    }
-
-    if (nombre === '') {
-      messajeTool('error', 'Debe asignar un nombre al seguro social.');
+    if (nombre === 0) {
+      messajeTool('error', 'Debe Ingresar un Nombre');
       setError(true);
       return false;
     }
@@ -166,7 +150,7 @@ export default function newnominasegurosocial() {
     // Validar tipo
     const tipoval = dataNuevo.tipo;
     if (tipoval === '') {
-      messajeTool('error', 'Debe asignar un tipo.');
+      messajeTool('error', 'Debe Asignar un Tipo');
       setError1(true);
       return false;
     }
@@ -174,7 +158,7 @@ export default function newnominasegurosocial() {
     // Validar tipocuenta
     const ingegrempval = dataNuevo.ingegremp;
     if (ingegrempval === '') {
-      messajeTool('error', 'Debe asignar una cuenta.');
+      messajeTool('error', 'Debe Asignar una Cuenta');
       setError2(true);
       return false;
     }
@@ -182,7 +166,7 @@ export default function newnominasegurosocial() {
     // Validar nombre
     const factorval = dataNuevo.factor;
     if (factorval === '') {
-      messajeTool('error', 'Debe ingresr un valor factor.');
+      messajeTool('error', 'Debe Ingresar un Valor Factor');
       setError3(true);
       return false;
     }
@@ -190,7 +174,7 @@ export default function newnominasegurosocial() {
     // Validar mes pago
     const mespagoval = dataNuevo.mespago;
     if (mespagoval === '') {
-      messajeTool('error', 'Debe ingresr un valor mes-pago.');
+      messajeTool('error', 'Debe Ingresar un Valor Mes-Pago');
       setError4(true);
       return false;
     }
@@ -198,7 +182,7 @@ export default function newnominasegurosocial() {
     // Validar mes porcentaje
     const porcentajeval = dataNuevo.porcentaje;
     if (porcentajeval === '') {
-      messajeTool('error', 'Debe ingresr un valor porcentaje.');
+      messajeTool('error', 'Debe Ingresar un Valor Porcentaje');
       setError5(true);
       return false;
     }
@@ -207,13 +191,18 @@ export default function newnominasegurosocial() {
   };
 
   const Grabar = async () => {
+    const maquina = await obtenerMaquina();
+    // const { codigo } = JSON.parse(window.localStorage.getItem('session'));
+    // console.log('FUAFUAFUAUF', codigo);
     if (validation() === false) {
       return 0;
     }
-
     setMostrarProgreso(true);
     try {
       const Json = {
+        fecha_ing: new Date(),
+        maquina: `${maquina}`,
+        // usuario: codigo,
         codigo: dataNuevo.codigo,
         Nombre: dataNuevo.nombre,
         Factor: parseInt(dataNuevo.factor, 10),
@@ -236,7 +225,7 @@ export default function newnominasegurosocial() {
 
       if (data === 200) {
         setGuardado(true);
-        messajeTool('succes', 'Grabado con exito!!');
+        messajeTool('succes', '', 'grabar');
       }
     } catch (error) {
       if (error.response.status === 401) {
@@ -253,11 +242,8 @@ export default function newnominasegurosocial() {
 
   const generarCodigo = (letra, num) => {
     const ceros = '0000';
-
     const nums = num.toString();
-
     const cero1 = ceros.split('');
-
     // eslint-disable-next-line no-plusplus
     for (let step = 0; step < nums.length; step++) {
       cero1.pop();
@@ -293,7 +279,7 @@ export default function newnominasegurosocial() {
     if (guardado === true) {
       setopenModal2((p) => !p);
       setGuardado(false);
-      Volver();
+      window.location.reload(true);
     }
     setopenModal2((p) => !p);
   };
@@ -362,132 +348,133 @@ export default function newnominasegurosocial() {
           <Card sx={{ ml: 3, mr: 3, mb: 2, p: 1 }}>
             <Box sx={{ width: '100%', p: 2 }}>
               <Grid container spacing={2} justifyContent="flex-start" style={{ fontWeight: '400px' }}>
-                <Grid item container spacing={1} md={6}>
-                  <Grid item sm={3} xs={12} md={4}>
-                    <TextField
-                      fullWidth
-                      required
-                      name="codigo"
-                      InputProps={{
-                        readOnly: true,
-                      }}
-                      label="Código"
-                      value={dataNuevo.codigo}
-                      id="outlined-size-small"
-                      size="small"
-                      sx={{
-                        backgroundColor: '#e5e8eb',
-                        border: 'none',
-                        borderRadius: '10px',
-                        color: '#212B36',
-                      }}
-                    />
-                  </Grid>
+                <Grid item container spacing={1}>
+                  <Grid container item xs={12} spacing={1} pb={0.5}>
+                    <Grid item md={4} sm={3} xs={12}>
+                      <TextField
+                        fullWidth
+                        required
+                        name="codigo"
+                        InputProps={{
+                          readOnly: true,
+                        }}
+                        label="Código"
+                        value={dataNuevo.codigo}
+                        id="outlined-size-small"
+                        size="small"
+                        sx={{
+                          backgroundColor: '#e5e8eb',
+                          border: 'none',
+                          borderRadius: '10px',
+                          color: '#212B36',
+                        }}
+                      />
+                    </Grid>
 
-                  <Grid item sm={9} xs={12} md={8}>
-                    <RequiredTextField
-                      error={error}
-                      fullWidth
-                      required
-                      label="Nombre"
-                      onChange={(e) => {
-                        setnuevo({
-                          ...dataNuevo,
-                          nombre: e.target.value.toLocaleUpperCase(),
-                        });
-                        setError(false);
-                      }}
-                      value={dataNuevo.nombre}
-                      id="outlined-size-small"
-                      size="small"
-                    />
-                  </Grid>
-
-                  <Grid item sm={12} xs={12} md={12}>
-                    <Grid container direction="row" spacing={2} alignItems="center">
-                      <Grid item sm={6} xs={6} md={6}>
-                        <RequiredTextField
-                          error={error1}
-                          fullWidth
-                          required
-                          select
-                          label="Tipo"
-                          id="outlined-size-small"
-                          size="small"
-                          onChange={SelecTipo}
-                          value={dataNuevo.tipo}
-                        >
-                          {Object.values(tipo).map((val) => (
-                            <MenuItem key={val.codigo} value={val.codigo}>
-                              {val.nombre}
-                            </MenuItem>
-                          ))}
-                        </RequiredTextField>
-                      </Grid>
-                      <Grid item sm={6} xs={6} md={6}>
-                        <RequiredTextField
-                          error={error2}
-                          fullWidth
-                          required
-                          select
-                          label="Ingreso / Egreso"
-                          id="outlined-size-small"
-                          size="small"
-                          onChange={selectCuenta}
-                          value={dataNuevo.ingegremp}
-                        >
-                          {Object.values(cuenta).map((val) => (
-                            <MenuItem key={val.nombre} value={val.codigo}>
-                              {val.nombre}
-                            </MenuItem>
-                          ))}
-                        </RequiredTextField>
-                      </Grid>
+                    <Grid item md={4} sm={3} xs={12}>
+                      <RequiredTextField
+                        error={error}
+                        fullWidth
+                        required
+                        helperText="El nombre debe al menos 3 caracteres"
+                        label="Nombre"
+                        onChange={(e) => {
+                          setnuevo({
+                            ...dataNuevo,
+                            nombre: e.target.value.toLocaleUpperCase(),
+                          });
+                          setError(false);
+                        }}
+                        value={dataNuevo.nombre}
+                        id="outlined-size-small"
+                        size="small"
+                      />
                     </Grid>
                   </Grid>
-
-                  <Grid item sm={4} xs={12} md={4}>
-                    <RequiredTextField
-                      error={error3}
-                      fullWidth
-                      required
-                      type="Number"
-                      label="Factor"
-                      onChange={(e) => {
-                        setnuevo({
-                          ...dataNuevo,
-                          factor: e.target.value,
-                        });
-                        setError(false);
-                      }}
-                      value={dataNuevo.factor}
-                      id="outlined-size-small"
-                      size="small"
-                    />
+                  <Grid container item xs={12} spacing={1} pb={0.5}>
+                    <Grid item md={4} sm={3} xs={12}>
+                      <RequiredTextField
+                        error={error1}
+                        fullWidth
+                        required
+                        select
+                        label="Tipo"
+                        id="outlined-size-small"
+                        size="small"
+                        onChange={SelecTipo}
+                        value={dataNuevo.tipo}
+                      >
+                        {Object.values(tipo).map((val) => (
+                          <MenuItem key={val.codigo} value={val.codigo}>
+                            {val.nombre}
+                          </MenuItem>
+                        ))}
+                      </RequiredTextField>
+                    </Grid>
+                    <Grid item md={4} sm={3} xs={12}>
+                      <RequiredTextField
+                        error={error2}
+                        fullWidth
+                        required
+                        select
+                        label="Ingreso / Egreso"
+                        id="outlined-size-small"
+                        size="small"
+                        onChange={selectCuenta}
+                        value={dataNuevo.ingegremp}
+                      >
+                        {Object.values(cuenta).map((val) => (
+                          <MenuItem key={val.nombre} value={val.codigo}>
+                            {val.nombre}
+                          </MenuItem>
+                        ))}
+                      </RequiredTextField>
+                    </Grid>
                   </Grid>
+                  <Grid container item xs={12} spacing={1} pb={0.5}>
+                    <Grid item md={4} sm={3} xs={12}>
+                      <RequiredTextField
+                        error={error3}
+                        fullWidth
+                        required
+                        type="Number"
+                        label="Factor"
+                        onChange={(e) => {
+                          setnuevo({
+                            ...dataNuevo,
+                            factor: e.target.value,
+                          });
+                          setError(false);
+                        }}
+                        value={dataNuevo.factor}
+                        id="outlined-size-small"
+                        size="small"
+                      />
+                    </Grid>
 
-                  <Grid item sm={4} xs={12} md={4}>
-                    <RequiredTextField
-                      error={error4}
-                      fullWidth
-                      type="Number"
-                      required
-                      label="Mes Pago"
-                      onChange={(e) => {
-                        setnuevo({
-                          ...dataNuevo,
-                          mespago: e.target.value,
-                        });
-                        setError(false);
-                      }}
-                      value={dataNuevo.mespago}
-                      id="outlined-size-small"
-                      size="small"
-                    />
+                    <Grid item md={4} sm={3} xs={12}>
+                      <RequiredTextField
+                        error={error4}
+                        fullWidth
+                        type="Number"
+                        required
+                        label="Mes Pago"
+                        onChange={(e) => {
+                          setnuevo({
+                            ...dataNuevo,
+                            mespago: e.target.value,
+                          });
+                          setError(false);
+                        }}
+                        value={dataNuevo.mespago}
+                        id="outlined-size-small"
+                        size="small"
+                      />
+                    </Grid>
                   </Grid>
-
-                  <Grid item sm={4} xs={12} md={4}>
-                    <RequiredTextField
+                  <Grid container item xs={12} spacing={1} pb={0.5}>
+                    <Grid item sm={4} xs={12} md={4}>
+                      {/* <RequiredTextField
                       error={error5}
                       fullWidth
                       required
@@ -507,89 +494,101 @@ export default function newnominasegurosocial() {
                       value={dataNuevo.porcentaje}
                       id="outlined-size-small"
                       size="small"
-                    />
+                    /> */}
+                      <NumericFormat
+                        customInput={TextField}
+                        fullWidth
+                        error={error5}
+                        size="small"
+                        type="text"
+                        suffix={'%'}
+                        decimalScale={2}
+                        thousandSeparator
+                        label="Porcentaje"
+                        name="porcentaje"
+                        variant="outlined"
+                        value={dataNuevo.porcentaje}
+                        onValueChange={(value) => setnuevo({ ...dataNuevo, porcentaje: value.floatValue || 0 })}
+                      />
+                    </Grid>
                   </Grid>
 
-                  {/* CHECKSBOX   */}
-
-                  <Grid item sm={12} xs={12} md={12}>
-                    <Grid container>
-                      <Grid item container direction="row" justifyContent="center" alignItems="center">
-                        <Grid item sm={4} xs={12} md={4}>
-                          <FormControlLabel
-                            control={
-                              <Checkbox
-                                checked={dataNuevo.aplicarol}
-                                onChange={(e) => {
-                                  setnuevo({ ...dataNuevo, aplicarol: e.target.checked });
-                                }}
-                              />
-                            }
-                            label="Aplica Rol"
-                            name="estado"
+                  {/* CHECKBOX */}
+                  <Grid container item xs={12} spacing={1} pb={0.5}>
+                    <Grid item sm={4} xs={12} md={2}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={dataNuevo.aplicarol}
+                            onChange={(e) => {
+                              setnuevo({ ...dataNuevo, aplicarol: e.target.checked });
+                            }}
                           />
-                        </Grid>
+                        }
+                        label="Aplica Rol"
+                        name="estado"
+                      />
+                    </Grid>
 
-                        <Grid item sm={4} xs={12} md={4}>
-                          <FormControlLabel
-                            control={
-                              <Checkbox
-                                checked={dataNuevo.segurosocial}
-                                onChange={(e) => {
-                                  setnuevo({ ...dataNuevo, segurosocial: e.target.checked });
-                                }}
-                              />
-                            }
-                            label="Seguro social"
-                            name="estado"
+                    <Grid item sm={4} xs={12} md={2}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={dataNuevo.segurosocial}
+                            onChange={(e) => {
+                              setnuevo({ ...dataNuevo, segurosocial: e.target.checked });
+                            }}
                           />
-                        </Grid>
+                        }
+                        label="Seguro social"
+                        name="estado"
+                      />
+                    </Grid>
 
-                        <Grid item sm={4} xs={12} md={4}>
-                          <FormControlLabel
-                            control={
-                              <Checkbox
-                                checked={dataNuevo.estado}
-                                onChange={(e) => {
-                                  setnuevo({ ...dataNuevo, estado: e.target.checked });
-                                }}
-                              />
-                            }
-                            label="Activo"
-                            name="estado"
+                    {/* <Grid item sm={4} xs={12} md={2}>
+                      <FormControlLabel
+                        disabled
+                        control={
+                          <Checkbox
+                            checked={dataNuevo.estado}
+                            onChange={(e) => {
+                              setnuevo({ ...dataNuevo, estado: e.target.checked });
+                            }}
                           />
-                        </Grid>
+                        }
+                        label="Activo"
+                        name="estado"
+                      />
+                    </Grid> */}
 
-                        <Grid item sm={4} xs={12} md={4}>
-                          <FormControlLabel
-                            control={
-                              <Checkbox
-                                checked={dataNuevo.sistema}
-                                onChange={(e) => {
-                                  setnuevo({ ...dataNuevo, sistema: e.target.checked });
-                                }}
-                              />
-                            }
-                            label="Sistema"
-                            name="estado"
+                    <Grid item sm={4} xs={12} md={2}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={dataNuevo.sistema}
+                            onChange={(e) => {
+                              setnuevo({ ...dataNuevo, sistema: e.target.checked });
+                            }}
                           />
-                        </Grid>
+                        }
+                        label="Sistema"
+                        name="estado"
+                      />
+                    </Grid>
 
-                        <Grid item sm={4} xs={12} md={4}>
-                          <FormControlLabel
-                            control={
-                              <Checkbox
-                                checked={dataNuevo.aplica}
-                                onChange={(e) => {
-                                  setnuevo({ ...dataNuevo, aplica: e.target.checked });
-                                }}
-                              />
-                            }
-                            label="Aplica"
-                            name="estado"
+                    <Grid item sm={4} xs={12} md={2}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={dataNuevo.aplica}
+                            onChange={(e) => {
+                              setnuevo({ ...dataNuevo, aplica: e.target.checked });
+                            }}
                           />
-                        </Grid>
-                      </Grid>
+                        }
+                        label="Aplica"
+                        name="estado"
+                      />
                     </Grid>
                   </Grid>
                 </Grid>

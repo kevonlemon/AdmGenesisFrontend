@@ -14,6 +14,7 @@ import Page from '../../../../../components/Page';
 import { noEsVacio, esCorreo } from '../../../../../utils/sistema/funciones';
 import RequiredTextField from '../../../../../sistema/componentes/formulario/RequiredTextField';
 import MensajesGenericos from '../../../../../components/sistema/mensajesgenerico';
+import { obtenerMaquina } from '../../../../../components/sistema/funciones';
 
 export default function FormularioRepresentanteLegal() {
   document.body.style.overflowX = 'hidden';
@@ -35,14 +36,14 @@ export default function FormularioRepresentanteLegal() {
   const [errorcorreo, setErrorcorreo] = React.useState(false);
 
   // MENSAJE GENERICO
-  const messajeTool = (variant, msg) => {
+  const messajeTool = (variant, msg, modoman) => {
     const unTrue = true;
-    setCodigomod('');
-    setNombre('');
-    setModoMantenimiento('grabar');
+    setCodigomod(formulario.codigo);
+    setNombre(formulario.nombre);
+    setModoMantenimiento(modoman);
     setTexto(msg);
     setTipo(variant);
-    setMantenimmiento(false);
+    setMantenimmiento(true);
     setopenModal2(unTrue);
   };
 
@@ -60,6 +61,7 @@ export default function FormularioRepresentanteLegal() {
     registro: '',
     estado: true,
   });
+
   const consultarRuc = async () => {
     try {
       const { data } = await axios(`${URLRUC}GetRucs?id=${formulario.ruc}`);
@@ -97,64 +99,83 @@ export default function FormularioRepresentanteLegal() {
   // METODO PARA OBTENER EL RUC
   const [error, setError] = React.useState(false);
 
+  const validation = () => {
+    const ruc = formulario.ruc.trim().length;
+    const nombre = formulario.nombre.length;
+    const telefono = formulario.telefono.length;
+    const cedula = formulario.cedula.length;
+    const registro = formulario.registro.trim();
+    const correo = esCorreo(formulario);
+    const direccion = formulario.direccion.trim();
+    if (ruc < 13) {
+      messajeTool('error', 'Debe ingresar un RUC');
+      setError(true);
+      return false;
+    }
+    if (nombre < 3) {
+      messajeTool('error', 'Debe ingresar un Nombre');
+      setError(true);
+      return false;
+    }
+
+    if (telefono < 8) {
+      messajeTool('error', 'Debe ingresar un número de Teléfono');
+      setError(true);
+      return false;
+    }
+    if (cedula < 10) {
+      messajeTool('error', 'Debe ingresar una Cédula');
+      setError(true);
+      return false;
+    }
+    if (registro === '') {
+      messajeTool('error', 'Debe ingresar un número de Registro');
+      setError(true);
+      return false;
+    }
+    if (correo === '') {
+      messajeTool('error', 'Debe ingresar un correo');
+      setError(true);
+      return false;
+    }
+    if (direccion === '') {
+      messajeTool('error', 'Debe ingresar una Dirección');
+      setError(true);
+      return false;
+    }
+    return true;
+  };
+
   // GUARDAR INFORMACION
   // eslint-disable-next-line consistent-return
   const Grabar = async () => {
-    // console.log(formulario)
+    const maquina = await obtenerMaquina();
+    // const { codigo } = JSON.parse(window.localStorage.getItem('session'));
+    // console.log('FUAFUAFUAUF', codigo);
+    if (validation() === false) {
+      return 0;
+    }
     try {
-      const noesvacio = noEsVacio(formulario);
-      const ruc = formulario.ruc.trim().length;
-      const nombre = formulario.nombre.length;
-      const telefono = formulario.telefono.length;
-      const cedula = formulario.cedula.length;
-      const registro = formulario.registro.trim();
-      const correo = esCorreo(formulario);
-      const direccion = formulario.direccion.trim();
-      if (!noesvacio) {
-        messajeTool('error', 'Complete los campos requeridos');
-        setError(true);
-        return false;
-      }
-      if (ruc < 13) {
-        messajeTool('error', 'Verifique su Ruc.');
-        setError(true);
-        return false;
-      }
-      if (nombre < 3) {
-        messajeTool('error', 'El Nombre debe tener al menos 3 caracteres.');
-        setError(true);
-        return false;
-      }
-
-      if (telefono < 8) {
-        messajeTool('error', 'El telefono tener al menos 9 digitos.');
-        setError(true);
-        return false;
-      }
-      if (cedula < 10) {
-        messajeTool('error', 'verifique la cedula ingresada');
-        setError(true);
-        return false;
-      }
-      if (registro === '') {
-        messajeTool('error', 'Verifique su registro.');
-        setError(true);
-        return false;
-      }
-      if (correo === '') {
-        messajeTool('error', 'Verigfique su correo.');
-        setError(true);
-        return false;
-      }
-      if (direccion === '') {
-        messajeTool('error', 'Verifque su direccion.');
-        setError(true);
-        return false;
-      }
-      const { data } = await axios.post(`${URLAPIGENERAL}/RepresentanteLegal`, formulario, config);
+      const Json = {
+        fecha_ing: new Date(),
+        maquina: `${maquina}`,
+        // usuario: codigo,
+        codigo: formulario.codigo,
+        ruc: formulario.ruc,
+        cedula: formulario.cedula,
+        nombre: formulario.nombre,
+        direccion: formulario.direccion,
+        telefono: formulario.telefono,
+        correo: formulario.correo,
+        fechaingreso: formulario.fechaingreso,
+        fechasalida: formulario.fechasalida,
+        registro: formulario.registro,
+        estado: formulario.estado,
+      };
+      const { data } = await axios.post(`${URLAPIGENERAL}/RepresentanteLegal`, Json, config);
       if (data === 200) {
         setGuardado(true);
-        messajeTool('succes', 'Registros guardado correctamente');
+        messajeTool('succes', '', 'Grabar');
       }
       // navegacion(`${PATH_SISTEMA.parametros_del_sistema.mantenimiento.representante.inicio}`);
     } catch (error) {
@@ -168,18 +189,21 @@ export default function FormularioRepresentanteLegal() {
       }
     }
   };
+
   const Volver = () => {
     navegacion(`/sistema/parametros/representante`);
   };
+
   const Nuevo = () => {
     // navegacion(`${PATH_SISTEMA.parametros_del_sistema.mantenimiento.representante.nuevo}`);
     limpiarCampos();
   };
+
   const cerrarModalMensaje = () => {
     if (guardado === true) {
       setopenModal2((p) => !p);
       setGuardado(false);
-      Volver();
+      window.location.reload(true);
     }
     setopenModal2((p) => !p);
   };
@@ -207,8 +231,8 @@ export default function FormularioRepresentanteLegal() {
           <Card elevation={3} sx={{ ml: 3, mr: 3, mb: 2, p: 1 }}>
             <Box sx={{ width: '100%', p: 2 }}>
               <Grid container spacing={1}>
-                <Grid container item xs={12} spacing={1}>
-                  <Grid item md={2} sm={3} xs={12}>
+                <Grid container item xs={12} spacing={1} pb={1}>
+                  <Grid item md={4} sm={3} xs={12}>
                     <TextField
                       fullWidth
                       disabled
@@ -218,6 +242,7 @@ export default function FormularioRepresentanteLegal() {
                       InputProps={{
                         readOnly: true,
                       }}
+                      value={formulario.codigo}
                       sx={{
                         backgroundColor: '#e5e8eb',
                         border: 'none',
@@ -226,7 +251,7 @@ export default function FormularioRepresentanteLegal() {
                       }}
                     />
                   </Grid>
-                  <Grid item md={3} sm={4} xs={12}>
+                  <Grid item md={4} sm={3} xs={12}>
                     <RequiredTextField
                       fullWidth
                       size="small"
@@ -253,8 +278,9 @@ export default function FormularioRepresentanteLegal() {
                     />
                   </Grid>
                 </Grid>
-                <Grid container item xs={12} spacing={1}>
-                  <Grid item md={2} sm={3} xs={12}>
+
+                <Grid container item xs={12} spacing={1} pb={1}>
+                  <Grid item md={4} sm={3} xs={12}>
                     <RequiredTextField
                       fullWidth
                       size="small"
@@ -271,12 +297,13 @@ export default function FormularioRepresentanteLegal() {
                       value={formulario.cedula}
                     />
                   </Grid>
-                  <Grid item md={4} sm={5} xs={12}>
+                  <Grid item md={4} sm={3} xs={12}>
                     <RequiredTextField
                       fullWidth
                       size="small"
                       error={error}
                       label="Nombre *"
+                      helperText="El Nombre debe tener al menos 3 caracteres"
                       variant="outlined"
                       onChange={(e) => {
                         setFormulario({
@@ -288,8 +315,8 @@ export default function FormularioRepresentanteLegal() {
                     />
                   </Grid>
                 </Grid>
-                <Grid container item xs={12} spacing={1}>
-                  <Grid item md={6} sm={8} xs={12}>
+                <Grid container item xs={12} spacing={1} pb={1}>
+                  <Grid item md={8} sm={6} xs={12}>
                     <RequiredTextField
                       fullWidth
                       size="small"
@@ -306,14 +333,15 @@ export default function FormularioRepresentanteLegal() {
                     />
                   </Grid>
                 </Grid>
-                <Grid container item xs={12} spacing={1}>
-                  <Grid item md={2} sm={3} xs={12}>
+                <Grid container item xs={12} spacing={1} pb={1}>
+                  <Grid item md={4} sm={3} xs={12}>
                     <RequiredTextField
                       fullWidth
                       size="small"
                       error={error}
                       type="tel"
                       label="Telefono *"
+                      helperText="El Teléfono debe tener al menos 9 dígitos"
                       variant="outlined"
                       onChange={(e) => {
                         setFormulario({
@@ -324,7 +352,7 @@ export default function FormularioRepresentanteLegal() {
                       value={formulario.telefono}
                     />
                   </Grid>
-                  <Grid item md={4} sm={5} xs={12}>
+                  <Grid item md={4} sm={3} xs={12}>
                     <RequiredTextField
                       fullWidth
                       size="small"
@@ -332,7 +360,7 @@ export default function FormularioRepresentanteLegal() {
                       error={errorcorreo}
                       label="Correo *"
                       variant="outlined"
-                      helperText={errorcorreo ? 'correo invalido: example@example.com' : ''}
+                      helperText={errorcorreo ? 'correo invalido: mailto:example@example.com' : ''}
                       onChange={(e) => {
                         const input = e.target.value;
                         if (!esCorreo(input)) setErrorcorreo(true);
@@ -347,8 +375,8 @@ export default function FormularioRepresentanteLegal() {
                     />
                   </Grid>
                 </Grid>
-                <Grid container item xs={12} spacing={1}>
-                  <Grid item md={2} sm={4} xs={12}>
+                <Grid container item xs={12} spacing={1} pb={1}>
+                  <Grid item md={4} sm={3} xs={12}>
                     <LocalizationProvider dateAdapter={AdapterDateFns}>
                       <MobileDatePicker
                         label="Fecha de ingreso"
@@ -364,7 +392,7 @@ export default function FormularioRepresentanteLegal() {
                       />
                     </LocalizationProvider>
                   </Grid>
-                  <Grid item md={2} sm={4} xs={12}>
+                  <Grid item md={4} sm={3} xs={12}>
                     <LocalizationProvider dateAdapter={AdapterDateFns}>
                       <MobileDatePicker
                         label="Fecha de salida"
@@ -380,7 +408,9 @@ export default function FormularioRepresentanteLegal() {
                       />
                     </LocalizationProvider>
                   </Grid>
-                  <Grid item md={2} sm={5} xs={12}>
+                </Grid>
+                <Grid container item xs={12} spacing={1} pb={1}>
+                  <Grid item md={4} sm={3} xs={12}>
                     <RequiredTextField
                       fullWidth
                       size="small"
@@ -397,7 +427,7 @@ export default function FormularioRepresentanteLegal() {
                       value={formulario.registro}
                     />
                   </Grid>
-                  <Grid item md={2} sm={2} xs={12}>
+                  {/* <Grid item md={4} sm={3} xs={12}>
                     <FormControlLabel
                       onChange={(e) => {
                         setFormulario({
@@ -405,11 +435,10 @@ export default function FormularioRepresentanteLegal() {
                           estado: e.target.checked,
                         });
                       }}
-                      value={formulario.estado}
-                      control={<Checkbox defaultChecked disabled />}
-                      label="Estado"
+                      control={<Checkbox checked={formulario.estado} />}
+                      label="Activo"
                     />
-                  </Grid>
+                  </Grid> */}
                 </Grid>
               </Grid>
             </Box>

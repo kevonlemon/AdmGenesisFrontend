@@ -18,6 +18,10 @@ const AprobacionSolicitud = Loadable(
 
 const RegistroRol = Loadable(lazy(() => import('../../../sections/admnomina/procesos/registrorol/registrorol')));
 
+const ContratoEmpleado = Loadable(
+  lazy(() => import('../../../sections/admnomina/procesos/contratoempleados/ContratoEmpleado'))
+);
+
 export const PROCESOS = [
   // {
   //     url: '/dashboard',
@@ -42,5 +46,9 @@ export const PROCESOS = [
   {
     url: '/registrorol',
     element: <RegistroRol />,
+  },
+  {
+    url: '/contratoempleado',
+    element: <ContratoEmpleado />,
   },
 ];

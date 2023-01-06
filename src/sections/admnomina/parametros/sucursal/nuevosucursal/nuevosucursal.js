@@ -3,6 +3,7 @@ import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import axios from 'axios';
+import { useSnackbar } from 'notistack';
 import SearchRounded from '@mui/icons-material/SearchRounded';
 import { MenuMantenimiento } from '../../../../../components/sistema/menumatenimiento';
 import { URLAPIGENERAL } from '../../../../../config';
@@ -12,6 +13,7 @@ import { noEsVacio, esCorreo } from '../../../../../utils/sistema/funciones';
 import { PATH_AUTH, PATH_PAGE } from '../../../../../routes/paths';
 import RequiredTextField from '../../../../../sistema/componentes/formulario/RequiredTextField';
 import MensajesGenericos from '../../../../../components/sistema/mensajesgenerico';
+import { obtenerMaquina } from '../../../../../components/sistema/funciones';
 
 export default function FormularioSucursal() {
   document.body.style.overflowX = 'hidden';
@@ -33,14 +35,14 @@ export default function FormularioSucursal() {
   const [errorcorreo, setErrorcorreo] = React.useState(false);
 
   // MENSAJE GENERICO
-  const messajeTool = (variant, msg) => {
+  const messajeTool = (variant, msg, modoman) => {
     const unTrue = true;
-    setCodigomod('');
-    setNombre('');
-    setModoMantenimiento('grabar');
+    setCodigomod(formulario.codigo);
+    setNombre(formulario.nombre);
+    setModoMantenimiento(modoman);
     setTexto(msg);
     setTipo(variant);
-    setMantenimmiento(false);
+    setMantenimmiento(true);
     setopenModal2(unTrue);
   };
 
@@ -81,58 +83,85 @@ export default function FormularioSucursal() {
   // METODO PARA OBTENER EL RUC
   const [error, setError] = React.useState(false);
 
+  const validation = () => {
+    // const noesvacio = noEsVacio(formulario);
+    const nombre = formulario.nombre.length;
+    const telefono = formulario.telefono.length;
+    const puntoemision = formulario.punto_emision.length;
+    const celular = formulario.celular.length;
+    const administrador = formulario.administrador.trim();
+    const correo = esCorreo(formulario);
+    const direccion = formulario.direccion.trim();
+    // if (!noesvacio) {
+    //   messajeTool('error', 'Complete los campos requeridos');
+    //   setError(true);
+    //   return false;
+    // }
+    if (nombre === 0) {
+      messajeTool('error', 'Debe Ingresar el Nombre');
+      setError(true);
+      return false;
+    }
+    if (telefono <= 8) {
+      messajeTool('error', 'Debe Ingresar un Número de Teléfono');
+      setError(true);
+      return false;
+    }
+    if (puntoemision < 3 || puntoemision > 3) {
+      messajeTool('error', 'Ingrese correctamente su punto emision.');
+      setError(true);
+      return false;
+    }
+    if (celular <= 9) {
+      messajeTool('error', 'Debe Ingresar un Número de Celular');
+      return false;
+    }
+    if (administrador === '') {
+      messajeTool('error', 'Debe Ingresar el administrador.');
+      return false;
+    }
+    if (correo === '') {
+      messajeTool('error', 'Debe Ingresar un Correo.');
+      return false;
+    }
+    if (direccion === '') {
+      messajeTool('error', 'Debe Ingresar una Dirección');
+      return false;
+    }
+    return true;
+  };
+
   // GUARDAR INFORMACION
   // eslint-disable-next-line consistent-return
   const Grabar = async () => {
+    // const maquina = await obtenerMaquina();
+    // const { codigo } = JSON.parse(window.localStorage.getItem('session'));
+    if (validation) {
+      return 0;
+    }
     try {
-      // const noesvacio = noEsVacio(formulario);
-      const nombre = formulario.nombre.length;
-      const telefono = formulario.telefono.length;
-      const puntoemision = formulario.punto_emision.length;
-      const celular = formulario.celular.length;
-      const administrador = formulario.administrador.trim();
-      const correo = esCorreo(formulario);
-      const direccion = formulario.direccion.trim();
-      // if (!noesvacio) {
-      //   mensajeSistema('Complete los campos requeridos', 'error');
-      //   setError(true);
-      //   return false;
-      // }
-      if (nombre < 3) {
-        messajeTool('error', 'El Nombre debe tener al menos 3 caracteres.');
-        setError(true);
-        return false;
-      }
-      if (telefono <= 8) {
-        messajeTool('error', 'El telefono tener al menos 9 digitos.');
-        setError(true);
-        return false;
-      }
-      if (puntoemision < 3 || puntoemision > 3) {
-        messajeTool('error', 'Ingrese correctamente su punto emision.');
-        setError(true);
-        return false;
-      }
-      if (celular <= 9) {
-        messajeTool('error', 'el Celular debe tener 10 digitos como minimo');
-        return false;
-      }
-      if (administrador === '') {
-        messajeTool('error', 'Debe Ingresar el administrador.');
-        return false;
-      }
-      if (correo === '') {
-        messajeTool('error', 'Debe Ingresar un correo.');
-        return false;
-      }
-      if (direccion === '') {
-        messajeTool('error', 'Debe Ingresar una direccion.');
-        return false;
-      }
-      const { data } = await axios.post(`${URLAPIGENERAL}/sucursales`, formulario, config);
+      const datos = {
+        // fecha_ing: new Date(),
+        // maquina: `${maquina}`,
+        // usuario: codigo,
+        codigo: formulario.codigo,
+        nombre: formulario.nombre,
+        telefono: formulario.telefono,
+        punto_emision: formulario.punto_emision,
+        celular: formulario.celular,
+        administrador: formulario.administrador,
+        correo: formulario.correo,
+        direccion: formulario.direccion,
+        estado: formulario.estado,
+        esmatriz: formulario.esmatriz,
+        canton: formulario.canton,
+        nombrecanton: formulario.nombrecanton,
+      };
+
+      const { data } = await axios.post(`${URLAPIGENERAL}/sucursales`, datos, config);
       if (data === 200) {
         setGuardado(true);
-        messajeTool('succes', 'Registros guardado correctamente');
+        messajeTool('succes', '', 'grabar');
       }
     } catch (error) {
       if (error.response.status === 401) {
@@ -209,7 +238,7 @@ export default function FormularioSucursal() {
     if (guardado === true) {
       setopenModal2((p) => !p);
       setGuardado(false);
-      Volver();
+      window.location.reload(true);
     }
     setopenModal2((p) => !p);
   };
@@ -245,8 +274,8 @@ export default function FormularioSucursal() {
           <Card elevation={3} sx={{ ml: 3, mr: 3, mb: 2, p: 1 }}>
             <Box sx={{ width: '100%', p: 2 }}>
               <Grid container spacing={1}>
-                <Grid container item xs={12} spacing={1}>
-                  <Grid item md={2} sm={3} xs={12}>
+                <Grid container item xs={12} spacing={1} pb={0.5}>
+                  <Grid item md={4} sm={3} xs={12}>
                     <TextField
                       fullWidth
                       disabled
@@ -257,6 +286,7 @@ export default function FormularioSucursal() {
                       InputProps={{
                         readOnly: true,
                       }}
+                      value={formulario.codigo}
                       sx={{
                         backgroundColor: '#e5e8eb',
                         border: 'none',
@@ -265,13 +295,14 @@ export default function FormularioSucursal() {
                       }}
                     />
                   </Grid>
-                  <Grid item md={3} xs={12} sm={6}>
+                  <Grid item md={4} xs={12} sm={6}>
                     <RequiredTextField
                       fullWidth
                       error={error}
                       size="small"
                       type="text"
-                      label="Nombre *"
+                      label="Nombre"
+                      helperText="El nombre debe al menos 3 caracteres"
                       variant="outlined"
                       onChange={(e) => {
                         setFormulario({
@@ -283,14 +314,15 @@ export default function FormularioSucursal() {
                     />
                   </Grid>
                 </Grid>
-                <Grid container item xs={12} spacing={1}>
-                  <Grid item md={2} xs={12} sm={6}>
+                <Grid container item xs={12} spacing={1} pb={0.5}>
+                  <Grid item md={4} xs={12} sm={6}>
                     <RequiredTextField
                       fullWidth
                       size="small"
                       error={error}
                       type="number"
-                      label="Telefono *"
+                      helperText="El teléfono tener al menos 9 dígitos"
+                      label="Telefono"
                       variant="outlined"
                       onChange={(e) => {
                         setFormulario({
@@ -302,14 +334,14 @@ export default function FormularioSucursal() {
                       InputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
                     />
                   </Grid>
-                  <Grid item md={3} xs={12} sm={6}>
+                  <Grid item md={4} xs={12} sm={6}>
                     <RequiredTextField
                       fullWidth
                       size="small"
                       error={error}
                       type="number"
                       InputProps={{ inputMode: 'numeric', pattern: '[0-3]*' }}
-                      label="Punto de emision *"
+                      label="Punto de emision"
                       variant="outlined"
                       onChange={(e) => {
                         setFormulario({
@@ -321,13 +353,14 @@ export default function FormularioSucursal() {
                     />
                   </Grid>
                 </Grid>
-                <Grid container item xs={12} spacing={1}>
-                  <Grid item md={2} xs={12} sm={6}>
+                <Grid container item xs={12} spacing={1} pb={0.5}>
+                  <Grid item md={4} xs={12} sm={6}>
                     <RequiredTextField
                       fullWidth
                       size="small"
                       error={error}
-                      label="Celular *"
+                      label="Celular"
+                      helperText="El celular debe tener 10 dígitos como mínimo"
                       type="number"
                       InputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
                       variant="outlined"
@@ -340,13 +373,13 @@ export default function FormularioSucursal() {
                       value={formulario.celular}
                     />
                   </Grid>
-                  <Grid item md={3} xs={12} sm={6}>
+                  <Grid item md={4} xs={12} sm={6}>
                     <RequiredTextField
                       fullWidth
                       size="small"
                       error={error}
                       type="text"
-                      label="Administrador *"
+                      label="Administrador"
                       variant="outlined"
                       onChange={(e) => {
                         setFormulario({
@@ -358,14 +391,14 @@ export default function FormularioSucursal() {
                     />
                   </Grid>
                 </Grid>
-                <Grid container item xs={12} spacing={1}>
-                  <Grid item xs={12} md={5}>
+                <Grid container item xs={12} spacing={1} pb={0.5}>
+                  <Grid item md={6} xs={12} sm={6}>
                     <RequiredTextField
                       fullWidth
                       size="small"
                       error={error}
                       type="text"
-                      label="Correo *"
+                      label="Correo"
                       variant="outlined"
                       helperText={errorcorreo ? 'correo invalido: example@example.com' : ''}
                       onChange={(e) => {
@@ -382,9 +415,9 @@ export default function FormularioSucursal() {
                     />
                   </Grid>
                 </Grid>
-                <Grid container item md={5} xs={12} spacing={1}>
+                <Grid container item xs={12} spacing={1} pb={0.5}>
                   <Grid item container xs={12} spacing={1}>
-                    <Grid item md={4} sm={4} xs={12}>
+                    <Grid item md={3} sm={4} xs={12}>
                       <TextField
                         label="Código Cantón"
                         fullWidth
@@ -412,7 +445,7 @@ export default function FormularioSucursal() {
                         }}
                       />
                     </Grid>
-                    <Grid item md={8} sm={8} xs={12}>
+                    <Grid item md={3} sm={8} xs={12}>
                       <TextField
                         disabled
                         label="Nombre Cantón"
@@ -432,14 +465,14 @@ export default function FormularioSucursal() {
                     </Grid>
                   </Grid>
                 </Grid>
-                <Grid container item xs={12} spacing={1}>
-                  <Grid item xs={12} md={5}>
+                <Grid container item xs={12} spacing={1} pb={0.5}>
+                  <Grid item md={6} xs={12} sm={6}>
                     <RequiredTextField
                       fullWidth
                       size="small"
                       error={error}
                       type="text"
-                      label="Direccion *"
+                      label="Direccion"
                       variant="outlined"
                       onChange={(e) => {
                         setFormulario({
@@ -451,7 +484,7 @@ export default function FormularioSucursal() {
                     />
                   </Grid>
                 </Grid>
-                <Grid container item xs={12} spacing={1}>
+                <Grid container item xs={12} spacing={1} pb={0.5}>
                   <Grid item md={1.2} xs={12} sm={2}>
                     <FormControlLabel
                       onChange={(e) => {
@@ -460,9 +493,8 @@ export default function FormularioSucursal() {
                           estado: e.target.checked,
                         });
                       }}
-                      value={formulario.estado}
-                      control={<Checkbox defaultChecked disabled />}
-                      label="Estado"
+                      control={<Checkbox checked={formulario.estado} />}
+                      label="Activo"
                     />
                   </Grid>
 
@@ -471,11 +503,10 @@ export default function FormularioSucursal() {
                       onChange={(e) => {
                         setFormulario({
                           ...formulario,
-                          estado: e.target.checked,
+                          esmatriz: e.target.checked,
                         });
                       }}
-                      value={formulario.matriz}
-                      control={<Checkbox defaultChecked disabled />}
+                      control={<Checkbox checked={formulario.esmatriz} />}
                       label="Matriz"
                     />
                   </Grid>

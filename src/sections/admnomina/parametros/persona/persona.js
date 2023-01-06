@@ -38,7 +38,7 @@ export default function FormularioRegistroPersona() {
   };
   const columns = [
     { field: 'codigo', headerName: 'Codigo', width: 100 },
-    { field: 'codigo_Usuario', headerName: 'Codigo Usuario', width: 120 },
+    // { field: 'codigo_Usuario', headerName: 'Codigo Usuario', width: 120 },
     { field: 'nombre', headerName: 'Nombre', width: 200, cellClassName: () => clsx('yellowCell') },
     { field: 'apellido', headerName: 'Apellido', width: 130 },
     { field: 'tipo_persona', headerName: 'Tipo de Persona', width: 100 },

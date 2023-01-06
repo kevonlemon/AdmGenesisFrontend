@@ -22,15 +22,11 @@ export default function BlockContent() {
         </Typography>
 
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          Suelte los archivos aquí o haga clic para poder&nbsp;
-          <Typography
-            variant="body2"
-            component="span"
-            sx={{ color: 'primary.main', textDecoration: 'underline' }}
-          >
+          Coloque los archivos aquí o haga clic para poder&nbsp;
+          <Typography variant="body2" component="span" sx={{ color: 'primary.main', textDecoration: 'underline' }}>
             navegar
           </Typography>
-          &nbsp;en su dispositivo
+          &nbsp; en su dispositivo
         </Typography>
       </Box>
     </Stack>

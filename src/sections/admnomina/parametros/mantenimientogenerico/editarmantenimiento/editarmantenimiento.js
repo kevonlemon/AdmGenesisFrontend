@@ -3,8 +3,6 @@ import * as React from 'react';
 import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
-import { useSnackbar } from 'notistack';
-// import SearchRounded from "@mui/icons-material/SearchRounded";
 import Page from '../../../../../components/Page';
 import { URLAPIGENERAL } from '../../../../../config';
 import { MenuMantenimiento } from '../../../../../components/sistema/menumatenimiento';

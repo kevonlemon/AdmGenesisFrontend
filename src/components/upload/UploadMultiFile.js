@@ -67,7 +67,12 @@ export default function UploadMultiFile({
 
       {fileRejections.length > 0 && <RejectionFiles fileRejections={fileRejections} />}
 
-      <MultiFilePreview files={files} showPreview={showPreview} onRemove={onRemove} onRemoveAll={onRemoveAll} onUpload={onUpload}/>
+      <MultiFilePreview
+        files={files}
+        showPreview={showPreview}
+        onRemove={onRemove}
+        onRemoveAll={onRemoveAll}
+      />
 
       {helperText && helperText}
     </Box>

@@ -120,11 +120,8 @@ export default function MultiFilePreview({ showPreview = false, files, onRemove,
 
       {hasFile && (
         <Stack direction="row" justifyContent="flex-end" spacing={1.5}>
-          <Button color="inherit" size="small" onClick={onRemoveAll}>
-            Remover
-          </Button>
-          <Button size="small" variant="contained" onClick={() => onUpload()}>
-            Subir Archivo
+          <Button color="primary" size="small" onClick={onRemoveAll}>
+            Remover Todo
           </Button>
         </Stack>
       )}
