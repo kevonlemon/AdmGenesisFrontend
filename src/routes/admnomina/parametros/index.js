@@ -32,8 +32,8 @@ const FormularioEmpleado = Loadable(lazy(() => import('../../../sections/admnomi
 // const EditarEmpleado = Loadable(lazy(() => import('../../../sections/admnomina/parametros/persona/editarregistropersona/editarregistropersona')));
 const Segurosocial = Loadable(lazy(() => import('../../../sections/admnomina/parametros/segurosocial/segurosocial')));
 
-
-
+const JefeDepartamento = Loadable(lazy(() => import('../../../sections/admnomina/parametros/jefedepartamento/JefeDepartamento')));
+const FormularioJefeDepartamento = Loadable(lazy(() => import('../../../sections/admnomina/parametros/jefedepartamento/JefeDepartamentoFormulario')));
 
 // ***************** DESARROLLADOR => Javier Caicedo *********************
 // ========================== PARAMETROS ===================================
@@ -132,11 +132,6 @@ export const PARAMETROS = [
         url: '/formularioempleado',
         element: <FormularioEmpleado />
     },
-    // {
-    //     url: '/editarempleado',
-    //     element: <EditarEmpleado />
-    // },
-    
     {
         url: '/segurosocial',
         element: <Segurosocial />
@@ -149,5 +144,12 @@ export const PARAMETROS = [
         url: '/editarsegurosocial',
         element: <EditarSegurosocial />
     },
-    
+    {
+        url: '/jefedepartamento',
+        element: <JefeDepartamento />
+    },
+    {
+        url: '/formulariojefedepartamento',
+        element: <FormularioJefeDepartamento />
+    },
 ]

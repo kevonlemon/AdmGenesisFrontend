@@ -11,16 +11,19 @@ import {
   IconButton,
   Typography,
   Box,
+  Chip
 } from '@mui/material';
 import * as React from 'react';
 import { DataGrid, esES } from '@mui/x-data-grid';
 import { useNavigate, useLocation } from 'react-router-dom';
 import AddCircleRoundedIcon from '@mui/icons-material/AddCircleRounded';
+import BackspaceIcon from '@mui/icons-material/Backspace';
 import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
+import InfoIcon from '@mui/icons-material/Info';
 import es from 'date-fns/locale/es';
 import AdapterDateFns from '@mui/lab/AdapterDateFns';
 import LocalizationProvider from '@mui/lab/LocalizationProvider';
-import MobileDatePicker from '@mui/lab/MobileDatePicker';
+import DesktopDatePicker from '@mui/lab/DesktopDatePicker'
 import PropTypes from 'prop-types';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
@@ -37,13 +40,16 @@ import {
   esCorreo,
   formaterarFecha,
   generarCodigo,
-  obtenerMaquina,
+  obtenerMaquina
 } from '../../../../../utils/sistema/funciones';
+import { validarFecha } from '../../../../../utils/admnomina/funciones/funciones'
 import { MenuMantenimiento } from '../../../../../components/sistema/menumatenimiento';
 import { UploadMultiFile } from '../../../../../components/upload';
 import useCargando from '../../../../../hooks/admnomina/useCargando';
 import CircularProgreso from '../../../../../components/Cargando';
 import ModalGenerico from '../../../../../components/modalgenerico';
+import serviciosSucursal from '../../../../../servicios/parametros_del_sistema/servicios_sucursales';
+import serviciosBanco from '../../../../../servicios/parametros_del_sistema/servicios_banco';
 import { PATH_AUTH, PATH_PAGE } from '../../../../../routes/paths';
 import { fCurrency } from '../../../../../utils/formatNumber';
 import { styleActive, styleInactive, estilosdetabla, estilosdatagrid } from '../../../../../utils/csssistema/estilos';
@@ -51,6 +57,8 @@ import { CustomNoRowsOverlay } from '../../../../../utils/csssistema/iconsdatagr
 import RequiredTextField from '../../../../../sistema/componentes/formulario/RequiredTextField';
 import MensajesGenericos from '../../../../../components/sistema/mensajesgenerico';
 import CajaGenerica from '../../../../../components/admnomina/CajaGenerica';
+import DateTextField from '../../../../../components/admnomina/DateTextField';
+import useMensajeGeneral from '../../../../../hooks/admnomina/useMensajeGeneral';
 import * as serviciosEmpleados from '../services/EmpleadoServices';
 
 const meses = [
@@ -130,6 +138,8 @@ export default function FormularioEmpleado() {
     setMantenimmiento(false);
     setopenModal2(unTrue);
   };
+
+  const { mensajeSistemaGenerico } = useMensajeGeneral()
 
   // CERTIFICADOS COLUMNA
   const columns = [
@@ -423,8 +433,9 @@ export default function FormularioEmpleado() {
   const [tablacargaedit, setTablaCargaEdit] = React.useState([]);
 
   // FORMULARIO DE ENVIO
-  console.log(modo, id);
+
   // FORMULARIOS DE ENVIO DE DATOS
+  const [maquina, setMaquina] = React.useState('');
   const [formularioempleado, setFormularioEmpleado] = React.useState({
     codigo: '',
     codigo_Empleado: '',
@@ -439,11 +450,14 @@ export default function FormularioEmpleado() {
     nombrecargo: '',
     departamento: '',
     nombredepartamento: '',
-    nivelEstudio: '',
-    nombrenivelEstudio: '',
     sexo: 'M',
     sueldoBase: 0,
+    sueldoBaseview: '$0',
     estadocivil: 'S',
+    fechaTitulacion: new Date(),
+    institucion: '',
+    titulo: '',
+    registro: '',
     afiliadoSeguro: true,
     beneficioSocial: true,
     fondoReserva: true,
@@ -454,14 +468,28 @@ export default function FormularioEmpleado() {
     porcentajediscapacidadview: 0,
     porcentajediscapacidad: 0,
     acargodiscapacitado: false,
+    tipoctabanco: 'AHO',
+    ctabanco: '',
     modoejecucion: '',
     estado: true,
     fecha_ing: new Date(),
     maquina: '',
     usuario: 1,
-    urlDocumentos: ''
+    urlDocumentos: null
   });
-
+  const [nivelEstudios, setNivelEstudios] = React.useState({
+    codigo: '',
+    codigoalternativo: '',
+    nombre: ''
+  })
+  const [banco, setBanco] = React.useState({
+    codigo: '',
+    codigoalternativo: '',
+    nombre: ''
+  })
+  const [listaSucursales, setListaSucursales] = React.useState([]);
+  const [listaBancos, setListaBancos] = React.useState([]);
+  const [sucursal, setSucursal] = React.useState(0);
   const [datosProvincia, setDatosProvincia] = React.useState({
     provincia: '',
     nombre_provincia: '----',
@@ -483,7 +511,7 @@ export default function FormularioEmpleado() {
     nombre: '',
     empresaEmisora: '',
     caduca: true,
-    mesExpedicion: new Date().getMonth(),
+    mesExpedicion: new Date().getMonth() + 1,
     anioExpedicion: new Date().getFullYear(),
     fechaCaducidad: new Date(),
     idCredencial: '',
@@ -519,6 +547,11 @@ export default function FormularioEmpleado() {
 
   const [listamodoejecucion, setListaModoEjecucion] = React.useState([]);
 
+  const cambiarFechaTitulacion = (e) => setFormularioEmpleado({
+    ...formularioempleado,
+    fechaTitulacion: validarFecha(e) ? e : new Date()
+  });
+
   // SUBIDA DE DOCUMENTOS
   const { empezarCarga, terminarCarga } = useCargando();
   const [archivo, setArchivo] = React.useState([]);
@@ -553,39 +586,35 @@ export default function FormularioEmpleado() {
   };
   const removerTodosLosArchivos = () => setArchivo([]);
   const enviarArchivos = () => {
-    if (formularioempleado.urlDocumentos === null) {
-      const nombre = formularioempleado.nombres;
-      const codigo = formularioempleado.codigo_Empleado;
-      const fechahoy = new Date().toISOString();
-      const nombrepdf = `${nombre}_${codigo}_${fechahoy.substring(0, 10)}.pdf`
-      const lecturArchivo = new FileReader();
-      lecturArchivo.readAsDataURL(archivo.at(0));
-      lecturArchivo.onloadend = (e) => {
-        const datos = {
-          codigoempleado: formularioempleado.codigo_Empleado,
-          // `${formularioempleado.nombres}_${formularioempleado.codigo_Empleado}_${fechahoy.toLocaleDateString()}.pdf`
-          nombreArchivo: nombrepdf,
-          archivo: e.target.result.split('base64,')[1]
-        }
-        empezarCarga();
-        serviciosEmpleados.subirArchivos(datos)
-          .then((res) => {
-            if (res !== 200) {
-              messajeTool('error', 'Error al subir el documento');
-              return;
-            }
-            messajeTool('succes', 'Documento subido con éxito');
-            limpiarCampos();
-          })
-          .catch(() => {
-            messajeTool('error', 'Problemas con el servidor contácte con soporte');
-          })
-          .finally(() => {
-            terminarCarga();
-          })
+    const nombre = formularioempleado.nombres;
+    const codigo = formularioempleado.codigo_Empleado;
+    const fechahoy = new Date().toISOString();
+    const nombrepdf = `${nombre}_${codigo}_${fechahoy.substring(0, 10)}.pdf`
+    const lecturArchivo = new FileReader();
+    lecturArchivo.readAsDataURL(archivo.at(0));
+    lecturArchivo.onloadend = (e) => {
+      const datos = {
+        codigoempleado: formularioempleado.codigo_Empleado,
+        // `${formularioempleado.nombres}_${formularioempleado.codigo_Empleado}_${fechahoy.toLocaleDateString()}.pdf`
+        nombreArchivo: nombrepdf,
+        archivo: e.target.result.split('base64,')[1]
       }
-    } else {
-      messajeTool('warning', 'El empleado seleccionado ya posee un documento adjunto o aún no ha sido creado, por favor asegúrese de primero crear el empleado y luego subir el documento correspondiente');
+      empezarCarga();
+      serviciosEmpleados.subirArchivos(datos)
+        .then((res) => {
+          if (res !== 200) {
+            messajeTool('error', 'Error al subir el documento');
+            return;
+          }
+          messajeTool('succes', 'Documento subido con éxito');
+          limpiarCampos();
+        })
+        .catch(() => {
+          messajeTool('error', 'Problemas con el servidor contácte con soporte');
+        })
+        .finally(() => {
+          terminarCarga();
+        })
     }
   };
 
@@ -607,20 +636,64 @@ export default function FormularioEmpleado() {
       departamento: '',
       nombredepartamento: '',
       nivelEstudio: '',
-      nombrenivelEstudio: '',
       sexo: 'M',
+      estadocivil: 'S',
+      fechaTitulacion: new Date(),
+      institucion: '',
+      titulo: '',
+      registro: '',
       sueldoBase: 0,
+      sueldoBaseview: '$0',
       afiliadoSeguro: true,
       beneficioSocial: true,
       fondoReserva: true,
       pagoMensualDecimoTercero: true,
       pagoMensualDecimoCuarto: true,
       observacion: '',
+      esdiscapacitado: false,
+      porcentajediscapacidadview: 0,
+      porcentajediscapacidad: 0,
+      acargodiscapacitado: false,
+      tipoctabanco: 'AHO',
+      ctabanco: '',
+      modoejecucion: '',
       estado: true,
-      fecha_ing: new Date(),
-      maquina: '',
-      usuario: 1,
+      fecha_ing: new Date()
     });
+    setDatosProvincia({
+      provincia: '',
+      nombre_provincia: '----',
+    })
+    setDatosCanton({
+      canton: '',
+      nombre_canton: '----',
+    })
+    setDatosParroquia({
+      parroquia: '',
+      nombre_parroquia: '----',
+    })
+    setNivelEstudios({
+      codigo: '',
+      codigoalternativo: '',
+      nombre: ''
+    })
+    setFunciones({
+      codigo: '',
+      nombre: ''
+    })
+    setJornadas({
+      codigo: '',
+      nombre: ''
+    })
+    setFormaPago({
+      codigo: '',
+      nombre: ''
+    })
+    setBanco({
+      codigo: '',
+      codigoalternativo: '',
+      nombre: ''
+    })
     setFormularioCertificado({
       empleado: 1,
       nombre: '',
@@ -646,9 +719,118 @@ export default function FormularioEmpleado() {
     setErrorcorreo(false);
     setErrorCarga(false);
     setErrorCertificado(false);
-    // setTelefono(false);
-    // navegacion(`${PATH_DASHBOARD.nuevocontador}`)
   };
+
+  const limpiarSecciones = () => {
+    switch (tabs) {
+      case 0:
+        setFormularioEmpleado({
+          ...formularioempleado,
+          nombres: '',
+          direccion: '',
+          cedula: '',
+          telefonos: '',
+          sexo: 'M',
+          correo: '',
+          fechaNac: new Date(),
+          fecing: new Date(),
+          sueldoBaseview: '$0',
+          sueldoBase: 0,
+          departamento: '',
+          nombredepartamento: '',
+          cargo: '',
+          nombrecargo: '',
+          observacion: '',
+          estadocivil: 'S',
+          afiliadoSeguro: true,
+          beneficioSocial: true,
+          fondoReserva: true,
+          pagoMensualDecimoTercero: true,
+          pagoMensualDecimoCuarto: true,
+          estado: true
+        })
+        setDatosProvincia({
+          provincia: '',
+          nombre_provincia: ''
+        })
+        setDatosCanton({
+          canton: '',
+          nombre_canton: ''
+        })
+        setDatosParroquia({
+          parroquia: '',
+          nombre_parroquia: ''
+        })
+        break;
+      case 1:
+        setNivelEstudios({
+          codigo: '',
+          codigoalternativo: '',
+          nombre: ''
+        })
+        setFormularioEmpleado({
+          ...formularioempleado,
+          fechaTitulacion: new Date(),
+          institucion: '',
+          titulo: '',
+          registro: ''
+        })
+        break;
+      case 2:
+        setFunciones({
+          codigo: '',
+          nombre: ''
+        })
+        setFormularioEmpleado({
+          ...formularioempleado,
+          esdiscapacitado: false,
+          porcentajediscapacidad: 0,
+          porcentajediscapacidadview: '0%',
+          acargodiscapacitado: false,
+          tipoctabanco: 'AHO',
+          ctabanco: ''
+        })
+        setJornadas({
+          codigo: '',
+          nombre: ''
+        })
+        setFormaPago({
+          codigo: '',
+          nombre: ''
+        })
+        setBanco({
+          codigo: '',
+          codigoalternativo: '',
+          nombre: ''
+        })
+        break;
+      case 3:
+        setFormularioCarga({
+          cedula: '',
+          direccion: '',
+          empleado: '',
+          nombres: '',
+          parentezco: ''
+        })
+        break;
+      case 4:
+        setFormularioCertificado({
+          empleado: 1,
+          nombre: '',
+          empresaEmisora: '',
+          caduca: true,
+          mesExpedicion: new Date().getMonth() + 1,
+          anioExpedicion: new Date().getFullYear(),
+          fechaCaducidad: new Date(),
+          idCredencial: '',
+          tipo: 'P',
+          urlArchivo: ''
+        })
+        break;
+      default:
+        console.log('problemas con las Tabs')
+    }
+  }
 
   // GUARDAR INFORMACION
   const Volver = () => {
@@ -686,22 +868,22 @@ export default function FormularioEmpleado() {
   const agregarCertificado = () => {
     // validaciones
     if (formulariocertificado.nombre.trim().length === 0) {
-      messajeTool('error', 'Ingrese un nombre');
+      messajeTool('warning', 'Ingrese un nombre');
       setErrorCertificado(true);
       return;
     }
     if (formulariocertificado.empresaEmisora.trim().length === 0) {
-      messajeTool('error', 'Ingrese una empresa emisora');
+      messajeTool('warning', 'Ingrese una empresa emisora');
       setErrorCertificado(true);
       return;
     }
     if (`${formulariocertificado.anioExpedicion}`.trim().length === 0) {
-      messajeTool('error', 'Ingrese un año');
+      messajeTool('warning', 'Ingrese un año');
       setErrorCertificado(true);
       return;
     }
     if (formulariocertificado.idCredencial.trim().length === 0) {
-      messajeTool('error', 'Ingrese credencial');
+      messajeTool('warning', 'Ingrese credencial');
       setErrorCertificado(true);
       return;
     }
@@ -716,7 +898,7 @@ export default function FormularioEmpleado() {
         f.urlArchivo === formulariocertificado.urlArchivo
     );
     if (existe.length > 0) {
-      messajeTool('error', 'No puede agregar el mismo certificado');
+      messajeTool('warning', 'No puede agregar el mismo certificado');
       return;
     }
 
@@ -739,28 +921,28 @@ export default function FormularioEmpleado() {
   };
   const agregarCarga = () => {
     if (formulariocarga.parentezco.trim().length === 0) {
-      messajeTool('error', 'Ingrese un parentezco');
+      messajeTool('warning', 'Ingrese un parentezco');
       setErrorCarga(true);
       return;
     }
     if (formulariocarga.nombres.trim().length === 0) {
-      messajeTool('error', 'Ingrese un nombre');
+      messajeTool('warning', 'Ingrese un nombre');
       setErrorCarga(true);
       return;
     }
     if (formulariocarga.cedula.trim().length === 0) {
-      messajeTool('error', 'Ingrese cedula');
+      messajeTool('warning', 'Ingrese cédula');
       setErrorCarga(true);
       return;
     }
     if (!esCedula(`${formulariocarga.cedula}`)) {
-      messajeTool('error', 'Ingrese una cedula valida');
+      messajeTool('warning', 'Ingrese una cédula valida');
       setErrorCarga(true);
       return;
     }
     const existe = tablacarga.filter((f) => f.cedula === formulariocarga.cedula.trim());
     if (existe.length > 0) {
-      messajeTool('error', 'No puede agregar una persona con el mismo numero de cedula');
+      messajeTool('warning', 'No puede agregar una persona con un número de cédula ya ingresado');
       return;
     }
 
@@ -785,50 +967,125 @@ export default function FormularioEmpleado() {
     setTablaCarga(nuevalista);
   };
 
+  // -------------------------------- REF PARA EL FOCUS ---------------------------------------------------------------------------
+  const nombresref = React.useRef();
+  const direccionref = React.useRef();
+  const identificacionref = React.useRef();
+  const telefonoref = React.useRef();
+  const correoref = React.useRef();
+  const sueldobaseref = React.useRef();
+  const departamentoref = React.useRef();
+  const cargoref = React.useRef();
+  const nivelestudioref = React.useRef();
+  const institucionref = React.useRef();
+  const tituloref = React.useRef();
+  const registroref = React.useRef();
+  const funcionref = React.useRef();
+  const jornadaref = React.useRef();
+  const formapagoref = React.useRef();
+  const porcentajediscapacitadoref = React.useRef();
+  const cuentabcoref = React.useRef();
+  // ------------------------------------------------------------------------------------------------------------------------------
+
   const validacionEmpleado = () => {
     if (formularioempleado.nombres.trim().length === 0) {
-      messajeTool('error', 'Ingrese un nombre');
-      setError(true);
-      return false;
-    }
-    if (!esCorreo(formularioempleado.correo)) {
-      messajeTool('error', 'Correo Invalido');
-      setError(true);
+      messajeTool('warning', 'Ingrese un nombre');
+      nombresref.current.focus();
       return false;
     }
     if (formularioempleado.direccion.trim().length === 0) {
-      messajeTool('error', 'Ingrese un direccion');
-      setError(true);
+      messajeTool('warning', 'Ingrese un dirección');
+      direccionref.current.focus();
       return false;
     }
     if (`${formularioempleado.cedula}`.trim().length === 0) {
-      messajeTool('error', 'Ingrese cedula');
-      setError(true);
+      messajeTool('warning', 'Ingrese cédula');
+      identificacionref.current.focus();
       return false;
     }
     if (!esCedula(`${formularioempleado.cedula}`)) {
-      messajeTool('error', 'Ingrese una cedula valida');
-      setError(true);
+      messajeTool('warning', 'Ingrese una cédula valida');
+      identificacionref.current.focus();
       return false;
     }
     if (`${formularioempleado.telefonos}`.trim().length === 0) {
-      messajeTool('error', 'Ingrese telefono');
+      messajeTool('warning', 'Ingrese teléfono');
+      telefonoref.current.focus();
+      return false;
+    }
+    if (!esCorreo(formularioempleado.correo)) {
+      messajeTool('warning', 'Correo Inválido');
+      correoref.current.focus();
+      return false;
+    }
+    if (formularioempleado.sueldoBaseview === "" || formularioempleado.sueldoBaseview === "$0") {
+      messajeTool('warning', 'Ingrese un sueldo Base mayor a 0');
+      sueldobaseref.current.focus();
       return false;
     }
     if (formularioempleado.departamento.trim().length === 0) {
-      messajeTool('error', 'Seleccion un departamento');
-      setError(true);
+      messajeTool('warning', 'Seleccione un departamento');
+      departamentoref.current.focus();
       return false;
     }
     if (formularioempleado.cargo.trim().length === 0) {
-      messajeTool('error', 'Seleccion un cargo');
-      setError(true);
+      messajeTool('warning', 'Seleccione un cargo');
+      cargoref.current.focus();
       return false;
     }
-    if (formularioempleado.nivelEstudio.trim().length === 0) {
-      messajeTool('error', 'Seleccion un nivel de estudio');
-      setError(true);
+    if (nivelEstudios.codigo.trim().length === 0) {
+      messajeTool('warning', 'Seleccione un nivel de estudio');
+      nivelestudioref.current.focus();
       return false;
+    }
+    if (formularioempleado.institucion.trim().length === 0) {
+      messajeTool('warning', 'Ingrese la institución de estudio');
+      institucionref.current.focus();
+      return false;
+    }
+    if (formularioempleado.titulo.trim().length === 0) {
+      messajeTool('warning', 'Ingrese el titulo obtenido');
+      tituloref.current.focus();
+      return false;
+    }
+    if (formularioempleado.registro.trim().length === 0) {
+      messajeTool('warning', 'Ingrese un registro de Estudios');
+      registroref.current.focus();
+      return false;
+    }
+    if (funciones.codigo.trim().length === 0) {
+      messajeTool('warning', 'Seleccione alguna función para el empleado');
+      funcionref.current.focus();
+      return false;
+    }
+    if (jornadas.codigo.trim().length === 0) {
+      messajeTool('warning', 'Seleccione alguna jornada para el empleado');
+      jornadaref.current.focus();
+      return false;
+    }
+    if (formapago.codigo.trim().length === 0) {
+      messajeTool('warning', 'Seleccione alguna forma de pago para el empleado');
+      formapagoref.current.focus();
+      return false;
+    }
+    if (formularioempleado.esdiscapacitado) {
+      if (formularioempleado.porcentajediscapacidad === "0" || formularioempleado.porcentajediscapacidad === "") {
+        messajeTool('warning', 'Ha indicado que el empleado es discapacitado pero no ha específicado el porcentaje de discapacidad, por favor ingrese un porcentaje de discapacidad');
+        porcentajediscapacitadoref.current.focus();
+        return false;
+      }
+    }
+    if (banco.codigoalternativo.trim().length !== 0) {
+      if (formularioempleado.ctabanco.trim().length === 0) {
+        messajeTool('warning', 'Ha seleccionado un banco pero no ha ingresado un número de cuenta de banco, por favor ingrese un número de cuenta de banco');
+        cuentabcoref.current.focus();
+        return false;
+      }
+      if (formularioempleado.tipoctabanco.trim().length === 0) {
+        messajeTool('warning', 'Ha seleccionado un banco pero no ha específicado el tipo de cuenta de banco, por favor específique un tipo de cuenta de banco');
+        cuentabcoref.current.focus();
+        return false;
+      }
     }
     return true;
   };
@@ -846,7 +1103,6 @@ export default function FormularioEmpleado() {
           t.empleado = 0;
         });
 
-        const maquina = await obtenerMaquina();
         const enviarjson = {
           codigo: 0,
           codigo_Empleado: formularioempleado.codigo_Empleado,
@@ -860,7 +1116,11 @@ export default function FormularioEmpleado() {
           cargo: formularioempleado.cargo,
           departamento: formularioempleado.departamento,
           funciones: funciones.codigo,
-          nivelEstudio: formularioempleado.nivelEstudio,
+          nivelEstudio: nivelEstudios.codigo,
+          institucion: formularioempleado.institucion,
+          tituloObtenido: formularioempleado.titulo,
+          fechaTitulacion: formularioempleado.fechaTitulacion,
+          registro: formularioempleado.registro,
           sexo: formularioempleado.sexo,
           estadoCivl: formularioempleado.estadocivil,
           sueldoBase: parseFloat(formularioempleado.sueldoBase),
@@ -871,8 +1131,11 @@ export default function FormularioEmpleado() {
           pagoMensualDecimoCuarto: formularioempleado.pagoMensualDecimoCuarto,
           observacion: formularioempleado.observacion,
           discapacidad: formularioempleado.esdiscapacitado,
-          porcentajeDiscapacidad: formularioempleado.porcentajediscapacidad,
+          porcentajeDiscapacidad: parseFloat(formularioempleado.porcentajediscapacidad),
           responsableDiscapacitado: formularioempleado.acargodiscapacitado,
+          banco: banco.codigoalternativo,
+          tipoCuenta: formularioempleado.tipoctabanco,
+          numeroCuenta: formularioempleado.ctabanco,
           urlDocumentos: null,
           jornada: jornadas.codigo,
           modoEjecucion: formularioempleado.modoejecucion,
@@ -880,6 +1143,7 @@ export default function FormularioEmpleado() {
           canton: datosCanton.canton,
           parroquia: datosParroquia.parroquia,
           formaPago: formapago.codigo,
+          sucursal,
           estado: formularioempleado.estado,
           fecha_ing: new Date(),
           maquina,
@@ -888,19 +1152,15 @@ export default function FormularioEmpleado() {
           certificado: [...tablacertificado],
         };
         console.log(enviarjson);
+        console.log('archivo', archivo.length)
         const { data } = await axios.post(`${URLAPILOCAL}/empleados`, enviarjson, config, setMostrarProgreso(true));
         if (data === 200) {
           setGuardado(true);
-          messajeTool('succes', 'Registro guardado correctamente');
-          // Volver();
-          // limpiarCampos();
-          // setTabs(0)
-          // const inicial = await axios(`${URLAPIGENERAL}/iniciales/buscar?opcion=ADM`, config);
-          // const codigogenerado = generarCodigo('EM', inicial.data[0].numero, '0000')
-          // setFormularioEmpleado({
-          //     ...formularioempleado,
-          //     codigo_Empleado: codigogenerado
-          // });
+          mensajeSistemaGenerico({ tipo: 'success', mensaje: 'Empleado guardado correctamente!' })
+          if (archivo.length !== 0) {
+            enviarArchivos()
+          }
+          Volver();
         }
       }
       if (modo === 'editar') {
@@ -914,7 +1174,7 @@ export default function FormularioEmpleado() {
           t.codigo = 0;
         });
 
-        const maquina = await obtenerMaquina();
+
         const enviarjson = {
           codigo: formularioempleado.codigo,
           codigo_Empleado: formularioempleado.codigo_Empleado,
@@ -928,7 +1188,11 @@ export default function FormularioEmpleado() {
           cargo: formularioempleado.cargo,
           departamento: formularioempleado.departamento,
           funciones: funciones.codigo,
-          nivelEstudio: formularioempleado.nivelEstudio,
+          nivelEstudio: nivelEstudios.codigo,
+          institucion: formularioempleado.institucion,
+          tituloObtenido: formularioempleado.titulo,
+          fechaTitulacion: formularioempleado.fechaTitulacion,
+          registro: formularioempleado.registro,
           sexo: formularioempleado.sexo,
           estadoCivl: formularioempleado.estadocivil,
           sueldoBase: parseFloat(formularioempleado.sueldoBase),
@@ -941,6 +1205,9 @@ export default function FormularioEmpleado() {
           discapacidad: formularioempleado.esdiscapacitado,
           porcentajeDiscapacidad: formularioempleado.porcentajediscapacidad,
           responsableDiscapacitado: formularioempleado.acargodiscapacitado,
+          banco: banco.codigoalternativo,
+          tipoCuenta: formularioempleado.tipoctabanco,
+          numeroCuenta: formularioempleado.ctabanco,
           urlDocumentos: null,
           jornada: jornadas.codigo,
           modoEjecucion: formularioempleado.modoejecucion,
@@ -948,6 +1215,7 @@ export default function FormularioEmpleado() {
           canton: datosCanton.canton,
           parroquia: datosParroquia.parroquia,
           formaPago: formapago.codigo,
+          sucursal,
           estado: formularioempleado.estado,
           fecha_ing: new Date(),
           maquina,
@@ -955,21 +1223,17 @@ export default function FormularioEmpleado() {
           carga: [...tablacarga, ...tablacargaedit],
           certificado: [...tablacertificado, ...tablacertificadoedit],
         };
-        // console.log("mira edit", enviarjson)
+        console.log("mira edit", enviarjson)
         const { data } = await axios.put(`${URLAPILOCAL}/empleados`, enviarjson, config, setMostrarProgreso(true));
         if (data === 200) {
           setGuardado(true);
-          messajeTool('succes', 'Registro guardado correctamente');
+          mensajeSistemaGenerico({ tipo: 'success', mensaje: 'Empleado editado correctamente!' })
+          if (archivo.length !== 0) {
+            enviarArchivos()
+          }
           Volver();
-          // setTabs(0)
-          // const inicial = await axios(`${URLAPIGENERAL}/iniciales/buscar?opcion=ADM`, config);
-          // const codigogenerado = generarCodigo('EM', inicial.data[0].numero, '0000')
-          // setFormularioEmpleado({
-          //     ...formularioempleado,
-          //     codigo_Empleado: codigogenerado
-          // });
         }
-        console.log(data);
+        // console.log(data);
       }
     } catch (error) {
 
@@ -977,7 +1241,7 @@ export default function FormularioEmpleado() {
         navegacion(`${PATH_AUTH.login}`);
         messajeTool('error', 'Su inicio de sesion expiro');
       } else if (error.response.status === 500) {
-        navegacion(`${PATH_PAGE.page500}`);
+        messajeTool('error', 'Problemas con el servidor al guardar intente nuevamente, si el problema persiste contácte con soporte');
       } else {
         messajeTool('error', 'Problemas al guardar verifique si se encuentra registrado');
       }
@@ -1189,6 +1453,9 @@ export default function FormularioEmpleado() {
         );
         setListaTipoDoc(tipodoc.data);
 
+        const ip = await obtenerMaquina();
+        setMaquina(ip);
+
         if (modo === 'nuevo') {
           const inicial = await axios(`${URLAPIGENERAL}/iniciales/buscar?opcion=ADM`, config, setMostrarProgreso(true));
           const codigogenerado = generarCodigo('EM', inicial.data[0].numero, '0000');
@@ -1203,7 +1470,9 @@ export default function FormularioEmpleado() {
             serviciosMantenimientoGenerico.listarPorTabla({ tabla: 'NOM_FUNCION' }),
             serviciosMantenimientoGenerico.listarPorTabla({ tabla: 'NOM_JORDANA' }),
             serviciosMantenimientoGenerico.listarPorTabla({ tabla: 'NOM_FORMAPAGO' }),
-            serviciosMantenimientoGenerico.listarPorTabla({ tabla: 'NOM_MODOEJECUCION' })
+            serviciosMantenimientoGenerico.listarPorTabla({ tabla: 'NOM_MODOEJECUCION' }),
+            serviciosSucursal.Listar(),
+            serviciosBanco.Listar()
           ])
             .then(res => {
               setProvincias(res[0].map((m) => ({ ...m, codigoalternativo: m.codigo })));
@@ -1211,35 +1480,52 @@ export default function FormularioEmpleado() {
               setListaJornadas(res[2].map((m) => ({ ...m, codigoalternativo: m.codigo })));
               setListaFormaPago(res[3].map((m) => ({ ...m, codigoalternativo: m.codigo })));
               setListaModoEjecucion(res[4]);
+              setListaSucursales(res[5]);
+              setSucursal(res[5].at(0).codigo)
+              const bancos = res[6].map((m) => ({
+                codigo: m.codigo,
+                codigoalternativo: m.inicial_Banco,
+                nombre: m.nombre
+              }))
+              setListaBancos(bancos)
             })
         }
         if (modo === 'editar') {
+          Promise.all([
+            serviciosLocaciones.listarProvincias(),
+            serviciosMantenimientoGenerico.listarPorTabla({ tabla: 'NOM_FUNCION' }),
+            serviciosMantenimientoGenerico.listarPorTabla({ tabla: 'NOM_JORDANA' }),
+            serviciosMantenimientoGenerico.listarPorTabla({ tabla: 'NOM_FORMAPAGO' }),
+            serviciosMantenimientoGenerico.listarPorTabla({ tabla: 'NOM_MODOEJECUCION' }),
+            serviciosSucursal.Listar(),
+            serviciosBanco.Listar()
+          ])
+            .then(res => {
+              setProvincias(res[0].map((m) => ({ ...m, codigoalternativo: m.codigo })));
+              setListaFunciones(res[1].map((m) => ({ ...m, codigoalternativo: m.codigo })));
+              setListaJornadas(res[2].map((m) => ({ ...m, codigoalternativo: m.codigo })));
+              setListaFormaPago(res[3].map((m) => ({ ...m, codigoalternativo: m.codigo })));
+              setListaModoEjecucion(res[4]);
+              setListaSucursales(res[5])
+              const bancos = res[6].map((m) => ({
+                codigo: m.codigo,
+                codigoalternativo: m.inicial_Banco,
+                nombre: m.nombre
+              }))
+              setListaBancos(bancos)
+            })
           const empleado = await axios(
             `${URLAPIGENERAL}/empleados/obtener?codigo=${id}`,
             config,
             setMostrarProgreso(true)
           );
           console.log(empleado)
-          Promise.all([
-            serviciosLocaciones.listarProvincias(),
-            serviciosMantenimientoGenerico.listarPorTabla({ tabla: 'NOM_FUNCION' }),
-            serviciosMantenimientoGenerico.listarPorTabla({ tabla: 'NOM_JORDANA' }),
-            serviciosMantenimientoGenerico.listarPorTabla({ tabla: 'NOM_FORMAPAGO' }),
-            serviciosMantenimientoGenerico.listarPorTabla({ tabla: 'NOM_MODOEJECUCION' })
-          ])
-            .then(res => {
-              setProvincias(res[0].map((m) => ({ ...m, codigoalternativo: m.codigo })));
-              setListaFunciones(res[1].map((m) => ({ ...m, codigoalternativo: m.codigo })));
-              setListaJornadas(res[2].map((m) => ({ ...m, codigoalternativo: m.codigo })));
-              setListaFormaPago(res[3].map((m) => ({ ...m, codigoalternativo: m.codigo })));
-              setListaModoEjecucion(res[4]);
-            })
           setFormularioEmpleado({
             codigo: empleado.data.codigo,
             codigo_Empleado: empleado.data.codigo_Empleado,
             nombres: empleado.data.nombres,
             direccion: empleado.data.direccion,
-            telefonos: empleado.data.telefonos,
+            telefonos: empleado.data.telefonos.trim(),
             fecing: empleado.data.fecing,
             cedula: empleado.data.cedula,
             correo: empleado.data.correo,
@@ -1250,9 +1536,14 @@ export default function FormularioEmpleado() {
             nombredepartamento: empleado.data.nombreDepartamento,
             nivelEstudio: empleado.data.nivelEstudio,
             nombrenivelEstudio: empleado.data.nombreNivelEstudio,
+            fechaTitulacion: empleado.data.fechaTitulacion,
+            institucion: empleado.data.institucion,
+            titulo: empleado.data.tituloObtenido,
+            registro: empleado.data.registro,
             sexo: empleado.data.sexo,
             estadocivil: empleado.data.estadoCivl,
             sueldoBase: empleado.data.sueldoBase,
+            sueldoBaseview: `${empleado.data.sueldoBase}`,
             afiliadoSeguro: empleado.data.afiliadoSeguro,
             beneficioSocial: empleado.data.beneficioSocial,
             fondoReserva: empleado.data.fondoReserva,
@@ -1260,9 +1551,11 @@ export default function FormularioEmpleado() {
             pagoMensualDecimoCuarto: empleado.data.pagoMensualDecimoCuarto,
             observacion: empleado.data.observacion,
             esdiscapacitado: empleado.data.discapacidad,
-            porcentajediscapacidadview: empleado.data.porcentajeDiscapacidad,
+            porcentajediscapacidadview: `${empleado.data.porcentajeDiscapacidad}`,
             porcentajediscapacidad: empleado.data.porcentajeDiscapacidad,
             acargodiscapacitado: empleado.data.responsableDiscapacitado,
+            tipoctabanco: empleado.data.tipoCuenta === null ? "" : empleado.data.tipoCuenta,
+            ctabanco: empleado.data.numeroCuenta === null ? "" : empleado.data.numeroCuenta,
             modoejecucion: empleado.data.modoEjecucion,
             estado: empleado.data.estado,
             urlDocumentos: empleado.data.urlDocumentos
@@ -1291,6 +1584,16 @@ export default function FormularioEmpleado() {
             codigo: empleado.data.formaPago,
             nombre: empleado.data.nombreFormaPago
           })
+          setNivelEstudios({
+            codigo: empleado.data.nivelEstudio,
+            codigoalternativo: empleado.data.nivelEstudio,
+            nombre: empleado.data.nombreNivelEstudio,
+          })
+          setBanco({
+            codigo: empleado.data.banco === null ? "" : empleado.data.banco === null,
+            codigoalternativo: empleado.data.banco === null ? "" : empleado.data.banco,
+            nombre: empleado.data.nombreBanco === null ? "" : empleado.data.nombreBanco
+          })
           // let idc = 0;
           // let idce = 0;
 
@@ -1304,13 +1607,15 @@ export default function FormularioEmpleado() {
           // })
           setTablaCargaEdit(empleado.data.carga);
           setTablaCertificadoEdit(empleado.data.certificado);
+          setSucursal(empleado.data.sucursal)
         }
       } catch (error) {
         if (error.response.status === 401) {
           navegacion(`${PATH_AUTH.login}`);
           messajeTool('error', 'Su inicio de sesion expiro');
         } else if (error.response.status === 500) {
-          navegacion(`${PATH_PAGE.page500}`);
+          // navegacion(`${PATH_PAGE.page500}`);
+          messajeTool('error', 'Problemas con el servidor al obtener datos intente nuevamente, si el problema persiste contácte con soporte');
         } else {
           messajeTool('error', 'Problemas al guardar verifique si se encuentra registrado');
         }
@@ -1449,6 +1754,7 @@ export default function FormularioEmpleado() {
       );
       const estudios = data.map((m) => ({
         codigo: m.codigo,
+        codigoalternativo: m.codigo,
         nombre: m.nombre,
       }));
       setEstudios(estudios);
@@ -1544,13 +1850,29 @@ export default function FormularioEmpleado() {
           <Card elevation={3} sx={{ ml: 3, mr: 3, mb: 2, p: 2 }}>
             <Box sx={{ width: '100%' }}>
               <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                <Tabs value={tabs} onChange={handleChangeTabs} aria-label="basic tabs example">
-                  <Tab label="Datos Empleado" {...a11yProps(0)} />
-                  <Tab label="Certificados" {...a11yProps(1)} />
-                  <Tab label="Cargas" {...a11yProps(2)} />
-                  <Tab label="Adicionales" {...a11yProps(3)} />
-                  <Tab label="Subir Documentos" {...a11yProps(4)} />
-                </Tabs>
+                <Grid container spacing={1}>
+                  <Grid item md={12} sm={12} xs={12}>
+                    <Tabs value={tabs} onChange={handleChangeTabs} aria-label="basic tabs example">
+                      <Tab label="Datos Empleado" {...a11yProps(0)} />
+                      <Tab label="Estudios" {...a11yProps(1)} />
+                      <Tab label="Adicionales" {...a11yProps(2)} />
+                      <Tab label="Cargas" {...a11yProps(3)} />
+                      <Tab label="Certificados" {...a11yProps(4)} />
+                      <Tab label="Subir Documentos" {...a11yProps(5)} />
+                    </Tabs>
+                  </Grid>
+                  <Grid item container xs={12} justifyContent="flex-end">
+                    <Grid item md={2} sm={3} xs={12}>
+                      <Button
+                        endIcon={<BackspaceIcon />}
+                        variant="text"
+                        onClick={() => limpiarSecciones()}
+                      >
+                        Limpiar Campos
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </Grid>
               </Box>
               {/* formulario empleado */}
               <TabPanel value={tabs} index={0}>
@@ -1582,6 +1904,7 @@ export default function FormularioEmpleado() {
                       <RequiredTextField
                         error={error}
                         fullWidth
+                        inputRef={nombresref}
                         size="small"
                         label="Nombres*"
                         variant="outlined"
@@ -1598,6 +1921,7 @@ export default function FormularioEmpleado() {
                       <RequiredTextField
                         error={error}
                         fullWidth
+                        inputRef={direccionref}
                         size="small"
                         label="Direccion*"
                         variant="outlined"
@@ -1605,7 +1929,7 @@ export default function FormularioEmpleado() {
                         onChange={(e) => {
                           setFormularioEmpleado({
                             ...formularioempleado,
-                            nombres: e.target.value.toUpperCase(),
+                            direccion: e.target.value.toUpperCase(),
                           });
                         }}
                       />
@@ -1633,6 +1957,7 @@ export default function FormularioEmpleado() {
                       <RequiredTextField
                         error={error}
                         fullWidth
+                        inputRef={identificacionref}
                         type="number"
                         size="small"
                         label="Identificacion*"
@@ -1664,6 +1989,7 @@ export default function FormularioEmpleado() {
                       <RequiredTextField
                         error={error}
                         fullWidth
+                        inputRef={telefonoref}
                         type="number"
                         size="small"
                         label="Telefono*"
@@ -1699,6 +2025,7 @@ export default function FormularioEmpleado() {
                       <RequiredTextField
                         error={error}
                         fullWidth
+                        inputRef={correoref}
                         type="email"
                         size="small"
                         label="Correo*"
@@ -1718,14 +2045,14 @@ export default function FormularioEmpleado() {
                     </Grid>
                     <Grid item md={4} sm={4} xs={12}>
                       <LocalizationProvider dateAdapter={AdapterDateFns} locale={es}>
-                        <MobileDatePicker
+                        <DesktopDatePicker
                           label="Fecha Nacimiento*"
                           value={formularioempleado.fechaNac}
                           inputFormat="dd/MM/yyyy"
                           onChange={(newValue) => {
                             setFormularioEmpleado({
                               ...formularioempleado,
-                              fechaNac: newValue,
+                              fechaNac: validarFecha(newValue) ? newValue : new Date()
                             });
                           }}
                           renderInput={(params) => <RequiredTextField {...params} fullWidth size="small" />}
@@ -1734,14 +2061,14 @@ export default function FormularioEmpleado() {
                     </Grid>
                     <Grid item md={4} sm={4} xs={12}>
                       <LocalizationProvider dateAdapter={AdapterDateFns} locale={es}>
-                        <MobileDatePicker
+                        <DesktopDatePicker
                           label="Fecha Ingreso*"
                           value={formularioempleado.fecing}
                           inputFormat="dd/MM/yyyy"
                           onChange={(newValue) => {
                             setFormularioEmpleado({
                               ...formularioempleado,
-                              fecing: newValue,
+                              fecing: validarFecha(newValue) ? newValue : new Date()
                             });
                           }}
                           renderInput={(params) => <RequiredTextField {...params} fullWidth size="small" />}
@@ -1749,20 +2076,23 @@ export default function FormularioEmpleado() {
                       </LocalizationProvider>
                     </Grid>
                     <Grid item md={4} sm={4} xs={12}>
-                      <RequiredTextField
-                        error={error}
+                      <NumericFormat
                         fullWidth
-                        type="number"
-                        size="small"
+                        inputRef={sueldobaseref}
                         label="Sueldo Base*"
-                        variant="outlined"
-                        value={formularioempleado.sueldoBase}
-                        onChange={(e) => {
+                        customInput={RequiredTextField}
+                        value={formularioempleado.sueldoBaseview}
+                        onValueChange={(e) => {
                           setFormularioEmpleado({
                             ...formularioempleado,
-                            sueldoBase: e.target.value,
-                          });
+                            sueldoBaseview: e.formattedValue,
+                            sueldoBase: e.floatValue
+                          })
                         }}
+                        prefix={'$'}
+                        size='small'
+                        type="text"
+                        thousandSeparator
                       />
                     </Grid>
                     <Grid item container xs={12} md={12} spacing={1}>
@@ -1770,6 +2100,7 @@ export default function FormularioEmpleado() {
                         <RequiredTextField
                           label="Departamento"
                           fullWidth
+                          inputRef={departamentoref}
                           size="small"
                           value={formularioempleado.departamento}
                           onChange={(e) => {
@@ -1818,6 +2149,7 @@ export default function FormularioEmpleado() {
                         <RequiredTextField
                           label="Cargo"
                           fullWidth
+                          inputRef={cargoref}
                           size="small"
                           value={formularioempleado.cargo}
                           onChange={(e) => {
@@ -1862,75 +2194,21 @@ export default function FormularioEmpleado() {
                       </Grid>
                     </Grid>
                     <Grid item container xs={12} md={12} spacing={1}>
-                      <Grid item md={4} sm={4} xs={12}>
-                        <RequiredTextField
-                          label="Estudio"
+                      <Grid item xs={12}>
+                        <TextField
                           fullWidth
                           size="small"
-                          value={formularioempleado.nivelEstudio}
+                          label="Observacion"
+                          variant="outlined"
+                          value={formularioempleado.observacion}
                           onChange={(e) => {
                             setFormularioEmpleado({
                               ...formularioempleado,
-                              nivelEstudio: e.target.value,
+                              observacion: e.target.value.toUpperCase(),
                             });
                           }}
-                          InputProps={{
-                            endAdornment: (
-                              <InputAdornment position="end">
-                                <IconButton
-                                  size="small"
-                                  onClick={() => {
-                                    buscarEstudios();
-                                  }}
-                                >
-                                  <SearchRounded />
-                                </IconButton>
-                              </InputAdornment>
-                            ),
-                          }}
                         />
                       </Grid>
-                      <Grid item md={8} sm={8} xs={12}>
-                        <TextField
-                          disabled
-                          label="Nombre Estudio"
-                          fullWidth
-                          size="small"
-                          value={formularioempleado.nombrenivelEstudio}
-                          InputProps={{
-                            readOnly: true,
-                          }}
-                          sx={{
-                            backgroundColor: '#e5e8eb',
-                            border: 'none',
-                            borderRadius: '10px',
-                            color: '#212B36',
-                          }}
-                        />
-                      </Grid>
-                    </Grid>
-                    <Grid item md={12} sm={12} xs={12}>
-                      <TextField
-                        fullWidth
-                        // error={error}
-                        size="small"
-                        label="Plantel*"
-                        variant="outlined"
-                        disabled
-                        // value={formularioempleado.}
-                        // onChange={e => {
-                        //     setFormularioEmpleado({
-                        //         ...formularioempleado,
-                        //         sexo: e.target.value
-                        //     })
-                        // }}
-                        sx={{
-                          backgroundColor: '#e5e8eb',
-                          border: 'none',
-                          borderRadius: '10px',
-                          color: '#212B36',
-                        }}
-                      />
                     </Grid>
                   </Grid>
                   <Grid container item md={6} xs={12} spacing={1}>
@@ -1952,20 +2230,23 @@ export default function FormularioEmpleado() {
                         <MenuItem value="C"> CASADO(A) </MenuItem>
                       </RequiredTextField>
                     </Grid>
-                    <Grid item md={12} sm={12} xs={12}>
-                      <TextField
+                    <Grid item md={6} sm={6} xs={12}>
+                      <RequiredTextField
+                        select
+                        label="Sucursal"
+                        value={sucursal}
+                        onChange={(e) => {
+                          setSucursal(e.target.value)
+                        }}
                         fullWidth
                         size="small"
-                        label="Observacion"
-                        variant="outlined"
-                        value={formularioempleado.observacion}
-                        onChange={(e) => {
-                          setFormularioEmpleado({
-                            ...formularioempleado,
-                            observacion: e.target.value.toUpperCase(),
-                          });
-                        }}
-                      />
+                      >
+                        {listaSucursales.map((f) => (
+                          <MenuItem key={f.codigo} value={f.codigo}>
+                            {f.nombre}
+                          </MenuItem>
+                        ))}
+                      </RequiredTextField>
                     </Grid>
                     <Grid item md={4} sm={6} xs={12}>
                       <FormControlLabel
@@ -2034,7 +2315,7 @@ export default function FormularioEmpleado() {
                     </Grid>
                     <Grid item md={12} sm={12} xs={12}>
                       <FormControlLabel
-                        disabled
+                        disabled={modo !== 'editar'}
                         value={formularioempleado.estado}
                         onChange={(e) => {
                           setFormularioEmpleado({
@@ -2188,228 +2469,283 @@ export default function FormularioEmpleado() {
                   </Grid>
                 </Grid>
               </TabPanel>
-              {/* Certificados */}
+              {/* Estudios */}
               <TabPanel value={tabs} index={1}>
                 <Grid container spacing={1}>
-                  <Grid item container md={12} sm={12} xs={12} spacing={1}>
-                    <Grid item md={3} sm={12} xs={12}>
+                  <Grid item container xs={12} spacing={1} justifyContent="space-between">
+                    <Grid item md={6} sm={8} xs={12}>
+                      <CajaGenerica
+                        inputRef={nivelestudioref}
+                        estadoInicial={{
+                          codigoAlternativo: nivelEstudios.codigoalternativo,
+                          nombre: nivelEstudios.nombre
+                        }}
+                        tituloTexto={{ nombre: 'Código', descripcion: 'Nivel de Estudio' }}
+                        tituloModal="Nivel de Estudio"
+                        retornarDatos={(e) => {
+                          setNivelEstudios({
+                            codigo: e.codigo,
+                            codigoalternativo: e.codigoalternativo,
+                            nombre: e.nombre
+                          })
+                        }}
+                        datos={estudios}
+                      />
+                    </Grid>
+                    <Grid item md={3} sm={4} xs={12}>
+                      <DateTextField
+                        label='Fecha Titulación'
+                        value={formularioempleado.fechaTitulacion}
+                        onChange={(e) => {
+                          cambiarFechaTitulacion(e);
+                        }}
+                      />
+                    </Grid>
+                  </Grid>
+                  <Grid item container xs={12} spacing={1}>
+                    <Grid item md={6} sm={12} xs={12}>
                       <RequiredTextField
                         fullWidth
-                        error={errorcertificado}
+                        inputRef={institucionref}
                         size="small"
-                        label="Nombre*"
+                        label="Institución*"
                         variant="outlined"
-                        value={formulariocertificado.nombre}
+                        value={formularioempleado.institucion}
                         onChange={(e) => {
-                          setFormularioCertificado({
-                            ...formulariocertificado,
-                            nombre: e.target.value.toUpperCase(),
+                          setFormularioEmpleado({
+                            ...formularioempleado,
+                            institucion: e.target.value.toUpperCase(),
                           });
                         }}
                       />
                     </Grid>
-                    <Grid item md={3} sm={12} xs={12}>
+                    <Grid item md={6} sm={12} xs={12}>
                       <RequiredTextField
                         fullWidth
-                        error={errorcertificado}
                         size="small"
-                        label="Empresa Emisora*"
+                        inputRef={tituloref}
+                        label="Titulo Obtenido*"
                         variant="outlined"
-                        value={formulariocertificado.empresaEmisora}
+                        value={formularioempleado.titulo}
                         onChange={(e) => {
-                          setFormularioCertificado({
-                            ...formulariocertificado,
-                            empresaEmisora: e.target.value.toUpperCase(),
+                          setFormularioEmpleado({
+                            ...formularioempleado,
+                            titulo: e.target.value.toUpperCase(),
                           });
                         }}
                       />
                     </Grid>
-                    <Grid item md={2} sm={12} xs={12}>
-                      <TextField
-                        select
-                        label="Tipo"
-                        value={formulariocertificado.tipo}
-                        onChange={(e) => {
-                          setFormularioCertificado({
-                            ...formulariocertificado,
-                            tipo: e.target.value,
-                          });
-                        }}
-                        fullWidth
-                        size="small"
-                      >
-                        <MenuItem value="P"> PRESENCIAL </MenuItem>
-                        <MenuItem value="L"> LINEA </MenuItem>
-                      </TextField>
-                    </Grid>
-                    <Grid item md={2} sm={4} xs={12}>
-                      <TextField
-                        select
-                        label="Mes"
-                        value={formulariocertificado.mesExpedicion}
-                        onChange={(e) => {
-                          setFormularioCertificado({
-                            ...formulariocertificado,
-                            mesExpedicion: e.target.value,
-                          });
-                        }}
-                        fullWidth
-                        size="small"
-                      >
-                        {meses.map((m) => (
-                          <MenuItem key={m.id} value={m.id}>
-                            {' '}
-                            {m.nombre}{' '}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                    </Grid>
-                    <Grid item md={2} sm={4} xs={12}>
-                      <RequiredTextField
-                        error={errorcertificado}
-                        label="Año*"
-                        value={formulariocertificado.anioExpedicion}
-                        onChange={(e) => {
-                          setFormularioCertificado({
-                            ...formulariocertificado,
-                            anioExpedicion: e.target.value,
-                          });
-                        }}
-                        fullWidth
-                        size="small"
-                      />
-                    </Grid>
-                    <Grid item md={2} sm={4} xs={12}>
-                      <LocalizationProvider dateAdapter={AdapterDateFns} locale={es}>
-                        <MobileDatePicker
-                          label="Fecha Caducidad*"
-                          value={formulariocertificado.fechaCaducidad}
-                          inputFormat="dd/MM/yyyy"
-                          onChange={(newValue) => {
-                            setFormularioCertificado({
-                              ...formulariocertificado,
-                              fechaCaducidad: newValue,
-                            });
-                          }}
-                          renderInput={(params) => <RequiredTextField {...params} fullWidth size="small" />}
-                        />
-                      </LocalizationProvider>
-                    </Grid>
-                    <Grid item md={2} sm={12} xs={12}>
+                  </Grid>
+                  <Grid item container spacing={1} xs={12}>
+                    <Grid item md={6} sm={12} xs={12}>
                       <RequiredTextField
                         fullWidth
-                        error={errorcertificado}
                         size="small"
-                        label="Codigo Credencial*"
+                        inputRef={registroref}
+                        label="Registro*"
                         variant="outlined"
-                        value={formulariocertificado.idCredencial}
+                        value={formularioempleado.registro}
                         onChange={(e) => {
-                          setFormularioCertificado({
-                            ...formulariocertificado,
-                            idCredencial: e.target.value,
+                          setFormularioEmpleado({
+                            ...formularioempleado,
+                            registro: e.target.value.toUpperCase(),
                           });
                         }}
                       />
-                    </Grid>
-                    <Grid item md={3} sm={12} xs={12}>
-                      <RequiredTextField
-                        fullWidth
-                        size="small"
-                        label="Archivo*"
-                        variant="outlined"
-                        value={formulariocertificado.urlArchivo}
-                        onChange={(e) => {
-                          setFormularioCertificado({
-                            ...formulariocertificado,
-                            urlArchivo: e.target.value,
-                          });
-                        }}
-                      />
-                    </Grid>
-                    <Grid item md={1.2} sm={6} xs={12}>
-                      <FormControlLabel
-                        onChange={(e) => {
-                          setFormularioCertificado({
-                            ...formulariocertificado,
-                            caduca: e.target.checked,
-                          });
-                        }}
-                        value={formulariocertificado.caduca}
-                        control={<Checkbox defaultChecked />}
-                        label="Caduca"
-                      />
-                    </Grid>
-                    <Grid item md={2} sm={6} xs={12}>
-                      <Button
-                        fullWidth
-                        variant="text"
-                        onClick={() => {
-                          agregarCertificado();
-                        }}
-                        startIcon={<AddCircleRoundedIcon />}
-                      >
-                        Agregar
-                      </Button>
                     </Grid>
                   </Grid>
                 </Grid>
-                <Box sx={estilosdetabla}>
-                  <div
-                    style={{
-                      padding: '0.5rem',
-                      height: modo !== 'editar' ? '55vh' : '30vh',
-                      width: '100%',
-                    }}
-                  >
-                    <DataGrid
-                      density="compact"
-                      rowHeight={28}
-                      localeText={esES.components.MuiDataGrid.defaultProps.localeText}
-                      // onRowDoubleClick={(e) => Editar(e)}
-                      sx={estilosdatagrid}
-                      rows={tablacertificado}
-                      columns={columns}
-                      getRowId={(rows) => rows.codigo}
-                      components={{
-                        NoRowsOverlay: CustomNoRowsOverlay,
+              </TabPanel>
+              {/* Adicionales */}
+              <TabPanel value={tabs} index={2}>
+                <Grid container spacing={1}>
+                  <Grid item container spacing={1} md={6}>
+                    <Grid item xs={12}>
+                      <CajaGenerica
+                        inputRef={funcionref}
+                        estadoInicial={{
+                          codigoAlternativo: funciones.codigo,
+                          nombre: funciones.nombre
+                        }}
+                        tituloTexto={{ nombre: 'Cod. Función', descripcion: 'Función' }}
+                        tituloModal="Funciones"
+                        retornarDatos={(e) => {
+                          setFunciones({
+                            codigo: e.codigo,
+                            nombre: e.nombre
+                          })
+                        }}
+                        datos={listafunciones}
+                      />
+                    </Grid>
+                  </Grid>
+                  <Grid item md={1.5} sm={4} xs={6}>
+                    <FormControlLabel
+                      onChange={(e) => {
+                        setFormularioEmpleado({
+                          ...formularioempleado,
+                          esdiscapacitado: e.target.checked,
+                        });
+                      }}
+                      value={formularioempleado.esdiscapacitado}
+                      control={<Checkbox />}
+                      label="Discapacitado"
+                    />
+                  </Grid>
+                  <Grid item md={2.5} sm={4} xs={6}>
+                    <NumericFormat
+                      inputRef={porcentajediscapacitadoref}
+                      disabled={!formularioempleado.esdiscapacitado}
+                      label='Porcentaje'
+                      customInput={RequiredTextField}
+                      value={formularioempleado.porcentajediscapacidadview}
+                      onValueChange={(e) => {
+                        setFormularioEmpleado({
+                          ...formularioempleado,
+                          porcentajediscapacidadview: e.formattedValue,
+                          porcentajediscapacidad: e.value
+                        })
+                      }}
+                      suffix={'%'}
+                      size='small'
+                      type="text"
+                      thousandSeparator
+                    />
+                  </Grid>
+                  <Grid item md={2} sm={4} xs={12}>
+                    <FormControlLabel
+                      onChange={(e) => {
+                        setFormularioEmpleado({
+                          ...formularioempleado,
+                          acargodiscapacitado: e.target.checked,
+                        });
+                      }}
+                      value={formularioempleado.acargodiscapacitado}
+                      control={<Checkbox />}
+                      label="A Cargo de un Discapacitado"
+                    />
+                  </Grid>
+                  <Grid item container spacing={1} md={6}>
+                    <Grid item xs={12}>
+                      <CajaGenerica
+                        inputRef={jornadaref}
+                        estadoInicial={{
+                          codigoAlternativo: jornadas.codigo,
+                          nombre: jornadas.nombre
+                        }}
+                        tituloTexto={{ nombre: 'Cod. Jornada', descripcion: 'Jornada' }}
+                        tituloModal="Jornadas"
+                        retornarDatos={(e) => {
+                          setJornadas({
+                            codigo: e.codigo,
+                            nombre: e.nombre
+                          })
+                        }}
+                        datos={listajornadas}
+                      />
+                    </Grid>
+                  </Grid>
+                  <Grid item container spacing={1} md={6}>
+                    <Grid item xs={12}>
+                      <CajaGenerica
+                        inputRef={formapagoref}
+                        estadoInicial={{
+                          codigoAlternativo: formapago.codigo,
+                          nombre: formapago.nombre
+                        }}
+                        tituloTexto={{ nombre: 'Cod. Pago', descripcion: 'Forma de Pago' }}
+                        tituloModal="Formas de Pago"
+                        retornarDatos={(e) => {
+                          setFormaPago({
+                            codigo: e.codigo,
+                            nombre: e.nombre
+                          })
+                        }}
+                        datos={listaformapago}
+                      />
+                    </Grid>
+                  </Grid>
+                  <Grid item container spacing={1} md={6}>
+                    <Grid item xs={12}>
+                      <CajaGenerica
+                        estadoInicial={{
+                          codigoAlternativo: banco.codigoalternativo,
+                          nombre: banco.nombre
+                        }}
+                        tituloTexto={{ nombre: 'Cod. Banco', descripcion: 'Banco' }}
+                        tituloModal="Banco"
+                        retornarDatos={(e) => {
+                          setBanco({
+                            codigo: e.codigo,
+                            codigoalternativo: e.codigoalternativo,
+                            nombre: e.nombre
+                          })
+                        }}
+                        datos={listaBancos}
+                        borrarCampos
+                      />
+                    </Grid>
+                  </Grid>
+                  <Grid item md={3} sm={4} xs={12}>
+                    <RequiredTextField
+                      select
+                      label="Tipo de Cuenta"
+                      value={formularioempleado.tipoctabanco}
+                      onChange={(e) => {
+                        setFormularioEmpleado({
+                          ...formularioempleado,
+                          tipoctabanco: e.target.value,
+                        });
+                      }}
+                      fullWidth
+                      size="small"
+                    >
+                      <MenuItem value="AHO"> AHORRO </MenuItem>
+                      <MenuItem value="COR"> CORRIENTE </MenuItem>
+                    </RequiredTextField>
+                  </Grid>
+                  <Grid item md={3} sm={8} xs={12}>
+                    <RequiredTextField
+                      fullWidth
+                      inputRef={cuentabcoref}
+                      size="small"
+                      label="Cuenta*"
+                      variant="outlined"
+                      value={formularioempleado.ctabanco}
+                      onChange={(e) => {
+                        setFormularioEmpleado({
+                          ...formularioempleado,
+                          ctabanco: e.target.value.toUpperCase(),
+                        });
                       }}
                     />
-                  </div>
-                </Box>
-
-                {modo === 'editar' ? (
-                  <Box sx={estilosdetabla}>
-                    <Typography variant="h6"> Editar </Typography>
-                    <div
-                      style={{
-                        padding: '0.5rem',
-                        height: modo !== 'editar' ? '55vh' : '30vh',
-                        width: '100%',
+                  </Grid>
+                  <Grid item md={4} sm={4} xs={12}>
+                    <TextField
+                      select
+                      label="Modo Ejecución"
+                      value={formularioempleado.modoejecucion}
+                      onChange={(e) => {
+                        setFormularioEmpleado({
+                          ...formularioempleado,
+                          modoejecucion: e.target.value,
+                        });
                       }}
+                      fullWidth
+                      size="small"
                     >
-                      <DataGrid
-                        density="compact"
-                        rowHeight={28}
-                        localeText={esES.components.MuiDataGrid.defaultProps.localeText}
-                        onCellEditCommit={(e) => {
-                          editarCertificado(e);
-                        }}
-                        sx={estilosdatagrid}
-                        rows={tablacertificadoedit}
-                        columns={columnsset}
-                        getRowId={(rows) => rows.codigo}
-                        components={{
-                          NoRowsOverlay: CustomNoRowsOverlay,
-                        }}
-                      />
-                    </div>
-                  </Box>
-                ) : (
-                  ''
-                )}
+                      {listamodoejecucion.map((m) => (
+                        <MenuItem key={m.codigo} value={m.codigo}>
+                          {' '}
+                          {m.nombre}{' '}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
+                </Grid>
               </TabPanel>
               {/* Cargas */}
-              <TabPanel value={tabs} index={2}>
+              <TabPanel value={tabs} index={3}>
                 <Grid container spacing={1}>
                   <Grid item container md={12} sm={12} xs={12} spacing={1}>
                     <Grid item md={2} sm={12} xs={12}>
@@ -2559,138 +2895,241 @@ export default function FormularioEmpleado() {
                   ''
                 )}
               </TabPanel>
-              {/* Adicionales */}
-              <TabPanel value={tabs} index={3}>
-                <Grid container spacing={1}>
-                  <Grid item container spacing={1} md={6}>
-                    <Grid item xs={12}>
-                      <CajaGenerica
-                        estadoInicial={{
-                          codigoAlternativo: funciones.codigo,
-                          nombre: funciones.nombre
-                        }}
-                        tituloTexto={{ nombre: 'Cod. Función', descripcion: 'Función' }}
-                        tituloModal="Funciones"
-                        retornarDatos={(e) => {
-                          setFunciones({
-                            codigo: e.codigo,
-                            nombre: e.nombre
-                          })
-                        }}
-                        datos={listafunciones}
-                      />
-                    </Grid>
-                  </Grid>
-                  <Grid item md={1.5}>
-                    <FormControlLabel
-                      onChange={(e) => {
-                        setFormularioEmpleado({
-                          ...formularioempleado,
-                          esdiscapacitado: e.target.checked,
-                        });
-                      }}
-                      value={formularioempleado.esdiscapacitado}
-                      control={<Checkbox />}
-                      label="Discapacitado"
-                    />
-                  </Grid>
-                  <Grid item md={2.5}>
-                    <NumericFormat
-                      disabled={!formularioempleado.esdiscapacitado}
-                      label='Porcentaje'
-                      customInput={RequiredTextField}
-                      value={formularioempleado.porcentajediscapacidadview}
-                      onValueChange={(e) => {
-                        setFormularioEmpleado({
-                          ...formularioempleado,
-                          porcentajediscapacidadview: e.formattedValue,
-                          porcentajediscapacidad: e.value
-                        })
-                      }}
-                      suffix={'%'}
-                      size='small'
-                      type="text"
-                      thousandSeparator
-                    />
-                  </Grid>
-                  <Grid item md={2}>
-                    <FormControlLabel
-                      onChange={(e) => {
-                        setFormularioEmpleado({
-                          ...formularioempleado,
-                          acargodiscapacitado: e.target.checked,
-                        });
-                      }}
-                      value={formularioempleado.acargodiscapacitado}
-                      control={<Checkbox />}
-                      label="A Cargo de un Discapacitado"
-                    />
-                  </Grid>
-                  <Grid item container spacing={1} md={6}>
-                    <Grid item xs={12}>
-                      <CajaGenerica
-                        estadoInicial={{
-                          codigoAlternativo: jornadas.codigo,
-                          nombre: jornadas.nombre
-                        }}
-                        tituloTexto={{ nombre: 'Cod. Jornada', descripcion: 'Jornada' }}
-                        tituloModal="Jornadas"
-                        retornarDatos={(e) => {
-                          setJornadas({
-                            codigo: e.codigo,
-                            nombre: e.nombre
-                          })
-                        }}
-                        datos={listajornadas}
-                      />
-                    </Grid>
-                  </Grid>
-                  <Grid item container spacing={1} md={6}>
-                    <Grid item xs={12}>
-                      <CajaGenerica
-                        estadoInicial={{
-                          codigoAlternativo: formapago.codigo,
-                          nombre: formapago.nombre
-                        }}
-                        tituloTexto={{ nombre: 'Cod. Pago', descripcion: 'Forma de Pago' }}
-                        tituloModal="Formas de Pago"
-                        retornarDatos={(e) => {
-                          setFormaPago({
-                            codigo: e.codigo,
-                            nombre: e.nombre
-                          })
-                        }}
-                        datos={listaformapago}
-                      />
-                    </Grid>
-                  </Grid>
-                  <Grid item md={4} sm={6} xs={12}>
-                    <TextField
-                      select
-                      label="Modo Ejecución"
-                      value={formularioempleado.modoejecucion}
-                      onChange={(e) => {
-                        setFormularioEmpleado({
-                          ...formularioempleado,
-                          modoejecucion: e.target.value,
-                        });
-                      }}
-                      fullWidth
-                      size="small"
-                    >
-                      {listamodoejecucion.map((m) => (
-                        <MenuItem key={m.codigo} value={m.codigo}>
-                          {' '}
-                          {m.nombre}{' '}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </Grid>
-                </Grid>
-              </TabPanel>
-              {/* Subida de documentos */}
+              {/* Certificados */}
               <TabPanel value={tabs} index={4}>
                 <Grid container spacing={1}>
+                  <Grid item container md={12} sm={12} xs={12} spacing={1}>
+                    <Grid item md={3} sm={12} xs={12}>
+                      <RequiredTextField
+                        fullWidth
+                        error={errorcertificado}
+                        size="small"
+                        label="Nombre*"
+                        variant="outlined"
+                        value={formulariocertificado.nombre}
+                        onChange={(e) => {
+                          setFormularioCertificado({
+                            ...formulariocertificado,
+                            nombre: e.target.value.toUpperCase(),
+                          });
+                        }}
+                      />
+                    </Grid>
+                    <Grid item md={3} sm={12} xs={12}>
+                      <RequiredTextField
+                        fullWidth
+                        error={errorcertificado}
+                        size="small"
+                        label="Empresa Emisora*"
+                        variant="outlined"
+                        value={formulariocertificado.empresaEmisora}
+                        onChange={(e) => {
+                          setFormularioCertificado({
+                            ...formulariocertificado,
+                            empresaEmisora: e.target.value.toUpperCase(),
+                          });
+                        }}
+                      />
+                    </Grid>
+                    <Grid item md={2} sm={12} xs={12}>
+                      <TextField
+                        select
+                        label="Tipo"
+                        value={formulariocertificado.tipo}
+                        onChange={(e) => {
+                          setFormularioCertificado({
+                            ...formulariocertificado,
+                            tipo: e.target.value,
+                          });
+                        }}
+                        fullWidth
+                        size="small"
+                      >
+                        <MenuItem value="P"> PRESENCIAL </MenuItem>
+                        <MenuItem value="L"> LINEA </MenuItem>
+                      </TextField>
+                    </Grid>
+                    <Grid item md={2} sm={4} xs={12}>
+                      <TextField
+                        select
+                        label="Mes"
+                        value={formulariocertificado.mesExpedicion}
+                        onChange={(e) => {
+                          setFormularioCertificado({
+                            ...formulariocertificado,
+                            mesExpedicion: e.target.value,
+                          });
+                        }}
+                        fullWidth
+                        size="small"
+                      >
+                        {meses.map((m) => (
+                          <MenuItem key={m.id} value={m.id}>
+                            {' '}
+                            {m.nombre}{' '}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                    </Grid>
+                    <Grid item md={2} sm={4} xs={12}>
+                      <RequiredTextField
+                        error={errorcertificado}
+                        label="Año*"
+                        value={formulariocertificado.anioExpedicion}
+                        onChange={(e) => {
+                          setFormularioCertificado({
+                            ...formulariocertificado,
+                            anioExpedicion: e.target.value,
+                          });
+                        }}
+                        fullWidth
+                        size="small"
+                      />
+                    </Grid>
+                    <Grid item md={2} sm={4} xs={12}>
+                      <LocalizationProvider dateAdapter={AdapterDateFns} locale={es}>
+                        <DesktopDatePicker
+                          label="Fecha Caducidad*"
+                          value={formulariocertificado.fechaCaducidad}
+                          inputFormat="dd/MM/yyyy"
+                          onChange={(newValue) => {
+                            setFormularioCertificado({
+                              ...formulariocertificado,
+                              fechaCaducidad: validarFecha(newValue) ? newValue : new Date()
+                            });
+                          }}
+                          renderInput={(params) => <RequiredTextField {...params} fullWidth size="small" />}
+                        />
+                      </LocalizationProvider>
+                    </Grid>
+                    <Grid item md={2} sm={12} xs={12}>
+                      <RequiredTextField
+                        fullWidth
+                        error={errorcertificado}
+                        size="small"
+                        label="Codigo Credencial*"
+                        variant="outlined"
+                        value={formulariocertificado.idCredencial}
+                        onChange={(e) => {
+                          setFormularioCertificado({
+                            ...formulariocertificado,
+                            idCredencial: e.target.value,
+                          });
+                        }}
+                      />
+                    </Grid>
+                    <Grid item md={3} sm={12} xs={12}>
+                      <RequiredTextField
+                        fullWidth
+                        size="small"
+                        label="Archivo*"
+                        variant="outlined"
+                        value={formulariocertificado.urlArchivo}
+                        onChange={(e) => {
+                          setFormularioCertificado({
+                            ...formulariocertificado,
+                            urlArchivo: e.target.value,
+                          });
+                        }}
+                      />
+                    </Grid>
+                    <Grid item md={1.2} sm={6} xs={12}>
+                      <FormControlLabel
+                        onChange={(e) => {
+                          setFormularioCertificado({
+                            ...formulariocertificado,
+                            caduca: e.target.checked,
+                          });
+                        }}
+                        value={formulariocertificado.caduca}
+                        control={<Checkbox defaultChecked />}
+                        label="Caduca"
+                      />
+                    </Grid>
+                    <Grid item md={2} sm={6} xs={12}>
+                      <Button
+                        fullWidth
+                        variant="text"
+                        onClick={() => {
+                          agregarCertificado();
+                        }}
+                        startIcon={<AddCircleRoundedIcon />}
+                      >
+                        Agregar
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </Grid>
+                <Box sx={estilosdetabla}>
+                  <div
+                    style={{
+                      padding: '0.5rem',
+                      height: modo !== 'editar' ? '55vh' : '30vh',
+                      width: '100%',
+                    }}
+                  >
+                    <DataGrid
+                      density="compact"
+                      rowHeight={28}
+                      localeText={esES.components.MuiDataGrid.defaultProps.localeText}
+                      // onRowDoubleClick={(e) => Editar(e)}
+                      sx={estilosdatagrid}
+                      rows={tablacertificado}
+                      columns={columns}
+                      getRowId={(rows) => rows.codigo}
+                      components={{
+                        NoRowsOverlay: CustomNoRowsOverlay,
+                      }}
+                    />
+                  </div>
+                </Box>
+
+                {modo === 'editar' ? (
+                  <Box sx={estilosdetabla}>
+                    <Typography variant="h6"> Editar </Typography>
+                    <div
+                      style={{
+                        padding: '0.5rem',
+                        height: modo !== 'editar' ? '55vh' : '30vh',
+                        width: '100%',
+                      }}
+                    >
+                      <DataGrid
+                        density="compact"
+                        rowHeight={28}
+                        localeText={esES.components.MuiDataGrid.defaultProps.localeText}
+                        onCellEditCommit={(e) => {
+                          editarCertificado(e);
+                        }}
+                        sx={estilosdatagrid}
+                        rows={tablacertificadoedit}
+                        columns={columnsset}
+                        getRowId={(rows) => rows.codigo}
+                        components={{
+                          NoRowsOverlay: CustomNoRowsOverlay,
+                        }}
+                      />
+                    </div>
+                  </Box>
+                ) : (
+                  ''
+                )}
+              </TabPanel>
+              {/* Subida de documentos */}
+              <TabPanel value={tabs} index={5}>
+                <Grid container spacing={1}>
+                  {
+                    formularioempleado.urlDocumentos !== null ?
+                      <Grid item xs={12}>
+                        <Chip
+                          icon={<InfoIcon />}
+                          label="El empleado seleccionado ya cuenta con un documento adjunto, si desea reemplazarlo puede subir uno nuevo"
+                          color="primary"
+                        />
+                      </Grid> :
+                      null
+                  }
+
                   <Grid item xs={12}>
                     <UploadMultiFile
                       multiple

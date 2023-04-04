@@ -91,7 +91,7 @@ export default function Empleado() {
         if (params.value === 'M') {
           return 'MASCULINO';
         }
-        return 'FEMINIO';
+        return 'FEMENINO';
       },
     },
     {
