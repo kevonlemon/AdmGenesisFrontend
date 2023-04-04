@@ -1,15 +1,15 @@
 import React from 'react'
 import Page from '../../../../components/Page';
-import TablaJefeDepartamento from './components/tablaJefeDepartamento';
+import FormularioJefeDepartamento from './components/formularioJefeDepartamento'
 import { JefeDepartamentoContextProvider } from './context/jefeDepartamentoContext';
 
-export default function JefeDepartamento() {
+export default function JefeDepartamentoFormulario() {
 
     return (
         <>
             <JefeDepartamentoContextProvider>
                 <Page title="Jefe Departamento">
-                    <TablaJefeDepartamento/>
+                    <FormularioJefeDepartamento/>
                 </Page>
             </JefeDepartamentoContextProvider>
         </>
