@@ -22,7 +22,7 @@ CajaGenerica.propTypes = {
   ejecutarDependencia: PropTypes.func,
   activarDependencia: PropTypes.bool,
   camposAdicionales: PropTypes.array,
-  activarCamposAdicionales: PropTypes.bool,
+  activarCamposAdicionales: PropTypes.bool
 };
 
 function CajaGenerica(props) {
@@ -40,7 +40,7 @@ function CajaGenerica(props) {
     // eslint-disable-next-line react/prop-types
     inputRef,
     camposAdicionales,
-    activarCamposAdicionales
+    activarCamposAdicionales,
   } = props;
 
   const { mensajeSistema } = useMensaje();
