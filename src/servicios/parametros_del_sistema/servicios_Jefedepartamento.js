@@ -10,6 +10,42 @@ class ServiciosJefeDepartamento {
         const apiUrl = `${URLAPIGENERAL}/jefedepartamento/listar`;
         return axiosBirobid.get(apiUrl).then(res => res.data);
     }
+
+    /**
+    * @param {{ codigo: number }}
+    * @returns {Promise<Array<object>>}    
+    */
+     Buscar({ codigo }) {
+        const apiUrl = `${URLAPIGENERAL}/jefedepartamento/buscar?codigo=${codigo}`;
+        return axiosBirobid.get(apiUrl).then(res => res.data);
+    }
+
+    /**
+    * @param {{ datos: object }}
+    * @returns {Promise<number>}    
+    */
+     Grabar({ datos }) {
+        const apiUrl = `${URLAPIGENERAL}/jefedepartamento`;
+        return axiosBirobid.post(apiUrl, datos).then(res => res);
+    }
+
+    /**
+    * @param {{ datos: object }}
+    * @returns {Promise<number>}    
+    */
+     Editar({ datos }) {
+        const apiUrl = `${URLAPIGENERAL}/jefedepartamento`;
+        return axiosBirobid.put(apiUrl, datos).then(res => res);
+    }
+
+    /**
+    * @param {{ codigo: number }}
+    * @returns {Promise<Array<object>>}    
+    */
+     Eliminar({ codigo }) {
+        const apiUrl = `${URLAPIGENERAL}/jefedepartamento?Codigo=${codigo}`;
+        return axiosBirobid.delete(apiUrl).then(res => res.data);
+    }
 }
 
 const serviciosJefeDepartamento = new ServiciosJefeDepartamento();
