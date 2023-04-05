@@ -13,6 +13,7 @@ import ThemeColorPresets from './components/ThemeColorPresets';
 import ThemeLocalization from './components/ThemeLocalization';
 import MotionLazyContainer from './components/animate/MotionLazyContainer';
 import MensajeGeneral from './components/admnomina/MensajeGeneral';
+import MensajePregunta from './components/admnomina/MensajePregunta';
 import Cargando from './components/admnomina/CargandoGenerico';
 
 // ----------------------------------------------------------------------
@@ -31,6 +32,7 @@ export default function App() {
                 <ScrollToTop />
                 <Router />
                 <MensajeGeneral />
+                <MensajePregunta />
                 <Cargando />
               </MotionLazyContainer>
             </NotistackProvider>

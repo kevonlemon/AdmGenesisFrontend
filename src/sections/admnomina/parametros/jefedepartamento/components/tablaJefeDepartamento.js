@@ -1,5 +1,4 @@
 import { useContext } from 'react';
-import { useNavigate } from "react-router";
 import { TextField, Button, Card, Grid, InputAdornment, Fade, Box } from '@mui/material';
 import { DataGrid, esES } from '@mui/x-data-grid';
 import AddCircleRoundedIcon from '@mui/icons-material/AddCircleRounded';
@@ -14,8 +13,7 @@ import { JefeDepartamentoContext } from '../context/jefeDepartamentoContext'
 
 
 function TablaJefeDepartamento() {
-    const { columns, rows, buscar, Buscar } = useContext(JefeDepartamentoContext)
-    const navegacion = useNavigate()
+    const { columns, rows, buscar, Buscar, Nuevo, Editar, usuario, nombreOpcion } = useContext(JefeDepartamentoContext)
 
     return (
         <>
@@ -29,7 +27,7 @@ function TablaJefeDepartamento() {
                                 fullWidth
                                 variant="contained"
                                 onClick={() => {
-                                    // Nuevo();
+                                    Nuevo();
                                 }}
                                 startIcon={<AddCircleRoundedIcon />}
                             >
@@ -64,10 +62,10 @@ function TablaJefeDepartamento() {
                             <Grid item container spacing={1} md={8} sm={6} xs={12} justifyContent="flex-end">
                                 <Grid item md={1.5} sm={3} xs={6}>
                                     <Button
-                                        // disabled
+                                        disabled={rows.length === 0}
                                         fullWidth
                                         variant="text"
-                                        // href={`${URLAPILOCAL}/empleados/generarexcel`}
+                                        href={`${URLAPIGENERAL}/jefedepartamento/generarExcel?tituloexcel=${nombreOpcion}`}
                                         target="_blank"
                                         startIcon={<ViewComfyRoundedIcon />}
                                     >
@@ -76,10 +74,10 @@ function TablaJefeDepartamento() {
                                 </Grid>
                                 <Grid item md={1.5} sm={3} xs={6}>
                                     <Button
-                                        // disabled
+                                        disabled={rows.length === 0}
                                         fullWidth
                                         variant="text"
-                                        // href={`${URLAPIGENERAL}/empleados/generarpdf?operador=${usuario.tipo_Persona}`}
+                                        href={`${URLAPIGENERAL}/jefedepartamento/generarpdf?operador=${usuario.nombreCompleto}&tituloPdf=${nombreOpcion}`}
                                         target="_blank"
                                         startIcon={<PictureAsPdfRoundedIcon />}
                                     >
@@ -101,11 +99,11 @@ function TablaJefeDepartamento() {
                                 density="compact"
                                 rowHeight={28}
                                 localeText={esES.components.MuiDataGrid.defaultProps.localeText}
-                                onRowDoubleClick={(e) => navegacion(`/sistema/parametros/formulariojefedepartamento`)}
+                                onRowDoubleClick={(e) => Editar(e)}
                                 sx={estilosdatagrid}
                                 rows={rows}
                                 columns={columns}
-                                getRowId={(rows) => rows.id}
+                                getRowId={(rows) => rows.codigo}
                                 components={{
                                     NoRowsOverlay: CustomNoRowsOverlay,
                                 }}
