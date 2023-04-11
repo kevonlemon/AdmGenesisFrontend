@@ -340,10 +340,26 @@ export const JefeDepartamentoContextProvider = ({ children }) => {
     }
 
     const filtrarEmpleados = () => {
-        if (departamento.codigoalternativo !== "") {
-            const empleadoFiltrado = listaEmpleados.filter(f => f.esJefeDepartamento === false)
-            setListaEmpleados(empleadoFiltrado)
-        }
+        if (modo === "nuevo") {
+            if (departamento.codigoalternativo !== "") {
+                const empleadoFiltrado = listaEmpleados.filter(f => f.esJefeDepartamento === false)
+                setListaEmpleados(empleadoFiltrado)
+                console.log(rows)
+                const departamentoconJefe = rows.filter(f => f.codigoDepartamento === departamento.codigoalternativo)
+                if (departamentoconJefe.length !== 0) {
+                    mensajeSistemaGenerico(
+                        { tipo: 'warning', 
+                          mensaje: `El departamento seleccionado ya cuenta con un jefe asignado: ${departamentoconJefe[0].codigoEmpleado} - ${departamentoconJefe[0].nombreEmpleado},
+                                    si desea puede editar el jefe asignado o eliminar el registro para asignarle un nuevo jefe` 
+                        })
+                    setDepartamento({
+                        codigo: '',
+                        codigoalternativo: '',
+                        nombre: ''
+                    })
+                }
+            }
+        } 
     }
 
     useEffect(() => {
