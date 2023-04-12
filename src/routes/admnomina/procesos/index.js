@@ -22,6 +22,10 @@ const ContratoEmpleado = Loadable(
   lazy(() => import('../../../sections/admnomina/procesos/contratoempleados/ContratoEmpleado'))
 );
 
+const ControlHorarios = Loadable(
+  lazy(() => import('../../../sections/admnomina/procesos/controlhorarios/ControlHorarios'))
+);
+
 export const PROCESOS = [
   // {
   //     url: '/dashboard',
@@ -50,5 +54,9 @@ export const PROCESOS = [
   {
     url: '/contratoempleado',
     element: <ContratoEmpleado />,
+  },
+  {
+    url: '/controlhorarios',
+    element: <ControlHorarios />,
   },
 ];
