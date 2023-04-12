@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import { styled } from '@mui/material/styles';
 import { Stack, Button, Tooltip, Typography, IconButton, ToggleButton } from '@mui/material';
 import { fDate } from '../../../../../../utils/formatTime';
+import { fDateEs } from '../../../../../../utils/admnomina/funciones/funciones'
 import useResponsive from '../../../../../../hooks/useResponsive';
 import Iconify from '../../../../../../components/Iconify';
 
@@ -38,7 +39,7 @@ CalendarToolbarGenesis.propTypes = {
 
 export default function CalendarToolbarGenesis({ date, view, onToday, onNextDate, onPrevDate, onChangeView }) {
   const isDesktop = useResponsive('up', 'sm');
-
+  console.log('date toolbar', date)
   return (
     <RootStyle>
       {isDesktop && (
@@ -63,7 +64,7 @@ export default function CalendarToolbarGenesis({ date, view, onToday, onNextDate
           <Iconify icon="eva:arrow-ios-back-fill" width={20} height={20} />
         </IconButton>
 
-        <Typography variant="h5">{fDate(date)}</Typography>
+        <Typography variant="h5">{fDateEs(date)}</Typography>
 
         <IconButton onClick={onNextDate}>
           <Iconify icon="eva:arrow-ios-forward-fill" width={20} height={20} />

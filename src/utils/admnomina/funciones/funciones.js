@@ -1,5 +1,5 @@
 import axios from 'axios';
-
+import { format } from 'date-fns';
 /**
  * @param {{fecha: string, separador: string, union: string}}
  * @returns {string}
@@ -180,3 +180,16 @@ export const abortarPeticion = () => {
   const controlador = new AbortController();
   return controlador;
 };
+
+export function fDateEs(date) {
+  const opciones = {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  };
+
+  const formatoFecha = new Intl.DateTimeFormat('es-ES', opciones);
+  const fecha = new Date(date);
+
+  return formatoFecha.format(fecha);
+}
