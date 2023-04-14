@@ -101,25 +101,36 @@ export const { openModal, closeModal, selectEvent } = slice.actions;
 
 // ----------------------------------------------------------------------
 
-export function getEvents() {
+export function getEvents(calendario, datos = {}) {
   return async () => {
     dispatch(slice.actions.startLoading());
-    try {
-      const response = await axiosBirobid.get('/controlhorarios/listar');
-      const { data } = response;
-      console.log('data', data)
-      const eventos = data.map((m, i) => ({
+    if (calendario === 'horarios') {
+      console.log('datos a enviar', datos)
+      try {
+        const response = await axiosBirobid.get(`/controlhorarios/buscar?Empleado=${datos.codigoEmpleado}`);
+        const { data } = response;
+        console.log('data', data)
+        const eventos = data.map((m, i) => ({
           id: `e99f09a7-dd88-49d5-b1c8-1daf80c2d7b${i}`,
           allDay: true,
           description: 'Pruebas de obtención de datos',
           start: m.fechaTrabajo,
           end: m.fechaTrabajo,
           textColor: "#00AB55",
-          title: `${m.horaDesde.substring(0,5)} - ${m.horaHasta.substring(0,5)}`
-      }))
-      dispatch(slice.actions.getEventsSuccess(eventos));
-    } catch (error) {
-      dispatch(slice.actions.hasError(error));
+          title: `${m.horaDesde.substring(0, 5)} - ${m.horaHasta.substring(0, 5)}`
+        }))
+        dispatch(slice.actions.getEventsSuccess(eventos));
+      } catch (error) {
+        dispatch(slice.actions.hasError(error));
+      }
+    }
+    if (calendario === 'plantilla') {
+      try {
+        const response = await axios.get('/api/calendar/events');
+        dispatch(slice.actions.getEventsSuccess(response.data.events));
+      } catch (error) {
+        dispatch(slice.actions.hasError(error));
+      }
     }
   };
 }
