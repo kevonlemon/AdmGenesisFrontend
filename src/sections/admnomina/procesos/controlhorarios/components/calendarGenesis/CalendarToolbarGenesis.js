@@ -39,7 +39,6 @@ CalendarToolbarGenesis.propTypes = {
 
 export default function CalendarToolbarGenesis({ date, view, onToday, onNextDate, onPrevDate, onChangeView }) {
   const isDesktop = useResponsive('up', 'sm');
-  console.log('date toolbar', date)
   return (
     <RootStyle>
       {isDesktop && (

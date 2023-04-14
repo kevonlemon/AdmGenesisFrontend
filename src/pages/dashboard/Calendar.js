@@ -52,7 +52,7 @@ export default function Calendar() {
   const { events, isOpenModal, selectedRange } = useSelector((state) => state.calendar);
 
   useEffect(() => {
-    dispatch(getEvents());
+    dispatch(getEvents('plantilla'));
   }, [dispatch]);
 
   useEffect(() => {
