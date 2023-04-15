@@ -67,10 +67,6 @@ export default function CalendarFormGenesis({ event, range, onCancel }) {
     defaultValues: getInitialValues(event, range),
   });
 
-  console.log('q es esto', EventSchema)
-
-  console.log('q es esto otro', methods)
-
   const {
     reset,
     watch,
@@ -115,78 +111,83 @@ export default function CalendarFormGenesis({ event, range, onCancel }) {
   };
 
   const values = watch();
-  console.log('values?',values)
+  // console.log('values?',values)
   const isDateError = isBefore(new Date(values.end), new Date(values.start));
 
   return (
-    <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-      <Stack spacing={3} sx={{ p: 3 }}>
-        <RHFTextField name="title" label="Title" />
+    // <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
+    //   <Stack spacing={3} sx={{ p: 3 }}>
+    //     <RHFTextField name="title" label="Title" />
 
-        <RHFTextField name="description" label="Description" multiline rows={4} />
+    //     <RHFTextField name="description" label="Description" multiline rows={4} />
 
-        <RHFSwitch name="allDay" label="All day" />
+    //     <RHFSwitch name="allDay" label="All day" />
 
-        <Controller
-          name="start"
-          control={control}
-          render={({ field }) => (
-            <MobileDateTimePicker
-              {...field}
-              label="Start date"
-              inputFormat="dd/MM/yyyy hh:mm a"
-              renderInput={(params) => <TextField {...params} fullWidth />}
-            />
-          )}
-        />
+    //     <Controller
+    //       name="start"
+    //       control={control}
+    //       render={({ field }) => (
+    //         <MobileDateTimePicker
+    //           {...field}
+    //           label="Start date"
+    //           inputFormat="dd/MM/yyyy hh:mm a"
+    //           renderInput={(params) => <TextField {...params} fullWidth />}
+    //         />
+    //       )}
+    //     />
 
-        <Controller
-          name="end"
-          control={control}
-          render={({ field }) => (
-            <MobileDateTimePicker
-              {...field}
-              label="End date"
-              inputFormat="dd/MM/yyyy hh:mm a"
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  fullWidth
-                  error={!!isDateError}
-                  helperText={isDateError && 'End date must be later than start date'}
-                />
-              )}
-            />
-          )}
-        />
+    //     <Controller
+    //       name="end"
+    //       control={control}
+    //       render={({ field }) => (
+    //         <MobileDateTimePicker
+    //           {...field}
+    //           label="End date"
+    //           inputFormat="dd/MM/yyyy hh:mm a"
+    //           renderInput={(params) => (
+    //             <TextField
+    //               {...params}
+    //               fullWidth
+    //               error={!!isDateError}
+    //               helperText={isDateError && 'End date must be later than start date'}
+    //             />
+    //           )}
+    //         />
+    //       )}
+    //     />
 
-        <Controller
-          name="textColor"
-          control={control}
-          render={({ field }) => (
-            <ColorSinglePicker value={field.value} onChange={field.onChange} colors={COLOR_OPTIONS} />
-          )}
-        />
-      </Stack>
+    //     <Controller
+    //       name="textColor"
+    //       control={control}
+    //       render={({ field }) => (
+    //         <ColorSinglePicker value={field.value} onChange={field.onChange} colors={COLOR_OPTIONS} />
+    //       )}
+    //     />
+    //   </Stack>
 
-      <DialogActions>
-        {!isCreating && (
-          <Tooltip title="Delete Event">
-            <IconButton onClick={handleDelete}>
-              <Iconify icon="eva:trash-2-outline" width={20} height={20} />
-            </IconButton>
-          </Tooltip>
-        )}
-        <Box sx={{ flexGrow: 1 }} />
+    //   <DialogActions>
+    //     {!isCreating && (
+    //       <Tooltip title="Delete Event">
+    //         <IconButton onClick={handleDelete}>
+    //           <Iconify icon="eva:trash-2-outline" width={20} height={20} />
+    //         </IconButton>
+    //       </Tooltip>
+    //     )}
+    //     <Box sx={{ flexGrow: 1 }} />
 
-        <Button variant="outlined" color="inherit" onClick={onCancel}>
-          Cancel
-        </Button>
+    //     <Button variant="outlined" color="inherit" onClick={onCancel}>
+    //       Cancel
+    //     </Button>
 
-        <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
-          Add
-        </LoadingButton>
-      </DialogActions>
-    </FormProvider>
+    //     <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
+    //       Add
+    //     </LoadingButton>
+    //   </DialogActions>
+    // </FormProvider>
+    <>
+      {/* <Stack spacing={3} sx={{ p: 3 }}>
+
+      </Stack> */}
+    </>
   );
 }

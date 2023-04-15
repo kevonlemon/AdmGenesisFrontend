@@ -55,6 +55,7 @@ export default function CalendarGenesis() {
               allDayMaintainDuration
               eventResizableFromStart
               select={handleSelectRange}
+              dateClick={(e) => console.log(e)}
               eventDrop={handleDropEvent}
               eventClick={handleSelectEvent}
               eventResize={handleResizeEvent}
@@ -65,7 +66,7 @@ export default function CalendarGenesis() {
         </Card>
 
         <DialogAnimate open={isOpenModal} onClose={handleCloseModal}>
-          <DialogTitle>{selectedEvent ? 'Edit Event' : 'Add Event'}</DialogTitle>
+          <DialogTitle>{selectedEvent ? 'Editar Horario' : 'Agregar Horario'}</DialogTitle>
 
           <CalendarFormGenesis event={selectedEvent || {}} range={selectedRange} onCancel={handleCloseModal} />
         </DialogAnimate>

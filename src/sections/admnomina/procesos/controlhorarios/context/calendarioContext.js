@@ -78,7 +78,21 @@ export const CalendarioContextProvider = ({ children }) => {
     };
     // selecciona un rango de fechas en el calendario
     const handleSelectRange = (arg) => {
+        console.log('arg', arg)
+        if (empleado.nombre === '') {
+            mensajeSistemaGenerico({ tipo: 'warning', mensaje: 'Para agregar un horario debe seleccionar el empleado al que se va a asignar el horario primero' });
+            return
+        }
+        const fechaSeleccionada = arg.startStr
+        const existeYahorario = events.filter(f => f.start.substring(0, 10) === fechaSeleccionada)
+        if (existeYahorario.length !== 0) {
+            mensajeSistemaGenerico({ tipo: 'warning', mensaje: 'Ya existe un horario en la fecha seleccionada' });
+            return
+        }
+        console.log('existe?', existeYahorario)
         const calendarEl = calendarRef.current;
+        console.log('calendaref', calendarEl)
+        console.log('events', events)
         if (calendarEl) {
             const calendarApi = calendarEl.getApi();
             calendarApi.unselect();
