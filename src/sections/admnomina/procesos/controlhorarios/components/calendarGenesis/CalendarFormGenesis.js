@@ -1,3 +1,4 @@
+import { useContext } from 'react';
 import PropTypes from 'prop-types';
 import * as Yup from 'yup';
 import merge from 'lodash/merge';
@@ -5,13 +6,20 @@ import { isBefore } from 'date-fns';
 import { useSnackbar } from 'notistack';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Box, Stack, Button, Tooltip, TextField, IconButton, DialogActions } from '@mui/material';
-import { LoadingButton, MobileDateTimePicker } from '@mui/lab';
+import { Box, Card, Grid, Button, Tooltip, TextField, IconButton, DialogTitle, Modal, Stack } from '@mui/material';
+import AdapterDateFns from '@mui/lab/AdapterDateFns';
+import LocalizationProvider from '@mui/lab/LocalizationProvider';
+import es from 'date-fns/locale/es';
+import { LoadingButton, MobileDateTimePicker, TimePicker } from '@mui/lab';
 import { useDispatch } from '../../../../../../redux/store';
 import { createEvent, updateEvent, deleteEvent } from '../../../../../../redux/slices/calendar';
 import Iconify from '../../../../../../components/Iconify';
 import { ColorSinglePicker } from '../../../../../../components/color-utils';
 import { FormProvider, RHFTextField, RHFSwitch } from '../../../../../../components/hook-form';
+import RequiredTextField from '../../../../../../components/admnomina/RequiredTextField';
+import DisableTextField from '../../../../../../components/admnomina/DisabledTextField';
+import moment from '../../../../../../utils/admnomina/funciones/funciones';
+import { CalendarioContext } from '../../context/calendarioContext'
 
 // ----------------------------------------------------------------------
 
@@ -44,6 +52,18 @@ const getInitialValues = (event, range) => {
 
 // ----------------------------------------------------------------------
 
+const stylemodal = {
+  borderRadius: '1rem',
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: { xs: '100%', sm: '45%', md: '30%', lg: '30%' },
+  height: 'auto',
+  bgcolor: 'background.paper',
+  boxShadow: 24,
+};
+
 CalendarFormGenesis.propTypes = {
   event: PropTypes.object,
   range: PropTypes.object,
@@ -51,6 +71,7 @@ CalendarFormGenesis.propTypes = {
 };
 
 export default function CalendarFormGenesis({ event, range, onCancel }) {
+  const { mensajeSistemaPregunta, fechaSeleccionada, formulario, setFormulario, abrirModal, cerrarModal, tipoModal, selectedEvent, events } = useContext(CalendarioContext)
   const { enqueueSnackbar } = useSnackbar();
 
   const dispatch = useDispatch();
@@ -99,16 +120,56 @@ export default function CalendarFormGenesis({ event, range, onCancel }) {
     }
   };
 
+  const guardarHorario = async () => {
+    try {
+      if (tipoModal === 'Editar Horario') {
+        const horaEntradaStr = moment(formulario.horaEntrada).format('HH:mm:ss')
+        const horaSalidaStr = moment(formulario.horaSalida).format('HH:mm:ss')
+        // const horarioActualizado = {
+        //   ...selectedEvent,
+        //   horaEntrada: horaEntradaStr,
+        //   horaSalida: horaSalidaStr,
+        //   title: `${horaEntradaStr.substring(0,5)} - ${horaSalidaStr.substring(0,5)}`
+        // }
+        console.log('events', events);
+        const horarioActualizado = events.map((m) => ({
+          ...m,
+          horaEntrada: m.id === selectedEvent.id ? horaEntradaStr : m.horaEntrada,
+          horaSalida: m.id === selectedEvent.id ? horaSalidaStr : m.horaSalida,
+          title: m.id === selectedEvent.id ? `${horaEntradaStr.substring(0,5)} - ${horaSalidaStr.substring(0,5)}` : m.title
+        }))
+        console.log("🚀 ~ file: CalendarFormGenesis.js:142 ~ horarioActualizado ~ horarioActualizado:", horarioActualizado)
+        dispatch(updateEvent(selectedEvent.id, horarioActualizado, 'horarios'));
+        enqueueSnackbar('Horario Actualizado!');
+        cerrarModal();
+      } else {
+        console.log('fechaselect', fechaSeleccionada) 
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  
   const handleDelete = async () => {
     if (!event.id) return;
     try {
       onCancel();
       dispatch(deleteEvent(event.id));
-      enqueueSnackbar('Delete success!');
+      enqueueSnackbar('Horario eliminado!');
     } catch (error) {
       console.error(error);
     }
   };
+
+  const eliminarHorario = () => {
+    mensajeSistemaPregunta({
+      mensaje: `¿Está seguro de eliminar este horario?`,
+      ejecutarFuncion: () => {
+        handleDelete();
+        cerrarModal();
+      },
+    });
+  }
 
   const values = watch();
   // console.log('values?',values)
@@ -185,9 +246,105 @@ export default function CalendarFormGenesis({ event, range, onCancel }) {
     //   </DialogActions>
     // </FormProvider>
     <>
-      {/* <Stack spacing={3} sx={{ p: 3 }}>
-
-      </Stack> */}
+      <Modal
+        open={abrirModal}
+        onClose={cerrarModal}
+        closeAfterTransition
+      >
+        <Stack spacing={3} sx={{ p: 5 }}>
+          <Card sx={stylemodal}>
+            <Grid container spacing={1}>
+              <Grid item xs={12}>
+                <DialogTitle>{tipoModal}</DialogTitle>
+              </Grid>
+              <Grid item container xs={12} sx={{ mt: 1, mr: 2, ml: 2, mb: 2 }}>
+                <Grid item container spacing={1}>
+                  <Grid item xs={12}>
+                    <DisableTextField 
+                      fullWidth
+                      disabled
+                      size="small"
+                      label="Fecha"
+                      variant="outlined"
+                      value={formulario.fecha} 
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <LocalizationProvider dateAdapter={AdapterDateFns} locale={es}>
+                      <TimePicker
+                        ampm={false}
+                        openTo="hours"
+                        views={['hours', 'minutes']}
+                        inputFormat="HH:mm"
+                        mask="__:__"
+                        label="Hora de Ingreso"
+                        value={formulario.horaEntrada}
+                        onChange={(newValue) => {
+                          setFormulario({
+                            ...formulario,
+                            horaEntrada: newValue,
+                          });
+                        }}
+                        renderInput={(params) => <RequiredTextField fullWidth size="small" {...params} />}
+                      />
+                    </LocalizationProvider>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <LocalizationProvider dateAdapter={AdapterDateFns} locale={es}>
+                      <TimePicker
+                        ampm={false}
+                        openTo="hours"
+                        views={['hours', 'minutes']}
+                        inputFormat="HH:mm"
+                        mask="__:__"
+                        label="Hora de Salida"
+                        value={formulario.horaSalida}
+                        onChange={(newValue) => {
+                          setFormulario({
+                            ...formulario,
+                            horaSalida: newValue,
+                          });
+                        }}
+                        renderInput={(params) => <RequiredTextField fullWidth size="small" {...params} />}
+                      />
+                    </LocalizationProvider>
+                  </Grid>
+                  <Grid item container xs={12} spacing={1} justifyContent="flex-end">
+                    {
+                      tipoModal === 'Editar Horario' ? 
+                      <Grid item xs={4}>
+                        <Tooltip title="Eliminar Horario">
+                          <IconButton onClick={eliminarHorario}>
+                            <Iconify icon="eva:trash-2-outline" width={20} height={20} />
+                          </IconButton>
+                        </Tooltip> 
+                      </Grid> : null
+                    }
+                    <Grid item xs={4}>
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        onClick={() => { guardarHorario() }}
+                      >
+                        Guardar
+                      </Button>
+                    </Grid>
+                    <Grid item xs={4}>
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        onClick={() => { cerrarModal() }}
+                      >
+                        Cancelar
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </Grid>
+              </Grid>
+            </Grid>
+          </Card>
+        </Stack>
+      </Modal>
     </>
   );
 }

@@ -4,6 +4,7 @@ import { getEvents, openModal, closeModal, updateEvent, selectEvent, selectRange
 import useSettings from '../../../../../hooks/useSettings';
 import useResponsive from '../../../../../hooks/useResponsive';
 import useCargando from "../../../../../hooks/admnomina/useCargando";
+import { formatearFecha } from "../../../../../utils/admnomina/funciones/funciones"
 import useMensajeGeneral from '../../../../../hooks/admnomina/useMensajeGeneral';
 import { FormularioContext } from "./formularioContext"
 
@@ -35,9 +36,23 @@ export const CalendarioContextProvider = ({ children }) => {
     const dispatch = useDispatch();
     const calendarRef = useRef(null);
     const [fecha, setFecha] = useState(new Date());
+    const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date())
     const selectedEvent = useSelector(selectedEventSelector);
     const { events, isOpenModal, selectedRange } = useSelector((state) => state.calendar);
 
+    const [formulario, setFormulario] = useState({
+        horaEntrada: new Date(),
+        horaSalida: new Date(),
+        fecha: ''
+    })
+
+    const [abrirModal, setAbrirModal] = useState(false)
+    const [tipoModal, setTipoModal] = useState('Agregar Horario')
+    const abrirTipoModal = (tipo) => {
+        setAbrirModal(true)
+        setTipoModal(tipo)
+    }
+    const cerrarModal = () => setAbrirModal((p) => !p)
 
     // funciones del calendario ------------------------------------------------------------------------------
     // regresa el calendario al día actual
@@ -98,10 +113,35 @@ export const CalendarioContextProvider = ({ children }) => {
             calendarApi.unselect();
         }
         dispatch(selectRange(arg.start, arg.end));
+        setFechaSeleccionada(fechaSeleccionada)
+        setFormulario({
+            fecha: formatearFecha({ fecha: fechaSeleccionada, separador: '-', union: '/' }),
+            horaEntrada: new Date(),
+            horaSalida: new Date()
+        })
+        abrirTipoModal('Agregar Horario')
     };
     // selecciona un evento (horario) en el calendario
     const handleSelectEvent = (arg) => {
+        console.log('se ejecuta?');
+        const evento = events.filter(f => f.id === arg.event.id)
+        const { horaEntrada } = evento[0]
+        const { horaSalida } = evento[0]
+        const fechaSelecc = evento[0].start
+        console.log("🚀 ~ file: calendarioContext.js:125 ~ handleSelectEvent ~ fechaSelecc:", fechaSelecc)
+        const [hourE, minuteE, secondE] = horaEntrada.split(':');
+        const [hourS, minuteS, secondS] = horaSalida.split(':');
+        const fechaBaseEntrada = new Date();
+        const fechaBaseSalida = new Date();
+        const horaEformateada = fechaBaseEntrada.setHours(parseFloat(hourE), parseFloat(minuteE), parseFloat(secondE))
+        const horaSformateada = fechaBaseSalida.setHours(parseFloat(hourS), parseFloat(minuteS), parseFloat(secondS))
+        setFormulario({
+            fecha: formatearFecha({ fecha: fechaSelecc, separador: '-', union: '/' }),
+            horaEntrada: horaEformateada,
+            horaSalida: horaSformateada
+        })
         dispatch(selectEvent(arg.event.id));
+        abrirTipoModal('Editar Horario')
     };
     // ?
     const handleResizeEvent = async ({ event }) => {
@@ -165,8 +205,9 @@ export const CalendarioContextProvider = ({ children }) => {
     return (
         <CalendarioContext.Provider
             value={{ 
-                themeStretch, view, isDesktop,
-                fecha, selectedEvent, events, isOpenModal, selectedRange, calendarRef,
+                themeStretch, view, isDesktop, mensajeSistemaPregunta,
+                fecha, fechaSeleccionada, selectedEvent, events, isOpenModal, selectedRange, calendarRef,
+                formulario, setFormulario, abrirModal, cerrarModal, tipoModal,
                 handleClickToday, handleChangeView, handleClickDatePrev, handleClickDateNext, handleSelectRange,
                 handleSelectEvent, handleResizeEvent, handleDropEvent, handleAddEvent, handleCloseModal
             }}
