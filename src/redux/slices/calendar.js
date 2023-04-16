@@ -47,15 +47,14 @@ const slice = createSlice({
     // UPDATE EVENT
     updateEventSuccess(state, action) {
       const event = action.payload;
-      const updateEvent = state.events.map((_event) => {
-        if (_event.id === event.id) {
-          return event;
-        }
-        return _event;
-      });
-
+      // const updateEvent = state.events.map((_event) => {
+      //   if (_event.id === event.id) {
+      //     return event;
+      //   }
+      //   return _event;
+      // });
       state.isLoading = false;
-      state.events = updateEvent;
+      state.events = event;
     },
 
     // DELETE EVENT
@@ -110,14 +109,17 @@ export function getEvents(calendario, datos = {}) {
         const response = await axiosBirobid.get(`/controlhorarios/buscar?Empleado=${datos.codigoEmpleado}`);
         const { data } = response;
         console.log('data', data)
-        const eventos = data.map((m, i) => ({
-          id: `e99f09a7-dd88-49d5-b1c8-1daf80c2d7b${i}`,
+        const eventos = data.map((m,i) => ({
+          id: `${i}-${m.empleado}-${m.fechaTrabajo.substring(0,10)}`,
+          codigo: m.codigo,
           allDay: true,
           description: 'Pruebas de obtención de datos',
           start: m.fechaTrabajo,
           end: m.fechaTrabajo,
           textColor: "#00AB55",
-          title: `${m.horaDesde.substring(0, 5)} - ${m.horaHasta.substring(0, 5)}`
+          title: `${m.horaDesde.substring(0, 5)} - ${m.horaHasta.substring(0, 5)}`,
+          horaEntrada: m.horaDesde,
+          horaSalida: m.horaHasta
         }))
         dispatch(slice.actions.getEventsSuccess(eventos));
       } catch (error) {
@@ -151,19 +153,34 @@ export function createEvent(newEvent) {
 
 // ----------------------------------------------------------------------
 
-export function updateEvent(eventId, updateEvent) {
-  return async () => {
-    dispatch(slice.actions.startLoading());
-    try {
-      const response = await axios.post('/api/calendar/events/update', {
-        eventId,
-        updateEvent,
-      });
-      dispatch(slice.actions.updateEventSuccess(response.data.event));
-    } catch (error) {
-      dispatch(slice.actions.hasError(error));
+export function updateEvent(eventId, updateEvent, calendario = 'plantilla') {
+  if (calendario === 'plantilla') {
+    return async () => {
+      dispatch(slice.actions.startLoading());
+      try {
+        const response = await axios.post('/api/calendar/events/update', {
+          eventId,
+          updateEvent,
+        });
+        dispatch(slice.actions.updateEventSuccess(response.data.event));
+      } catch (error) {
+        dispatch(slice.actions.hasError(error));
+      }
+    };
+  } 
+  if (calendario === 'horarios') {
+    return () => {
+      dispatch(slice.actions.startLoading());
+      try {
+        console.log('updatEven', updateEvent)
+        dispatch(slice.actions.updateEventSuccess(updateEvent))
+        // state.events = updateEvent;
+      } catch (error) {
+        dispatch(slice.actions.hasError(error));
+      }
     }
-  };
+  }
+  return null;
 }
 
 // ----------------------------------------------------------------------

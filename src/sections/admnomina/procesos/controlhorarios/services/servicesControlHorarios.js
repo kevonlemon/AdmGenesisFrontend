@@ -21,6 +21,5 @@ class ServicesControlHorario {
     }
 }
 
-// servicios
 const serviciosControlHorario = new ServicesControlHorario()
 export default serviciosControlHorario;

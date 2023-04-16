@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { format } from 'date-fns';
+import moment from 'moment';
 /**
  * @param {{fecha: string, separador: string, union: string}}
  * @returns {string}
@@ -193,3 +194,5 @@ export function fDateEs(date) {
 
   return formatoFecha.format(fecha);
 }
+
+export default moment;

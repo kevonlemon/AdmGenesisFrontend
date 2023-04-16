@@ -65,11 +65,11 @@ export default function CalendarGenesis() {
           </CalendarStyleGenesis>
         </Card>
 
-        <DialogAnimate open={isOpenModal} onClose={handleCloseModal}>
-          <DialogTitle>{selectedEvent ? 'Editar Horario' : 'Agregar Horario'}</DialogTitle>
+        {/* <DialogAnimate open={isOpenModal} onClose={handleCloseModal}>
+          <DialogTitle>{selectedEvent ? 'Editar Horario' : 'Agregar Horario'}</DialogTitle> */}
 
           <CalendarFormGenesis event={selectedEvent || {}} range={selectedRange} onCancel={handleCloseModal} />
-        </DialogAnimate>
+        {/* </DialogAnimate> */}
       </Container>
   );
 }
