@@ -125,13 +125,6 @@ export default function CalendarFormGenesis({ event, range, onCancel }) {
       if (tipoModal === 'Editar Horario') {
         const horaEntradaStr = moment(formulario.horaEntrada).format('HH:mm:ss')
         const horaSalidaStr = moment(formulario.horaSalida).format('HH:mm:ss')
-        // const horarioActualizado = {
-        //   ...selectedEvent,
-        //   horaEntrada: horaEntradaStr,
-        //   horaSalida: horaSalidaStr,
-        //   title: `${horaEntradaStr.substring(0,5)} - ${horaSalidaStr.substring(0,5)}`
-        // }
-        console.log('events', events);
         const horarioActualizado = events.map((m) => ({
           ...m,
           horaEntrada: m.id === selectedEvent.id ? horaEntradaStr : m.horaEntrada,
