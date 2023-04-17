@@ -139,16 +139,27 @@ export function getEvents(calendario, datos = {}) {
 
 // ----------------------------------------------------------------------
 
-export function createEvent(newEvent) {
-  return async () => {
+export function createEvent(newEvent, calendario = 'plantilla') {
+  if (calendario === 'plantilla') {
+    return async () => {
+      dispatch(slice.actions.startLoading());
+      try {
+        const response = await axios.post('/api/calendar/events/new', newEvent);
+        dispatch(slice.actions.createEventSuccess(response.data.event));
+      } catch (error) {
+        dispatch(slice.actions.hasError(error));
+      }
+    };
+  }
+  if (calendario === 'horarios') {
     dispatch(slice.actions.startLoading());
     try {
-      const response = await axios.post('/api/calendar/events/new', newEvent);
-      dispatch(slice.actions.createEventSuccess(response.data.event));
+      dispatch(slice.actions.createEventSuccess(newEvent));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }
-  };
+  }
+  return null;
 }
 
 // ----------------------------------------------------------------------
