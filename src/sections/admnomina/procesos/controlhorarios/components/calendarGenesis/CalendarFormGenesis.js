@@ -6,7 +6,7 @@ import { isBefore } from 'date-fns';
 import { useSnackbar } from 'notistack';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Box, Card, Grid, Button, Tooltip, TextField, IconButton, DialogTitle, Modal, Stack } from '@mui/material';
+import { Box, Card, Grid, Button, Tooltip, Typography, IconButton, DialogTitle, Modal, Stack } from '@mui/material';
 import AdapterDateFns from '@mui/lab/AdapterDateFns';
 import LocalizationProvider from '@mui/lab/LocalizationProvider';
 import es from 'date-fns/locale/es';
@@ -19,7 +19,9 @@ import { FormProvider, RHFTextField, RHFSwitch } from '../../../../../../compone
 import RequiredTextField from '../../../../../../components/admnomina/RequiredTextField';
 import DisableTextField from '../../../../../../components/admnomina/DisabledTextField';
 import moment from '../../../../../../utils/admnomina/funciones/funciones';
+import serviciosControlHorario from '../../services/servicesControlHorarios';
 import { CalendarioContext } from '../../context/calendarioContext'
+import { FormularioContext } from '../../context/formularioContext';
 
 // ----------------------------------------------------------------------
 
@@ -72,12 +74,13 @@ CalendarFormGenesis.propTypes = {
 
 export default function CalendarFormGenesis({ event, range, onCancel }) {
   const { mensajeSistemaPregunta, fechaSeleccionada, formulario, setFormulario, abrirModal, cerrarModal, tipoModal, selectedEvent, events } = useContext(CalendarioContext)
+  const { usuarioLogeado, ip, sucursalLogeada, empleado, fechasHorario } = useContext(FormularioContext)
   const { enqueueSnackbar } = useSnackbar();
 
   const dispatch = useDispatch();
 
   const isCreating = Object.keys(event).length === 0;
-  
+
   const EventSchema = Yup.object().shape({
     title: Yup.string().max(255).required('Title is required'),
     description: Yup.string().max(5000),
@@ -129,20 +132,33 @@ export default function CalendarFormGenesis({ event, range, onCancel }) {
           ...m,
           horaEntrada: m.id === selectedEvent.id ? horaEntradaStr : m.horaEntrada,
           horaSalida: m.id === selectedEvent.id ? horaSalidaStr : m.horaSalida,
-          title: m.id === selectedEvent.id ? `${horaEntradaStr.substring(0,5)} - ${horaSalidaStr.substring(0,5)}` : m.title
+          title: m.id === selectedEvent.id ? `${horaEntradaStr.substring(0, 5)} - ${horaSalidaStr.substring(0, 5)}` : m.title
         }))
         console.log("🚀 ~ file: CalendarFormGenesis.js:142 ~ horarioActualizado ~ horarioActualizado:", horarioActualizado)
         dispatch(updateEvent(selectedEvent.id, horarioActualizado, 'horarios'));
         enqueueSnackbar('Horario Actualizado!');
         cerrarModal();
       } else {
-        console.log('fechaselect', fechaSeleccionada) 
+        const fechaselecDate = new Date(fechaSeleccionada)
+        const newHorario = {
+          empleado: empleado.codigo,
+          sucursal: sucursalLogeada,
+          primerDiadelAnio: fechasHorario.primerDiaAnio,
+          ultimoDiadelAnio: fechasHorario.ultimoDiaAnio,
+          mes: fechaselecDate.getMonth(),
+          anio: fechaselecDate.getFullYear(),
+          fecha: fechaSeleccionada,
+          vacaciones: false,
+          horaDesde: moment(formulario.horaEntrada).format('HH:mm:ss'),
+          horaHasta: moment(formulario.horaSalida).format('HH:mm:ss'),
+
+        }
       }
     } catch (error) {
       console.error(error);
     }
   }
-  
+
   const handleDelete = async () => {
     if (!event.id) return;
     try {
@@ -247,19 +263,41 @@ export default function CalendarFormGenesis({ event, range, onCancel }) {
         <Stack spacing={3} sx={{ p: 5 }}>
           <Card sx={stylemodal}>
             <Grid container spacing={1}>
-              <Grid item xs={12}>
-                <DialogTitle>{tipoModal}</DialogTitle>
+              <Grid item container spacing={0.5} xs={12} sx={{ mt: 1, mr: 2, ml: 2 }}>
+                <Grid item xs={12} sm={7} md={7}>
+                  <Typography variant='h5'>{tipoModal}</Typography>
+                </Grid>
+                <Grid item xs={12} sm={5} md={5}>
+                  <DisableTextField
+                    fullWidth
+                    disabled
+                    size="small"
+                    label="Total Horas"
+                    variant="outlined"
+                    value={formulario.totalHoras}
+                  />
+                </Grid>
               </Grid>
               <Grid item container xs={12} sx={{ mt: 1, mr: 2, ml: 2, mb: 2 }}>
                 <Grid item container spacing={1}>
-                  <Grid item xs={12}>
-                    <DisableTextField 
+                  <Grid item xs={12} sm={12} md={12}>
+                    <DisableTextField
                       fullWidth
                       disabled
                       size="small"
-                      label="Fecha"
+                      label="Fecha Entrada"
                       variant="outlined"
-                      value={formulario.fecha} 
+                      value={formulario.fechaEntrada}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={12} md={12}>
+                    <DisableTextField
+                      fullWidth
+                      disabled
+                      size="small"
+                      label="Fecha Salida"
+                      variant="outlined"
+                      value={formulario.fechaSalida}
                     />
                   </Grid>
                   <Grid item xs={12}>
@@ -304,14 +342,14 @@ export default function CalendarFormGenesis({ event, range, onCancel }) {
                   </Grid>
                   <Grid item container xs={12} spacing={1} justifyContent="flex-end">
                     {
-                      tipoModal === 'Editar Horario' ? 
-                      <Grid item xs={4}>
-                        <Tooltip title="Eliminar Horario">
-                          <IconButton onClick={eliminarHorario}>
-                            <Iconify icon="eva:trash-2-outline" width={20} height={20} />
-                          </IconButton>
-                        </Tooltip> 
-                      </Grid> : null
+                      tipoModal === 'Editar Horario' ?
+                        <Grid item xs={4}>
+                          <Tooltip title="Eliminar Horario">
+                            <IconButton onClick={eliminarHorario}>
+                              <Iconify icon="eva:trash-2-outline" width={20} height={20} />
+                            </IconButton>
+                          </Tooltip>
+                        </Grid> : null
                     }
                     <Grid item xs={4}>
                       <Button
