@@ -41,9 +41,11 @@ export const CalendarioContextProvider = ({ children }) => {
     const { events, isOpenModal, selectedRange } = useSelector((state) => state.calendar);
 
     const [formulario, setFormulario] = useState({
+        fechaEntrada: new Date(), 
         horaEntrada: new Date(),
+        fechaSalida: new Date(),
         horaSalida: new Date(),
-        fecha: ''
+        totalHoras: 0
     })
 
     const [abrirModal, setAbrirModal] = useState(false)
@@ -93,7 +95,6 @@ export const CalendarioContextProvider = ({ children }) => {
     };
     // selecciona un rango de fechas en el calendario
     const handleSelectRange = (arg) => {
-        console.log('arg', arg)
         if (empleado.nombre === '') {
             mensajeSistemaGenerico({ tipo: 'warning', mensaje: 'Para agregar un horario debe seleccionar el empleado al que se va a asignar el horario primero' });
             return
@@ -104,10 +105,7 @@ export const CalendarioContextProvider = ({ children }) => {
             mensajeSistemaGenerico({ tipo: 'warning', mensaje: 'Ya existe un horario en la fecha seleccionada' });
             return
         }
-        console.log('existe?', existeYahorario)
         const calendarEl = calendarRef.current;
-        console.log('calendaref', calendarEl)
-        console.log('events', events)
         if (calendarEl) {
             const calendarApi = calendarEl.getApi();
             calendarApi.unselect();
@@ -123,12 +121,11 @@ export const CalendarioContextProvider = ({ children }) => {
     };
     // selecciona un evento (horario) en el calendario
     const handleSelectEvent = (arg) => {
-        console.log('se ejecuta?');
         const evento = events.filter(f => f.id === arg.event.id)
         const { horaEntrada } = evento[0]
         const { horaSalida } = evento[0]
-        const fechaSelecc = evento[0].start
-        console.log("🚀 ~ file: calendarioContext.js:125 ~ handleSelectEvent ~ fechaSelecc:", fechaSelecc)
+        const { fechaEntrada } = evento[0]
+        const { fechaSalida } = evento[0]
         const [hourE, minuteE, secondE] = horaEntrada.split(':');
         const [hourS, minuteS, secondS] = horaSalida.split(':');
         const fechaBaseEntrada = new Date();
@@ -136,9 +133,11 @@ export const CalendarioContextProvider = ({ children }) => {
         const horaEformateada = fechaBaseEntrada.setHours(parseFloat(hourE), parseFloat(minuteE), parseFloat(secondE))
         const horaSformateada = fechaBaseSalida.setHours(parseFloat(hourS), parseFloat(minuteS), parseFloat(secondS))
         setFormulario({
-            fecha: formatearFecha({ fecha: fechaSelecc, separador: '-', union: '/' }),
+            fechaEntrada: formatearFecha({ fecha: fechaEntrada, separador: '-', union: '/' }),
+            fechaSalida: formatearFecha({ fecha: fechaSalida, separador: '-', union: '/' }),
             horaEntrada: horaEformateada,
-            horaSalida: horaSformateada
+            horaSalida: horaSformateada,
+            totalHoras: parseFloat(((formulario.horaSalida - formulario.horaEntrada) / 3600000).toFixed(2))
         })
         dispatch(selectEvent(arg.event.id));
         abrirTipoModal('Editar Horario')
@@ -191,6 +190,19 @@ export const CalendarioContextProvider = ({ children }) => {
         }
     }, [dispatch, empleado]);
 
+    // calcula el total de horas entre hora Ingreso y hora Salida
+    function CalcularHoras() {
+        const horas = parseFloat(((formulario.horaSalida - formulario.horaEntrada) / 3600000).toFixed(2))
+        setFormulario({
+            ...formulario,
+            totalHoras: horas
+        })
+    }
+    useEffect(() => {
+        CalcularHoras()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [formulario.horaEntrada, formulario.horaSalida])
+    
     // cambia el formato de vista de acuerdo a la relación de la pantalla
     useEffect(() => {
         const calendarEl = calendarRef.current;

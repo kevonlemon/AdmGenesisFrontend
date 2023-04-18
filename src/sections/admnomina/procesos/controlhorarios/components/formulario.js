@@ -46,7 +46,8 @@ export default function Formulario() {
                                         setEmpleado({
                                             codigo: e.codigo,
                                             codigoalternativo: e.codigoalternativo,
-                                            nombre: e.nombre
+                                            nombre: e.nombre,
+                                            jornada: e.jornada
                                         })
                                     }}
                                     datos={listaEmpleados}
@@ -59,3 +60,4 @@ export default function Formulario() {
         </>
     )
 }
+                                    

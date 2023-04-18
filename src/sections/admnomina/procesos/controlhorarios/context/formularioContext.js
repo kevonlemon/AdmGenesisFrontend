@@ -1,21 +1,33 @@
 import { createContext, useEffect, useState } from "react";
-
 import serviciosEmpleados from '../../../../../servicios/parametros_del_sistema/servicios_empleado'
 import useCargando from "../../../../../hooks/admnomina/useCargando";
 import useMensajeGeneral from '../../../../../hooks/admnomina/useMensajeGeneral';
+import { obtenerMaquina } from "../../../../../utils/sistema/funciones";
 
 export const FormularioContext = createContext();
 
 // eslint-disable-next-line react/prop-types
 export const FormularioContextProvider = ({ children }) => {
     const { empezarCarga, terminarCarga } = useCargando()
-    const { mensajeSistemaGenerico, mensajeSistemaPregunta } = useMensajeGeneral()
+    const { mensajeSistemaGenerico } = useMensajeGeneral()
 
+    const sucursalLocal = window.localStorage.getItem('sucursal');
+    const usuarioLocal = JSON.parse(window.localStorage.getItem('sucursal'))
+    const sucursalLogeada = sucursalLocal === null ? 0 : sucursalLocal;
+    const usuarioLogeado = usuarioLocal === null ? 0 : usuarioLocal.codigo;
+
+    const [ip, setIp] = useState('')
+    console.log('fecha',new Date().toISOString())
     const [listaEmpleados, setListaEmpleados] = useState([])
     const [empleado, setEmpleado] = useState({
         codigo: 0,
         codigoalternativo: '',
-        nombre: ''
+        nombre: '',
+        jornada: ''
+    })
+    const [fechasHorario, setFechasHorario] = useState({
+        primerDiaAnio: new Date(),
+        ultimoDiaAnio: new Date()
     })
 
     const ObtenerEmpleados = () => {
@@ -34,10 +46,19 @@ export const FormularioContextProvider = ({ children }) => {
         })
     }
 
-    const ObtenerDatos = () => {
+    const ObtenerDatos = async () => {
         empezarCarga()
         try 
         {
+            const fechaActual = new Date()
+            const primero = new Date(fechaActual.getFullYear(), 0, 1)
+            const ultimo = new Date(fechaActual.getFullYear(), 11, 31)
+            setFechasHorario({
+                primerDiaAnio: primero,
+                ultimoDiaAnio: ultimo
+            })
+            const maquina = await obtenerMaquina();
+            setIp(maquina);
             ObtenerEmpleados()
         } catch (error) {
             console.log(error)
@@ -56,8 +77,12 @@ export const FormularioContextProvider = ({ children }) => {
     return (
         <FormularioContext.Provider
             value={{ 
+                sucursalLogeada,
+                usuarioLogeado,
+                ip,
                 listaEmpleados,
                 empleado,
+                fechasHorario,
                 setEmpleado
             }}
         >

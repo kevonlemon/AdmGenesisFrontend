@@ -19,6 +19,14 @@ class ServicesControlHorario {
         const apiUrl = `${URLAPIGENERAL}/controlhorarios/buscar?Empleado=${empleado}`;
         return axiosBirobid.get(apiUrl).then(res => res);
     }
+
+    /**
+    * @returns {Promise<object>}    
+    */
+     ObtenerUltimoRegistroHorario() {
+        const apiUrl = `${URLAPIGENERAL}/controlhorarios/obtenerUltiReg`;
+        return axiosBirobid.get(apiUrl).then(res => res);
+    }
 }
 
 const serviciosControlHorario = new ServicesControlHorario()
