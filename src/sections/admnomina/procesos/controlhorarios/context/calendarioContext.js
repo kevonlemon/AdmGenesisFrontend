@@ -41,12 +41,24 @@ export const CalendarioContextProvider = ({ children }) => {
     const { events, isOpenModal, selectedRange } = useSelector((state) => state.calendar);
 
     const [formulario, setFormulario] = useState({
-        fechaEntrada: new Date(), 
-        horaEntrada: new Date(),
-        fechaSalida: new Date(),
-        horaSalida: new Date(),
+        fechaHoraEntrada: new Date(), 
+        fechaHoraSalida: new Date(),
         totalHoras: 0
     })
+
+    const cambiarFechaHoraEntrada = (e) => {
+        setFormulario({
+            ...formulario,
+            fechaHoraEntrada: e
+        })
+    }
+
+    const cambiarFechaHoraSalida = (e) => {
+        setFormulario({
+            ...formulario,
+            fechaHoraSalida: e
+        })
+    }
 
     const [abrirModal, setAbrirModal] = useState(false)
     const [tipoModal, setTipoModal] = useState('Agregar Horario')
@@ -113,9 +125,9 @@ export const CalendarioContextProvider = ({ children }) => {
         dispatch(selectRange(arg.start, arg.end));
         setFechaSeleccionada(fechaSeleccionada)
         setFormulario({
-            fecha: formatearFecha({ fecha: fechaSeleccionada, separador: '-', union: '/' }),
-            horaEntrada: new Date(),
-            horaSalida: new Date()
+            fechaHoraEntrada: new Date(), 
+            fechaHoraSalida: new Date(),
+            totalHoras: 0
         })
         abrirTipoModal('Agregar Horario')
     };
@@ -126,18 +138,16 @@ export const CalendarioContextProvider = ({ children }) => {
         const { horaSalida } = evento[0]
         const { fechaEntrada } = evento[0]
         const { fechaSalida } = evento[0]
+        const [anioE, mesE, diaE] = fechaEntrada.substring(0,10).split('-');
+        const [anioS, mesS, diaS] = fechaSalida.substring(0,10).split('-');
         const [hourE, minuteE, secondE] = horaEntrada.split(':');
         const [hourS, minuteS, secondS] = horaSalida.split(':');
-        const fechaBaseEntrada = new Date();
-        const fechaBaseSalida = new Date();
-        const horaEformateada = fechaBaseEntrada.setHours(parseFloat(hourE), parseFloat(minuteE), parseFloat(secondE))
-        const horaSformateada = fechaBaseSalida.setHours(parseFloat(hourS), parseFloat(minuteS), parseFloat(secondS))
+        const fechaHoraEntrada = new Date(parseFloat(anioE), parseFloat(mesE), parseFloat(diaE), parseFloat(hourE), parseFloat(minuteE), parseFloat(secondE), 0)
+        const fechaHoraSalida = new Date(parseFloat(anioS), parseFloat(mesS), parseFloat(diaS), parseFloat(hourS), parseFloat(minuteS), parseFloat(secondS), 0)
         setFormulario({
-            fechaEntrada: formatearFecha({ fecha: fechaEntrada, separador: '-', union: '/' }),
-            fechaSalida: formatearFecha({ fecha: fechaSalida, separador: '-', union: '/' }),
-            horaEntrada: horaEformateada,
-            horaSalida: horaSformateada,
-            totalHoras: parseFloat(((formulario.horaSalida - formulario.horaEntrada) / 3600000).toFixed(2))
+            fechaHoraEntrada,
+            fechaHoraSalida,
+            totalHoras: parseFloat(((formulario.fechaHoraSalida - formulario.fechaHoraEntrada) / 3600000).toFixed(2))
         })
         dispatch(selectEvent(arg.event.id));
         abrirTipoModal('Editar Horario')
@@ -192,16 +202,17 @@ export const CalendarioContextProvider = ({ children }) => {
 
     // calcula el total de horas entre hora Ingreso y hora Salida
     function CalcularHoras() {
-        const horas = parseFloat(((formulario.horaSalida - formulario.horaEntrada) / 3600000).toFixed(2))
+        const horas = parseFloat(((formulario.fechaHoraSalida - formulario.fechaHoraEntrada) / 3600000).toFixed(2))
         setFormulario({
             ...formulario,
-            totalHoras: horas
+            // eslint-disable-next-line no-restricted-globals
+            totalHoras: isNaN(horas) ? 0 : horas 
         })
     }
     useEffect(() => {
         CalcularHoras()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [formulario.horaEntrada, formulario.horaSalida])
+    }, [formulario.fechaHoraEntrada, formulario.fechaHoraSalida])
     
     // cambia el formato de vista de acuerdo a la relación de la pantalla
     useEffect(() => {
@@ -219,7 +230,7 @@ export const CalendarioContextProvider = ({ children }) => {
             value={{ 
                 themeStretch, view, isDesktop, mensajeSistemaPregunta,
                 fecha, fechaSeleccionada, selectedEvent, events, isOpenModal, selectedRange, calendarRef,
-                formulario, setFormulario, abrirModal, cerrarModal, tipoModal,
+                formulario, setFormulario, cambiarFechaHoraEntrada, cambiarFechaHoraSalida, abrirModal, cerrarModal, tipoModal,
                 handleClickToday, handleChangeView, handleClickDatePrev, handleClickDateNext, handleSelectRange,
                 handleSelectEvent, handleResizeEvent, handleDropEvent, handleAddEvent, handleCloseModal
             }}

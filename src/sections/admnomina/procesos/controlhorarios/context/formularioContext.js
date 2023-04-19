@@ -15,9 +15,7 @@ export const FormularioContextProvider = ({ children }) => {
     const usuarioLocal = JSON.parse(window.localStorage.getItem('sucursal'))
     const sucursalLogeada = sucursalLocal === null ? 0 : sucursalLocal;
     const usuarioLogeado = usuarioLocal === null ? 0 : usuarioLocal.codigo;
-
     const [ip, setIp] = useState('')
-    console.log('fecha',new Date().toISOString())
     const [listaEmpleados, setListaEmpleados] = useState([])
     const [empleado, setEmpleado] = useState({
         codigo: 0,
