@@ -15,7 +15,7 @@ import { useDispatch } from '../../../../../../redux/store';
 import { createEvent, updateEvent, deleteEvent } from '../../../../../../redux/slices/calendar';
 import Iconify from '../../../../../../components/Iconify';
 import { ColorSinglePicker } from '../../../../../../components/color-utils';
-import { FormProvider, RHFTextField, RHFSwitch } from '../../../../../../components/hook-form';
+import DateTimeTextField from '../../../../../../components/admnomina/DateTimeTextField';
 import RequiredTextField from '../../../../../../components/admnomina/RequiredTextField';
 import DisableTextField from '../../../../../../components/admnomina/DisabledTextField';
 import moment from '../../../../../../utils/admnomina/funciones/funciones';
@@ -73,7 +73,7 @@ CalendarFormGenesis.propTypes = {
 };
 
 export default function CalendarFormGenesis({ event, range, onCancel }) {
-  const { mensajeSistemaPregunta, fechaSeleccionada, formulario, setFormulario, abrirModal, cerrarModal, tipoModal, selectedEvent, events } = useContext(CalendarioContext)
+  const { mensajeSistemaPregunta, fechaSeleccionada, formulario, setFormulario, cambiarFechaHoraEntrada, cambiarFechaHoraSalida, abrirModal, cerrarModal, tipoModal, selectedEvent, events } = useContext(CalendarioContext)
   const { usuarioLogeado, ip, sucursalLogeada, empleado, fechasHorario } = useContext(FormularioContext)
   const { enqueueSnackbar } = useSnackbar();
 
@@ -280,65 +280,23 @@ export default function CalendarFormGenesis({ event, range, onCancel }) {
               </Grid>
               <Grid item container xs={12} sx={{ mt: 1, mr: 2, ml: 2, mb: 2 }}>
                 <Grid item container spacing={1}>
-                  <Grid item xs={12} sm={12} md={12}>
-                    <DisableTextField
-                      fullWidth
-                      disabled
-                      size="small"
-                      label="Fecha Entrada"
-                      variant="outlined"
-                      value={formulario.fechaEntrada}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={12} md={12}>
-                    <DisableTextField
-                      fullWidth
-                      disabled
-                      size="small"
-                      label="Fecha Salida"
-                      variant="outlined"
-                      value={formulario.fechaSalida}
+                  <Grid item xs={12}>
+                    <DateTimeTextField 
+                      label='Fecha-Hora Entrada:'
+                      value={formulario.fechaHoraEntrada}
+                      onChange={(e) => {
+                        cambiarFechaHoraEntrada(e)
+                      }}
                     />
                   </Grid>
                   <Grid item xs={12}>
-                    <LocalizationProvider dateAdapter={AdapterDateFns} locale={es}>
-                      <TimePicker
-                        ampm={false}
-                        openTo="hours"
-                        views={['hours', 'minutes']}
-                        inputFormat="HH:mm"
-                        mask="__:__"
-                        label="Hora de Ingreso"
-                        value={formulario.horaEntrada}
-                        onChange={(newValue) => {
-                          setFormulario({
-                            ...formulario,
-                            horaEntrada: newValue,
-                          });
-                        }}
-                        renderInput={(params) => <RequiredTextField fullWidth size="small" {...params} />}
-                      />
-                    </LocalizationProvider>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <LocalizationProvider dateAdapter={AdapterDateFns} locale={es}>
-                      <TimePicker
-                        ampm={false}
-                        openTo="hours"
-                        views={['hours', 'minutes']}
-                        inputFormat="HH:mm"
-                        mask="__:__"
-                        label="Hora de Salida"
-                        value={formulario.horaSalida}
-                        onChange={(newValue) => {
-                          setFormulario({
-                            ...formulario,
-                            horaSalida: newValue,
-                          });
-                        }}
-                        renderInput={(params) => <RequiredTextField fullWidth size="small" {...params} />}
-                      />
-                    </LocalizationProvider>
+                    <DateTimeTextField 
+                      label='Fecha-Hora Salida:'
+                      value={formulario.fechaHoraSalida}
+                      onChange={(e) => {
+                        cambiarFechaHoraSalida(e)
+                      }}
+                    />
                   </Grid>
                   <Grid item container xs={12} spacing={1} justifyContent="flex-end">
                     {
