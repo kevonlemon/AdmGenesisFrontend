@@ -73,7 +73,8 @@ CalendarFormGenesis.propTypes = {
 };
 
 export default function CalendarFormGenesis({ event, range, onCancel }) {
-  const { mensajeSistemaPregunta, fechaSeleccionada, formulario, setFormulario, cambiarFechaHoraEntrada, cambiarFechaHoraSalida, abrirModal, cerrarModal, tipoModal, selectedEvent, events } = useContext(CalendarioContext)
+  const { mensajeSistemaPregunta, fechaSeleccionada, formulario, setFormulario, cambiarFechaHoraEntrada, 
+          cambiarFechaHoraSalida, abrirModal, cerrarModal, tipoModal, selectedEvent, events, agregarHorario } = useContext(CalendarioContext)
   const { usuarioLogeado, ip, sucursalLogeada, empleado, fechasHorario } = useContext(FormularioContext)
   const { enqueueSnackbar } = useSnackbar();
 
@@ -136,8 +137,8 @@ export default function CalendarFormGenesis({ event, range, onCancel }) {
         }))
         console.log("🚀 ~ file: CalendarFormGenesis.js:142 ~ horarioActualizado ~ horarioActualizado:", horarioActualizado)
         dispatch(updateEvent(selectedEvent.id, horarioActualizado, 'horarios'));
-        enqueueSnackbar('Horario Actualizado!');
-        cerrarModal();
+        // enqueueSnackbar('Horario Actualizado!');
+        // cerrarModal();
       } else {
         const fechaselecDate = new Date(fechaSeleccionada)
         const newHorario = {
@@ -147,12 +148,23 @@ export default function CalendarFormGenesis({ event, range, onCancel }) {
           ultimoDiadelAnio: fechasHorario.ultimoDiaAnio,
           mes: fechaselecDate.getMonth(),
           anio: fechaselecDate.getFullYear(),
-          fecha: fechaSeleccionada,
+          fechaEntrada: formulario.fechaHoraEntrada.toISOString(),
+          fechaSalida: formulario.fechaHoraSalida.toISOString(),
           vacaciones: false,
-          horaDesde: moment(formulario.horaEntrada).format('HH:mm:ss'),
-          horaHasta: moment(formulario.horaSalida).format('HH:mm:ss'),
-
+          horaDesde: moment(formulario.fechaHoraEntrada).format('HH:mm:ss'),
+          horaHasta: moment(formulario.fechaHoraSalida).format('HH:mm:ss'),
+          totalHoras: formulario.totalHoras,
+          diferencia: formulario.totalHoras,
+          diasVacaciones: 0,
+          fechaIng: new Date(),
+          maquina: ip,
+          usuario: usuarioLogeado
         }
+        console.log('tosend', newHorario)
+        // console.log('respuesta', await dispatch(createEvent(newHorario, 'horarios')));
+        agregarHorario(newHorario)
+        // enqueueSnackbar('Horario Creado!');
+        // cerrarModal();
       }
     } catch (error) {
       console.error(error);

@@ -1,13 +1,15 @@
 import { useContext } from 'react'
-import { Box, Fade, Card, Grid, Button, Typography } from '@mui/material';
+import { Box, Fade, Card, Grid, Button, Typography, MenuItem } from '@mui/material';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
 import HeaderBreadcrumbs from '../../../../../components/HeaderBreadcrumbs';
+import DisableTextField from '../../../../../components/admnomina/DisabledTextField';
 import CajaGenerica from '../../../../../components/admnomina/CajaGenerica'
 import { FormularioContext } from '../context/formularioContext'
 
+
 export default function Formulario() {
 
-    const { empleado, setEmpleado, listaEmpleados } = useContext(FormularioContext)
+    const { empleado, setEmpleado, listaEmpleados, listaJornadas } = useContext(FormularioContext)
 
     return (
         <>
@@ -34,7 +36,7 @@ export default function Formulario() {
                             <Grid item xs={12}>
                                 <Typography variant='h6'> Selección de Empleado </Typography>
                             </Grid>
-                            <Grid item md={7}>
+                            <Grid item md={7} sm={8}>
                                 <CajaGenerica
                                     estadoInicial={{
                                         codigoAlternativo: empleado.codigoalternativo,
@@ -53,6 +55,22 @@ export default function Formulario() {
                                     datos={listaEmpleados}
                                 />
                             </Grid>
+                            <Grid item md={3} sm={4} xs={12}>
+                                <DisableTextField
+                                    disabled
+                                    select
+                                    label="Jornada"
+                                    fullWidth
+                                    size="small"
+                                    value={empleado.jornada}
+                                >
+                                    {listaJornadas.map((f) => (
+                                        <MenuItem key={f.codigo} value={f.codigo}>
+                                            {f.nombre}
+                                        </MenuItem>
+                                    ))}
+                                </DisableTextField>
+                            </Grid>
                         </Grid>
                     </Card>
                 </Box>
@@ -60,4 +78,4 @@ export default function Formulario() {
         </>
     )
 }
-                                    
+
