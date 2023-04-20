@@ -27,6 +27,15 @@ class ServicesControlHorario {
         const apiUrl = `${URLAPIGENERAL}/controlhorarios/obtenerUltiReg`;
         return axiosBirobid.get(apiUrl).then(res => res);
     }
+
+    /**
+    * @param {{ horario: object }}
+    * @returns {Promise<object>}    
+    */
+     GrabarHorario({ horario }) {
+        const apiUrl = `${URLAPIGENERAL}/controlhorarios`;
+        return axiosBirobid.post(apiUrl, horario).then(res => res);
+    }
 }
 
 const serviciosControlHorario = new ServicesControlHorario()

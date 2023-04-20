@@ -4,6 +4,8 @@ import axios from '../../utils/axios';
 import axiosBirobid from '../../utils/admnomina/axiosBirobid';
 //
 import { dispatch } from '../store';
+//
+import useMensajeGeneral from '../../hooks/admnomina/useMensajeGeneral';
 
 // ----------------------------------------------------------------------
 
@@ -100,74 +102,10 @@ export const { openModal, closeModal, selectEvent } = slice.actions;
 
 // ----------------------------------------------------------------------
 
-const pruebaJson = [
-  {
-    id: `0-24-2023-04-03`,
-    codigo: 14,
-    allDay: true,
-    description: 'Pruebas de obtención de datos',
-    start: `2023-04-03T05:00:00.000Z`,
-    end: `2023-04-03T05:00:00.000Z`,
-    textColor: "#00AB55",
-    title: `06:00 - 17:00`,
-    horaEntrada: '06:00:00',
-    horaSalida: '17:00:00'
-  },
-  {
-    id: `1-24-2023-04-04`,
-    codigo: 14,
-    allDay: true,
-    description: 'Pruebas de obtención de datos',
-    start: `2023-04-04T05:00:00.000Z`,
-    end: `2023-04-04T05:00:00.000Z`,
-    textColor: "#00AB55",
-    title: `01:00 - 10:00`,
-    horaEntrada: '01:00:00',
-    horaSalida: '10:00:00'
-  },
-  {
-    id: `2-24-2023-04-04`,
-    codigo: 14,
-    allDay: true,
-    description: 'Pruebas de obtención de datos',
-    start: `2023-04-04T05:00:00.000Z`,
-    end: `2023-04-06T05:00:00.000Z`,
-    textColor: "#00AB55",
-    title: `17:00 - 02:00`,
-    horaEntrada: '17:00:00',
-    horaSalida: '02:00:00'
-  },
-  {
-    id: `3-24-2023-04-05`,
-    codigo: 14,
-    allDay: true,
-    description: 'Pruebas de obtención de datos',
-    start: `2023-04-05T05:00:00.000Z`,
-    end: `2023-04-05T05:00:00.000Z`,
-    textColor: "#00AB55",
-    title: `10:00 - 19:00`,
-    horaEntrada: '10:00:00',
-    horaSalida: '19:00:00'
-  },
-  {
-    id: `4-24-2023-04-06`,
-    codigo: 14,
-    allDay: true,
-    description: 'Pruebas de obtención de datos',
-    start: `2023-04-06T05:00:00.000Z`,
-    end: `2023-04-08T05:00:00.000Z`,
-    textColor: "#00AB55",
-    title: `03:00 - 12:00`,
-    horaEntrada: '03:00:00',
-    horaSalida: '12:00:00'
-  }
-]
-
 export function getEvents(calendario, datos = {}) {
   return async () => {
     dispatch(slice.actions.startLoading());
     if (calendario === 'horarios') {
-      console.log('datos a enviar', datos)
       try {
         const response = await axiosBirobid.get(`/controlhorarios/buscar?Empleado=${datos.codigoEmpleado}`);
         const { data } = response;
@@ -222,10 +160,12 @@ export function createEvent(newEvent, calendario = 'plantilla') {
       dispatch(slice.actions.startLoading());
       try {
         const response = await axiosBirobid.post('/controlhorarios', newEvent)
-        console.log('respuesta', response)
-        dispatch(slice.actions.createEventSuccess(newEvent));
+        const { data } = response
+        const datosRespuesta = { codigoEmpleado: data[0].empleado  }
+        dispatch(getEvents('horarios', datosRespuesta))
       } catch (error) {
         dispatch(slice.actions.hasError(error));
+        // mensajeSistemaGenerico({ tipo: 'error', mensaje: 'Error al grabar el horario, intente nuevamente si el problema persiste contácte con soporte' });
       }
     }
   }

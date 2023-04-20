@@ -1,4 +1,5 @@
 import { createContext, useEffect, useState, useRef, useContext } from "react";
+import { useSnackbar } from 'notistack';
 import { useDispatch, useSelector } from '../../../../../redux/store';
 import { getEvents, openModal, closeModal, updateEvent, selectEvent, selectRange } from '../../../../../redux/slices/calendar';
 import useSettings from '../../../../../hooks/useSettings';
@@ -6,6 +7,7 @@ import useResponsive from '../../../../../hooks/useResponsive';
 import useCargando from "../../../../../hooks/admnomina/useCargando";
 import { formatearFecha } from "../../../../../utils/admnomina/funciones/funciones"
 import useMensajeGeneral from '../../../../../hooks/admnomina/useMensajeGeneral';
+import serviciosControlHorario from "../services/servicesControlHorarios";
 import { FormularioContext } from "./formularioContext"
 
 export const CalendarioContext = createContext();
@@ -17,6 +19,7 @@ export const CalendarioContextProvider = ({ children }) => {
     const { empleado } = useContext(FormularioContext);
     const { empezarCarga, terminarCarga } = useCargando()
     const { mensajeSistemaGenerico, mensajeSistemaPregunta } = useMensajeGeneral()
+    const { enqueueSnackbar } = useSnackbar();
 
     // función para la selección de eventos (horario del dia)
     const selectedEventSelector = (state) => {
@@ -125,8 +128,8 @@ export const CalendarioContextProvider = ({ children }) => {
         dispatch(selectRange(arg.start, arg.end));
         setFechaSeleccionada(fechaSeleccionada)
         setFormulario({
-            fechaHoraEntrada: new Date(), 
-            fechaHoraSalida: new Date(),
+            fechaHoraEntrada: arg.start, 
+            fechaHoraSalida: arg.start,
             totalHoras: 0
         })
         abrirTipoModal('Agregar Horario')
@@ -166,6 +169,27 @@ export const CalendarioContextProvider = ({ children }) => {
             console.error(error);
         }
     };
+
+    // crea un nuevo horario en la base de datos y consulta los datos nuevamente para reflejarlos en el calendario
+    const agregarHorario = async (horario) => {
+        empezarCarga();
+        serviciosControlHorario.GrabarHorario({ horario })
+            .then(res => {
+                const { data } = res
+                const datosRespuesta = { codigoEmpleado: data[0].empleado  }
+                dispatch(getEvents('horarios', datosRespuesta))
+                enqueueSnackbar('Horario Actualizado!');
+                cerrarModal();
+            })
+            .catch(error => {
+                console.log(error)
+                mensajeSistemaGenerico({ tipo: 'error', mensaje: 'Problemas al grabar el horario, intente nuevamente si el problema persiste contácte con soporte' });
+            })
+            .finally(
+                terminarCarga()
+            )
+    }
+
     // ?
     const handleDropEvent = async ({ event }) => {
         try {
@@ -232,7 +256,8 @@ export const CalendarioContextProvider = ({ children }) => {
                 fecha, fechaSeleccionada, selectedEvent, events, isOpenModal, selectedRange, calendarRef,
                 formulario, setFormulario, cambiarFechaHoraEntrada, cambiarFechaHoraSalida, abrirModal, cerrarModal, tipoModal,
                 handleClickToday, handleChangeView, handleClickDatePrev, handleClickDateNext, handleSelectRange,
-                handleSelectEvent, handleResizeEvent, handleDropEvent, handleAddEvent, handleCloseModal
+                handleSelectEvent, handleResizeEvent, handleDropEvent, handleAddEvent, handleCloseModal,
+                agregarHorario
             }}
         >
             { children }
