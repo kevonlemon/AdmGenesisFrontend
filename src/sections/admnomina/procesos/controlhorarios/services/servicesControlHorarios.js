@@ -36,6 +36,15 @@ class ServicesControlHorario {
         const apiUrl = `${URLAPIGENERAL}/controlhorarios`;
         return axiosBirobid.post(apiUrl, horario).then(res => res);
     }
+
+    /**
+    * @param {{ horario: object }}
+    * @returns {Promise<object>}    
+    */
+     EditarHorario({ horario }) {
+        const apiUrl = `${URLAPIGENERAL}/controlhorarios`;
+        return axiosBirobid.put(apiUrl, horario).then(res => res);
+    }
 }
 
 const serviciosControlHorario = new ServicesControlHorario()

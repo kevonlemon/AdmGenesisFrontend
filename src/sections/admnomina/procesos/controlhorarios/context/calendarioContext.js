@@ -21,6 +21,15 @@ export const CalendarioContextProvider = ({ children }) => {
     const { mensajeSistemaGenerico, mensajeSistemaPregunta } = useMensajeGeneral()
     const { enqueueSnackbar } = useSnackbar();
 
+    // función para convertir la fecha a un formato deseado
+    const convertirFecha = (fecha) => {
+        const year = fecha.getFullYear();
+        const month = (fecha.getMonth() + 1).toString().padStart(2, '0'); // agregar un cero inicial si el mes es menor que 10
+        const day = fecha.getDate().toString().padStart(2, '0'); // agregar un cero inicial si el día es menor que 10
+        const dateString = `${year}-${month}-${day}`;
+        return dateString;
+    }
+
     // función para la selección de eventos (horario del dia)
     const selectedEventSelector = (state) => {
         const { events, selectedEventId } = state.calendar;
@@ -40,13 +49,19 @@ export const CalendarioContextProvider = ({ children }) => {
     const calendarRef = useRef(null);
     const [fecha, setFecha] = useState(new Date());
     const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date())
+    const [codigoHorario, setCodigoHorario] = useState(0);
     const selectedEvent = useSelector(selectedEventSelector);
     const { events, isOpenModal, selectedRange } = useSelector((state) => state.calendar);
 
     const [formulario, setFormulario] = useState({
-        fechaHoraEntrada: new Date(), 
+        fechaHoraEntrada: new Date(),
         fechaHoraSalida: new Date(),
         totalHoras: 0
+    })
+    // copia para guardar los valores de fecha-hora de entrada y salida que vienen en los horarios
+    const [formularioCopia, setFormularioCopia] = useState({
+        fechaHoraEntrada: new Date(),
+        fechaHoraSalida: new Date()
     })
 
     const cambiarFechaHoraEntrada = (e) => {
@@ -127,8 +142,10 @@ export const CalendarioContextProvider = ({ children }) => {
         }
         dispatch(selectRange(arg.start, arg.end));
         setFechaSeleccionada(fechaSeleccionada)
+        const fechaEnd = arg.end;
+        fechaEnd.setDate(fechaEnd.getDate() - 1)
         setFormulario({
-            fechaHoraEntrada: arg.start, 
+            fechaHoraEntrada: arg.start,
             fechaHoraSalida: arg.start,
             totalHoras: 0
         })
@@ -137,24 +154,30 @@ export const CalendarioContextProvider = ({ children }) => {
     // selecciona un evento (horario) en el calendario
     const handleSelectEvent = (arg) => {
         const evento = events.filter(f => f.id === arg.event.id)
+        setCodigoHorario(evento[0].codigo)
         const { horaEntrada } = evento[0]
         const { horaSalida } = evento[0]
         const { fechaEntrada } = evento[0]
         const { fechaSalida } = evento[0]
-        const [anioE, mesE, diaE] = fechaEntrada.substring(0,10).split('-');
-        const [anioS, mesS, diaS] = fechaSalida.substring(0,10).split('-');
+        const [anioE, mesE, diaE] = fechaEntrada.substring(0, 10).split('-');
+        const [anioS, mesS, diaS] = fechaSalida.substring(0, 10).split('-');
         const [hourE, minuteE, secondE] = horaEntrada.split(':');
         const [hourS, minuteS, secondS] = horaSalida.split(':');
-        const fechaHoraEntrada = new Date(parseFloat(anioE), parseFloat(mesE), parseFloat(diaE), parseFloat(hourE), parseFloat(minuteE), parseFloat(secondE), 0)
-        const fechaHoraSalida = new Date(parseFloat(anioS), parseFloat(mesS), parseFloat(diaS), parseFloat(hourS), parseFloat(minuteS), parseFloat(secondS), 0)
+        const fechaHoraEntrada = new Date(parseFloat(anioE), parseFloat(mesE) - 1, parseFloat(diaE), parseFloat(hourE), parseFloat(minuteE), parseFloat(secondE), 0)
+        const fechaHoraSalida = new Date(parseFloat(anioS), parseFloat(mesS) - 1, parseFloat(diaS), parseFloat(hourS), parseFloat(minuteS), parseFloat(secondS), 0)
         setFormulario({
             fechaHoraEntrada,
             fechaHoraSalida,
             totalHoras: parseFloat(((formulario.fechaHoraSalida - formulario.fechaHoraEntrada) / 3600000).toFixed(2))
         })
+        setFormularioCopia({
+            fechaHoraEntrada,
+            fechaHoraSalida,
+        })
         dispatch(selectEvent(arg.event.id));
         abrirTipoModal('Editar Horario')
     };
+
     // ?
     const handleResizeEvent = async ({ event }) => {
         try {
@@ -176,7 +199,7 @@ export const CalendarioContextProvider = ({ children }) => {
         serviciosControlHorario.GrabarHorario({ horario })
             .then(res => {
                 const { data } = res
-                const datosRespuesta = { codigoEmpleado: data[0].empleado  }
+                const datosRespuesta = { codigoEmpleado: data[0].empleado }
                 dispatch(getEvents('horarios', datosRespuesta))
                 enqueueSnackbar('Horario Actualizado!');
                 cerrarModal();
@@ -184,6 +207,26 @@ export const CalendarioContextProvider = ({ children }) => {
             .catch(error => {
                 console.log(error)
                 mensajeSistemaGenerico({ tipo: 'error', mensaje: 'Problemas al grabar el horario, intente nuevamente si el problema persiste contácte con soporte' });
+            })
+            .finally(
+                terminarCarga()
+            )
+    }
+
+    // crea un nuevo horario en la base de datos y consulta los datos nuevamente para reflejarlos en el calendario
+    const editarHorario = async (horario) => {
+        empezarCarga();
+        serviciosControlHorario.EditarHorario({ horario })
+            .then(res => {
+                const { data } = res
+                const datosRespuesta = { codigoEmpleado: data[0].empleado }
+                dispatch(getEvents('horarios', datosRespuesta))
+                enqueueSnackbar('Horario Actualizado!');
+                cerrarModal();
+            })
+            .catch(error => {
+                console.log(error)
+                mensajeSistemaGenerico({ tipo: 'error', mensaje: 'Problemas al editar el horario, intente nuevamente si el problema persiste contácte con soporte' });
             })
             .finally(
                 terminarCarga()
@@ -230,14 +273,14 @@ export const CalendarioContextProvider = ({ children }) => {
         setFormulario({
             ...formulario,
             // eslint-disable-next-line no-restricted-globals
-            totalHoras: isNaN(horas) ? 0 : horas 
+            totalHoras: isNaN(horas) ? 0 : horas
         })
     }
     useEffect(() => {
         CalcularHoras()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [formulario.fechaHoraEntrada, formulario.fechaHoraSalida])
-    
+
     // cambia el formato de vista de acuerdo a la relación de la pantalla
     useEffect(() => {
         const calendarEl = calendarRef.current;
@@ -251,16 +294,16 @@ export const CalendarioContextProvider = ({ children }) => {
 
     return (
         <CalendarioContext.Provider
-            value={{ 
-                themeStretch, view, isDesktop, mensajeSistemaPregunta,
-                fecha, fechaSeleccionada, selectedEvent, events, isOpenModal, selectedRange, calendarRef,
-                formulario, setFormulario, cambiarFechaHoraEntrada, cambiarFechaHoraSalida, abrirModal, cerrarModal, tipoModal,
+            value={{
+                themeStretch, view, isDesktop, mensajeSistemaPregunta, convertirFecha,
+                fecha, fechaSeleccionada, codigoHorario, selectedEvent, events, isOpenModal, selectedRange, calendarRef,
+                formulario, setFormulario, formularioCopia, cambiarFechaHoraEntrada, cambiarFechaHoraSalida, abrirModal, cerrarModal, tipoModal,
                 handleClickToday, handleChangeView, handleClickDatePrev, handleClickDateNext, handleSelectRange,
                 handleSelectEvent, handleResizeEvent, handleDropEvent, handleAddEvent, handleCloseModal,
-                agregarHorario
+                agregarHorario, editarHorario
             }}
         >
-            { children }
+            {children}
         </CalendarioContext.Provider>
     )
 }
