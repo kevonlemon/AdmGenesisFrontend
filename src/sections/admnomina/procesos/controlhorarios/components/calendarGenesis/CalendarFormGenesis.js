@@ -73,8 +73,8 @@ CalendarFormGenesis.propTypes = {
 };
 
 export default function CalendarFormGenesis({ event, range, onCancel }) {
-  const { mensajeSistemaPregunta, fechaSeleccionada, formulario, setFormulario, cambiarFechaHoraEntrada, 
-          cambiarFechaHoraSalida, abrirModal, cerrarModal, tipoModal, selectedEvent, events, agregarHorario } = useContext(CalendarioContext)
+  const { mensajeSistemaPregunta, fechaSeleccionada, formulario, formularioCopia, cambiarFechaHoraEntrada, codigoHorario, convertirFecha, 
+          cambiarFechaHoraSalida, abrirModal, cerrarModal, tipoModal, selectedEvent, events, agregarHorario, editarHorario } = useContext(CalendarioContext)
   const { usuarioLogeado, ip, sucursalLogeada, empleado, fechasHorario } = useContext(FormularioContext)
   const { enqueueSnackbar } = useSnackbar();
 
@@ -127,18 +127,31 @@ export default function CalendarFormGenesis({ event, range, onCancel }) {
   const guardarHorario = async () => {
     try {
       if (tipoModal === 'Editar Horario') {
-        const horaEntradaStr = moment(formulario.horaEntrada).format('HH:mm:ss')
-        const horaSalidaStr = moment(formulario.horaSalida).format('HH:mm:ss')
-        const horarioActualizado = events.map((m) => ({
-          ...m,
-          horaEntrada: m.id === selectedEvent.id ? horaEntradaStr : m.horaEntrada,
-          horaSalida: m.id === selectedEvent.id ? horaSalidaStr : m.horaSalida,
-          title: m.id === selectedEvent.id ? `${horaEntradaStr.substring(0, 5)} - ${horaSalidaStr.substring(0, 5)}` : m.title
-        }))
-        console.log("🚀 ~ file: CalendarFormGenesis.js:142 ~ horarioActualizado ~ horarioActualizado:", horarioActualizado)
-        dispatch(updateEvent(selectedEvent.id, horarioActualizado, 'horarios'));
-        // enqueueSnackbar('Horario Actualizado!');
-        // cerrarModal();
+        const fechaselecDate = new Date(fechaSeleccionada) 
+        const editHorario = {
+          codigo: codigoHorario,
+          empleado: empleado.codigo,
+          sucursal: sucursalLogeada,
+          primerDiadelAnio: fechasHorario.primerDiaAnio,
+          ultimoDiadelAnio: fechasHorario.ultimoDiaAnio,
+          mes: fechaselecDate.getMonth(),
+          anio: fechaselecDate.getFullYear(),
+          fechaEntrada: convertirFecha(formularioCopia.fechaHoraEntrada),
+          nuevaFechaEntrada: convertirFecha(formulario.fechaHoraEntrada),
+          fechaSalida: convertirFecha(formularioCopia.fechaHoraSalida),
+          nuevaFechaSalida: convertirFecha(formulario.fechaHoraSalida),
+          vacaciones: false,
+          horaDesde: moment(formulario.fechaHoraEntrada).format('HH:mm:ss'),
+          horaHasta: moment(formulario.fechaHoraSalida).format('HH:mm:ss'),
+          totalHoras: formulario.totalHoras,
+          diferencia: formulario.totalHoras,
+          diasVacaciones: 0,
+          fechaIng: new Date(),
+          maquina: ip,
+          usuario: usuarioLogeado
+        }
+        console.log('tosend edit', editHorario)
+        editarHorario(editHorario)
       } else {
         const fechaselecDate = new Date(fechaSeleccionada)
         const newHorario = {
@@ -148,8 +161,8 @@ export default function CalendarFormGenesis({ event, range, onCancel }) {
           ultimoDiadelAnio: fechasHorario.ultimoDiaAnio,
           mes: fechaselecDate.getMonth(),
           anio: fechaselecDate.getFullYear(),
-          fechaEntrada: formulario.fechaHoraEntrada.toISOString(),
-          fechaSalida: formulario.fechaHoraSalida.toISOString(),
+          fechaEntrada: convertirFecha(formulario.fechaHoraEntrada),
+          fechaSalida: convertirFecha(formulario.fechaHoraSalida),
           vacaciones: false,
           horaDesde: moment(formulario.fechaHoraEntrada).format('HH:mm:ss'),
           horaHasta: moment(formulario.fechaHoraSalida).format('HH:mm:ss'),
@@ -161,10 +174,7 @@ export default function CalendarFormGenesis({ event, range, onCancel }) {
           usuario: usuarioLogeado
         }
         console.log('tosend', newHorario)
-        // console.log('respuesta', await dispatch(createEvent(newHorario, 'horarios')));
         agregarHorario(newHorario)
-        // enqueueSnackbar('Horario Creado!');
-        // cerrarModal();
       }
     } catch (error) {
       console.error(error);
