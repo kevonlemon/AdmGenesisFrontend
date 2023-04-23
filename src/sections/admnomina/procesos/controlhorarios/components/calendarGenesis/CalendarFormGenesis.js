@@ -74,7 +74,7 @@ CalendarFormGenesis.propTypes = {
 
 export default function CalendarFormGenesis({ event, range, onCancel }) {
   const { mensajeSistemaPregunta, mensajeSistemaGenerico, fechaSeleccionada, formulario, formularioCopia, cambiarFechaHoraEntrada, codigoHorario, convertirFecha, 
-          cambiarFechaHoraSalida, abrirModal, cerrarModal, tipoModal, selectedEvent, events, agregarHorario, editarHorario } = useContext(CalendarioContext)
+          cambiarFechaHoraSalida, abrirModal, cerrarModal, tipoModal, selectedEvent, events, agregarHorario, editarHorario, validaciones } = useContext(CalendarioContext)
   const { usuarioLogeado, ip, sucursalLogeada, empleado, fechasHorario } = useContext(FormularioContext)
   const { enqueueSnackbar } = useSnackbar();
 
@@ -125,59 +125,61 @@ export default function CalendarFormGenesis({ event, range, onCancel }) {
   };
 
   const guardarHorario = async () => {
-    try {
-      if (tipoModal === 'Editar Horario') {
-        const fechaselecDate = new Date(fechaSeleccionada) 
-        const editHorario = {
-          codigo: codigoHorario,
-          empleado: empleado.codigo,
-          sucursal: sucursalLogeada,
-          primerDiadelAnio: fechasHorario.primerDiaAnio,
-          ultimoDiadelAnio: fechasHorario.ultimoDiaAnio,
-          mes: fechaselecDate.getMonth(),
-          anio: fechaselecDate.getFullYear(),
-          fechaEntrada: convertirFecha(formularioCopia.fechaHoraEntrada),
-          nuevaFechaEntrada: convertirFecha(formulario.fechaHoraEntrada),
-          fechaSalida: convertirFecha(formularioCopia.fechaHoraSalida),
-          nuevaFechaSalida: convertirFecha(formulario.fechaHoraSalida),
-          vacaciones: false,
-          horaDesde: moment(formulario.fechaHoraEntrada).format('HH:mm:ss'),
-          horaHasta: moment(formulario.fechaHoraSalida).format('HH:mm:ss'),
-          totalHoras: formulario.totalHoras,
-          diferencia: formulario.totalHoras,
-          diasVacaciones: 0,
-          fechaIng: new Date(),
-          maquina: ip,
-          usuario: usuarioLogeado
+    if (validaciones()) {
+      try {
+        if (tipoModal === 'Editar Horario') {
+          const fechaselecDate = new Date(fechaSeleccionada) 
+          const editHorario = {
+            codigo: codigoHorario,
+            empleado: empleado.codigo,
+            sucursal: sucursalLogeada,
+            primerDiadelAnio: fechasHorario.primerDiaAnio,
+            ultimoDiadelAnio: fechasHorario.ultimoDiaAnio,
+            mes: fechaselecDate.getMonth(),
+            anio: fechaselecDate.getFullYear(),
+            fechaEntrada: convertirFecha(formularioCopia.fechaHoraEntrada),
+            nuevaFechaEntrada: convertirFecha(formulario.fechaHoraEntrada),
+            fechaSalida: convertirFecha(formularioCopia.fechaHoraSalida),
+            nuevaFechaSalida: convertirFecha(formulario.fechaHoraSalida),
+            vacaciones: false,
+            horaDesde: moment(formulario.fechaHoraEntrada).format('HH:mm:ss'),
+            horaHasta: moment(formulario.fechaHoraSalida).format('HH:mm:ss'),
+            totalHoras: formulario.totalHoras,
+            diferencia: formulario.totalHoras,
+            diasVacaciones: 0,
+            fechaIng: new Date(),
+            maquina: ip,
+            usuario: usuarioLogeado
+          }
+          console.log('tosend edit', editHorario)
+          editarHorario(editHorario)
+        } else {
+          const fechaselecDate = new Date(fechaSeleccionada)
+          const newHorario = {
+            empleado: empleado.codigo,
+            sucursal: sucursalLogeada,
+            primerDiadelAnio: fechasHorario.primerDiaAnio,
+            ultimoDiadelAnio: fechasHorario.ultimoDiaAnio,
+            mes: fechaselecDate.getMonth(),
+            anio: fechaselecDate.getFullYear(),
+            fechaEntrada: convertirFecha(formulario.fechaHoraEntrada),
+            fechaSalida: convertirFecha(formulario.fechaHoraSalida),
+            vacaciones: false,
+            horaDesde: moment(formulario.fechaHoraEntrada).format('HH:mm:ss'),
+            horaHasta: moment(formulario.fechaHoraSalida).format('HH:mm:ss'),
+            totalHoras: formulario.totalHoras,
+            diferencia: formulario.totalHoras,
+            diasVacaciones: 0,
+            fechaIng: new Date(),
+            maquina: ip,
+            usuario: usuarioLogeado
+          }
+          console.log('tosend', newHorario)
+          agregarHorario(newHorario)
         }
-        console.log('tosend edit', editHorario)
-        editarHorario(editHorario)
-      } else {
-        const fechaselecDate = new Date(fechaSeleccionada)
-        const newHorario = {
-          empleado: empleado.codigo,
-          sucursal: sucursalLogeada,
-          primerDiadelAnio: fechasHorario.primerDiaAnio,
-          ultimoDiadelAnio: fechasHorario.ultimoDiaAnio,
-          mes: fechaselecDate.getMonth(),
-          anio: fechaselecDate.getFullYear(),
-          fechaEntrada: convertirFecha(formulario.fechaHoraEntrada),
-          fechaSalida: convertirFecha(formulario.fechaHoraSalida),
-          vacaciones: false,
-          horaDesde: moment(formulario.fechaHoraEntrada).format('HH:mm:ss'),
-          horaHasta: moment(formulario.fechaHoraSalida).format('HH:mm:ss'),
-          totalHoras: formulario.totalHoras,
-          diferencia: formulario.totalHoras,
-          diasVacaciones: 0,
-          fechaIng: new Date(),
-          maquina: ip,
-          usuario: usuarioLogeado
-        }
-        console.log('tosend', newHorario)
-        agregarHorario(newHorario)
+      } catch (error) {
+        console.error(error);
       }
-    } catch (error) {
-      console.error(error);
     }
   }
 
