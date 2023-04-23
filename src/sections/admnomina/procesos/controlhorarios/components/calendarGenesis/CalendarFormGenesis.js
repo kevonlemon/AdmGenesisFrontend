@@ -73,7 +73,7 @@ CalendarFormGenesis.propTypes = {
 };
 
 export default function CalendarFormGenesis({ event, range, onCancel }) {
-  const { mensajeSistemaPregunta, fechaSeleccionada, formulario, formularioCopia, cambiarFechaHoraEntrada, codigoHorario, convertirFecha, 
+  const { mensajeSistemaPregunta, mensajeSistemaGenerico, fechaSeleccionada, formulario, formularioCopia, cambiarFechaHoraEntrada, codigoHorario, convertirFecha, 
           cambiarFechaHoraSalida, abrirModal, cerrarModal, tipoModal, selectedEvent, events, agregarHorario, editarHorario } = useContext(CalendarioContext)
   const { usuarioLogeado, ip, sucursalLogeada, empleado, fechasHorario } = useContext(FormularioContext)
   const { enqueueSnackbar } = useSnackbar();
@@ -183,13 +183,24 @@ export default function CalendarFormGenesis({ event, range, onCancel }) {
 
   const handleDelete = async () => {
     if (!event.id) return;
-    try {
       onCancel();
-      dispatch(deleteEvent(event.id));
-      enqueueSnackbar('Horario eliminado!');
-    } catch (error) {
-      console.error(error);
-    }
+      serviciosControlHorario.EliminarHorario({
+        Codigo: codigoHorario,
+        Empleado: empleado.codigo,
+        HoraDesde: moment(formulario.fechaHoraEntrada).format('HH:mm:ss'),
+        HoraHasta: moment(formulario.fechaHoraSalida).format('HH:mm:ss'),
+        FechaDesde: convertirFecha(formulario.fechaHoraEntrada),
+        FechaHasta: convertirFecha(formulario.fechaHoraSalida)
+      })
+        .then(res => {
+          console.log('res delete',res)
+          dispatch(deleteEvent(event.id));
+          enqueueSnackbar('Horario eliminado!');
+        })
+        .catch(error => {
+          mensajeSistemaGenerico({ tipo: 'error', mensaje: 'Problemas al eliminar el horario, intente nuevamente si el problema persiste contácte con soporte' });
+          console.error(error);
+        })
   };
 
   const eliminarHorario = () => {

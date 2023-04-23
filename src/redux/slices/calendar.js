@@ -206,16 +206,29 @@ export function updateEvent(eventId, updateEvent, calendario = 'plantilla') {
 
 // ----------------------------------------------------------------------
 
-export function deleteEvent(eventId) {
-  return async () => {
-    dispatch(slice.actions.startLoading());
-    try {
-      await axios.post('/api/calendar/events/delete', { eventId });
-      dispatch(slice.actions.deleteEventSuccess({ eventId }));
-    } catch (error) {
-      dispatch(slice.actions.hasError(error));
-    }
-  };
+export function deleteEvent(eventId, calendario = 'plantilla') {
+  if (calendario === 'plantilla') {
+    return async () => {
+      dispatch(slice.actions.startLoading());
+      try {
+        await axios.post('/api/calendar/events/delete', { eventId });
+        dispatch(slice.actions.deleteEventSuccess({ eventId }));
+      } catch (error) {
+        dispatch(slice.actions.hasError(error));
+      }
+    };
+  }
+  if (calendario === 'horarios') {
+    return async () => {
+      dispatch(slice.actions.startLoading());
+      try {
+        dispatch(slice.actions.deleteEventSuccess({ eventId }));
+      } catch (error) {
+        dispatch(slice.actions.hasError(error));
+      }
+    };
+  }
+  
 }
 
 // ----------------------------------------------------------------------
