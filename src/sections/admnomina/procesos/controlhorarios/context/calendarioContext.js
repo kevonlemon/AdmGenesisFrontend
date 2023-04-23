@@ -86,6 +86,40 @@ export const CalendarioContextProvider = ({ children }) => {
     }
     const cerrarModal = () => setAbrirModal((p) => !p)
 
+    // validaciones del calendario ---------------------------------------------------------------------------
+
+    function validaciones() {
+        if (formulario.totalHoras === 0 || formulario.totalHoras < 0) {
+            mensajeSistemaGenerico({ tipo: 'warning', mensaje: 'El total de horas no debe de ser igual o menor a 0' });
+            return false
+        }
+        if (empleado.jornada === 'DIU') {
+            const horadesde = new Date(formulario.fechaHoraEntrada).getHours()
+            if (horadesde >= 6 || horadesde < 18) {
+                mensajeSistemaGenerico({ tipo: 'warning', mensaje: 'El horario ingresado no corresponde a la jornada del empleado seleccionado' });
+                return false
+            }
+            const horahasta = new Date(formulario.fechaHoraSalida).getHours()
+            if (horahasta >= 6 || horahasta < 18) {
+                mensajeSistemaGenerico({ tipo: 'warning', mensaje: 'El horario ingresado no corresponde a la jornada del empleado seleccionado' });
+                return false
+            }
+        }
+        if (empleado.jornada === 'NOC') {
+            const horadesde = new Date(formulario.fechaHoraEntrada).getHours()
+            if (horadesde >= 18 || horadesde < 6) {
+                mensajeSistemaGenerico({ tipo: 'warning', mensaje: 'El horario ingresado no corresponde a la jornada del empleado seleccionado' });
+                return false
+            }
+            const horahasta = new Date(formulario.fechaHoraSalida).getHours()
+            if (horahasta >= 18 || horahasta < 6) {
+                mensajeSistemaGenerico({ tipo: 'warning', mensaje: 'El horario ingresado no corresponde a la jornada del empleado seleccionado' });
+                return false
+            }
+        }
+        return true
+    }
+
     // funciones del calendario ------------------------------------------------------------------------------
     // regresa el calendario al día actual
     const handleClickToday = () => {
@@ -301,7 +335,7 @@ export const CalendarioContextProvider = ({ children }) => {
                 formulario, setFormulario, formularioCopia, cambiarFechaHoraEntrada, cambiarFechaHoraSalida, abrirModal, cerrarModal, tipoModal,
                 handleClickToday, handleChangeView, handleClickDatePrev, handleClickDateNext, handleSelectRange,
                 handleSelectEvent, handleResizeEvent, handleDropEvent, handleAddEvent, handleCloseModal,
-                agregarHorario, editarHorario
+                agregarHorario, editarHorario, validaciones
             }}
         >
             {children}
