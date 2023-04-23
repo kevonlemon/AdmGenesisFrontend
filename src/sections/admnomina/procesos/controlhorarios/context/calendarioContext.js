@@ -232,6 +232,7 @@ export const CalendarioContextProvider = ({ children }) => {
                 terminarCarga()
             )
     }
+    
 
     // ?
     const handleDropEvent = async ({ event }) => {
@@ -295,7 +296,7 @@ export const CalendarioContextProvider = ({ children }) => {
     return (
         <CalendarioContext.Provider
             value={{
-                themeStretch, view, isDesktop, mensajeSistemaPregunta, convertirFecha,
+                themeStretch, view, isDesktop, mensajeSistemaPregunta, mensajeSistemaGenerico, convertirFecha,
                 fecha, fechaSeleccionada, codigoHorario, selectedEvent, events, isOpenModal, selectedRange, calendarRef,
                 formulario, setFormulario, formularioCopia, cambiarFechaHoraEntrada, cambiarFechaHoraSalida, abrirModal, cerrarModal, tipoModal,
                 handleClickToday, handleChangeView, handleClickDatePrev, handleClickDateNext, handleSelectRange,
