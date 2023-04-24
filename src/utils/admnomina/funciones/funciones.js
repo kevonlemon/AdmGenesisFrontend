@@ -196,3 +196,11 @@ export function fDateEs(date) {
 }
 
 export default moment;
+
+export const convertirFecha = (fecha) => {
+  const year = fecha.getFullYear();
+  const month = (fecha.getMonth() + 1).toString().padStart(2, '0'); // agregar un cero inicial si el mes es menor que 10
+  const day = fecha.getDate().toString().padStart(2, '0'); // agregar un cero inicial si el día es menor que 10
+  const dateString = `${year}-${month}-${day}`;
+  return dateString;
+}
