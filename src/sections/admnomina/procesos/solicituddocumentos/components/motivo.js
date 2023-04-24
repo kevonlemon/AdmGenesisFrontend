@@ -24,7 +24,7 @@ export default function Motivo(props) {
   const ObtenerMotivo = async () => {
     try {
       const { data } = await axios(
-        `${URLAPIGENERAL}/mantenimientogenerico/listarportabla?tabla=NOM_MOTIVO_SOLICITUD`,
+        `${URLAPIGENERAL}/SolicitudDocumentos/listarmotivos`,
         config
       );
       setListarMotivo(data);

@@ -42,24 +42,17 @@ class ServicesControlHorario {
     * @returns {Promise<object>}    
     */
      EditarHorario({ horario }) {
-        const apiUrl = `${URLAPIGENERAL}/controlhorarios`;
-        return axiosBirobid.put(apiUrl, horario).then(res => res);
+        const apiUrl = `${URLAPIGENERAL}/controlhorarios/editar`;
+        return axiosBirobid.post(apiUrl, horario).then(res => res);
     }
 
     /**
-    * @param {{ 
-    *  Codigo: number,
-    *  Empleado: number,
-    *  HoraDesde: string,
-    *  HoraHasta: string,
-    *  FechaDesde: date,
-    *  FechaHasta: date
-    * }}
+    * @param {{ horario: object }}
     * @returns {Promise<object>}    
     */
-    EliminarHorario({ Codigo, Empleado, HoraDesde, HoraHasta, FechaDesde, FechaHasta }) {
-        const apiUrl = `${URLAPIGENERAL}/controlhorarios?Codigo=${Codigo}&Empleado=${Empleado}&HoraDesde=${HoraDesde}&HoraHasta=${HoraHasta}&FechaDesde=${FechaDesde}&FechaHasta=${FechaHasta}`;
-        return axiosBirobid.delete(apiUrl).then(res => res);
+    EliminarHorario({ horario }) {
+        const apiUrl = `${URLAPIGENERAL}/controlhorarios/eliminar`;
+        return axiosBirobid.post(apiUrl, horario).then(res => res);
     }
 }
 

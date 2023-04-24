@@ -186,14 +186,15 @@ export default function CalendarFormGenesis({ event, range, onCancel }) {
   const handleDelete = async () => {
     if (!event.id) return;
       onCancel();
-      serviciosControlHorario.EliminarHorario({
+      const horario = {
         Codigo: codigoHorario,
         Empleado: empleado.codigo,
         HoraDesde: moment(formulario.fechaHoraEntrada).format('HH:mm:ss'),
         HoraHasta: moment(formulario.fechaHoraSalida).format('HH:mm:ss'),
         FechaDesde: convertirFecha(formulario.fechaHoraEntrada),
         FechaHasta: convertirFecha(formulario.fechaHoraSalida)
-      })
+      }
+      serviciosControlHorario.EliminarHorario({ horario })
         .then(res => {
           console.log('res delete',res)
           dispatch(deleteEvent(event.id));

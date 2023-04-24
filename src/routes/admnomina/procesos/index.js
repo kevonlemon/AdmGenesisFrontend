@@ -9,7 +9,7 @@ const Beneficiosocial = Loadable(
 );
 
 const SolicitudDocumentos = Loadable(
-  lazy(() => import('../../../sections/admnomina/procesos/solicituddocumentos/solicituddocumentos'))
+  lazy(() => import('../../../sections/admnomina/procesos/solicituddocumentos/SolicitudDocumento'))
 );
 
 const AprobacionSolicitud = Loadable(

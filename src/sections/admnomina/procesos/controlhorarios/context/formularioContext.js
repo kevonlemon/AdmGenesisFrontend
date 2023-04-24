@@ -25,7 +25,6 @@ export const FormularioContextProvider = ({ children }) => {
         jornada: ''
     })
     const [listaJornadas, setListaJornadas] = useState([])
-    console.log("🚀 ~ file: formularioContext.js:26 ~ FormularioContextProvider ~ empleado:", empleado)
     const [fechasHorario, setFechasHorario] = useState({
         primerDiaAnio: new Date(),
         ultimoDiaAnio: new Date()

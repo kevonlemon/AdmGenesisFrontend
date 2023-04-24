@@ -33,6 +33,7 @@ import { URLAPIGENERAL, URLAPILOCAL } from '../../../../config';
 import HeaderBreadcrumbs from '../../../../components/HeaderBreadcrumbs';
 import { formaterarFecha, generarCodigo, obtenerMaquina } from '../../../../utils/sistema/funciones';
 import CircularProgreso from '../../../../components/Cargando';
+import DateTextField from '../../../../components/admnomina/DateTextField'
 import RequiredTextField from '../../../../sistema/componentes/formulario/RequiredTextField';
 import MensajesGenericos from '../../../../components/sistema/mensajesgenerico';
 
@@ -79,10 +80,14 @@ export default function SolicitudDocumentos() {
   //   const [errorObservacion, setErrorObservacion] = useState(false);
 
   const [empleado, setEmpleado] = React.useState([]);
+  const [listaMotivos, setListaMotivos] = React.useState([]);
   const [numeroSolicitud, SetNumeroSolicitud] = React.useState(0);
   const [formulario, setFormulario] = React.useState({
     fecha: new Date(),
+    fechaInicio: new Date(),
+    fechaFin: new Date(),
     motivo: '',
+    tipoMotivo: 0,
     empleado: '',
     codigoempleado: '',
     nombreempleado: '',
@@ -96,6 +101,7 @@ export default function SolicitudDocumentos() {
       ...formulario,
       fecha: new Date(),
       motivo: '',
+      tipoMotivo: 0,
       empleado: '',
       codigoempleado: '',
       nombreempleado: '',
@@ -182,6 +188,7 @@ export default function SolicitudDocumentos() {
       try {
         const { data } = await axios(`${URLAPIGENERAL}/empleados/listar`, config);
         const response = await axios(`${URLAPIGENERAL}/SolicitudDocumentos/listar`, config);
+        const responseMotivos = await axios(`${URLAPIGENERAL}/SolicitudDocumentos/listarmotivos`, config);
 
         const listaempleado = data.map((m) => ({ id: m.codigo, codigo: m.codigo_Empleado, nombre: m.nombres }));
         const listadosolicitudocs = response.data;
@@ -189,6 +196,7 @@ export default function SolicitudDocumentos() {
 
         SetNumeroSolicitud(lastItem.numero + 1);
         setEmpleado(listaempleado);
+        setListaMotivos(responseMotivos.data)
       } catch (error) {
         if (error.response.status === 401) {
           setNoSesion(true);
@@ -205,34 +213,6 @@ export default function SolicitudDocumentos() {
     getDatos();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [numeroSolicitud]);
-  //   React.useEffect(() => {
-  //     async function getDatosEmpleado() {
-  //       try {
-  //         const { data } = await axios(`${URLAPIGENERAL}/empleados/listar`, config);
-  //         const listaempleado = data.map((m) => ({ id: m.codigo, codigo: m.codigo_Empleado, nombre: m.nombres }));
-  //         setEmpleado(listaempleado);
-  //         setFormulario({
-  //           ...formulario,
-  //           empleado: listaempleado[0].id,
-  //           codigoempleado: listaempleado[0].codigo,
-  //           nombreempleado: listaempleado[0].nombre,
-  //         });
-  //       } catch (error) {
-  //         if (error.response.status === 401) {
-  //           setNoSesion(true);
-  //           mensajeGenerico('error', 'Su sesión expiró');
-  //         } else if (error.response.status === 500) {
-  //           navegacion(`${PATH_PAGE.page500}`);
-  //         } else {
-  //           mensajeGenerico('error', 'Problemas al obtener datos, inténtelo nuevamente');
-  //         }
-  //       } finally {
-  //         setMostrarProgreso(false);
-  //       }
-  //     }
-  //     getDatosEmpleado();
-  //     // eslint-disable-next-line react-hooks/exhaustive-deps
-  //   }, []);
 
   // -----------------------------------------------------------------------------------------------------
   async function buscarEmpleados() {
@@ -241,8 +221,7 @@ export default function SolicitudDocumentos() {
     } else {
       try {
         const { data } = await axios(
-          `${URLAPIGENERAL}/empleados/obtenerxcodigo?codigo=${
-            formulario.codigoempleado === '' ? 'string' : formulario.codigoempleado
+          `${URLAPIGENERAL}/empleados/obtenerxcodigo?codigo=${formulario.codigoempleado === '' ? 'string' : formulario.codigoempleado
           }`,
           config
         );
@@ -416,17 +395,47 @@ export default function SolicitudDocumentos() {
                 </Grid>
                 <Grid item container md={12} spacing={1}>
                   <Grid item md={3} sm={4} xs={12}>
-                    <Motivo
-                      data={formulario}
-                      disparador={(e) => {
+                    <RequiredTextField
+                      select
+                      label="Motivo"
+                      value={formulario.motivo}
+                      onChange={(e) => {
+                        const filtroMotivo = listaMotivos.filter(f => f.codigo === e.target.value)
                         setFormulario({
                           ...formulario,
-                          motivo: e,
+                          motivo: e.target.value,
+                          tipoMotivo: filtroMotivo[0].tipo
                         });
                       }}
-                    />
+                      fullWidth
+                      size="small"
+                    >
+                      {listaMotivos.map((f) => (
+                        <MenuItem key={f.codigo} value={f.codigo}>
+                          {f.nombre}
+                        </MenuItem>
+                      ))}
+                    </RequiredTextField>
                   </Grid>
                 </Grid>
+                {
+                  formulario.motivo === 'M0001' ? 
+                  <Grid item container md={12} spacing={1}>
+                    <Grid item md={3} sm={4} xs={12}>
+                      <DateTextField 
+                        label='Fecha Inicio'
+                        value={formulario}
+                        // onChange={}
+                      />
+                    </Grid>
+                    <Grid item md={3} sm={4} xs={12}>
+                      <DateTextField 
+                        
+                      />
+                    </Grid>
+                  </Grid> : null
+                }
+                
                 <Grid item container md={12} spacing={1}>
                   <Grid item md={6} sm={12} xs={12}>
                     <TextField
