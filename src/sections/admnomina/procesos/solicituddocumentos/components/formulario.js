@@ -5,6 +5,7 @@ import PrintRoundedIcon from '@mui/icons-material/PrintRounded';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
 import AttachFileRoundedIcon from '@mui/icons-material/AttachFileRounded';
 import HeaderBreadcrumbs from '../../../../../components/HeaderBreadcrumbs';
+import { UploadMultiFile } from '../../../../../components/upload';
 import DateTextField from '../../../../../components/admnomina/DateTextField'
 import CajaGenerica from '../../../../../components/admnomina/CajaGenerica';
 import RequiredTextField from '../../../../../sistema/componentes/formulario/RequiredTextField';
@@ -19,7 +20,8 @@ export default function Formulario() {
         setEmpleado,
         numeroSolicitud,
         formulario, setFormulario, cambiarFecha, cambiarFechaInicio, cambiarFechaFin,
-        limpiarCampos, Grabar } = useContext(SolicitudDocumentoContext)
+        limpiarCampos, Grabar,
+        archivo, cargarArchivos, removerArchivo, removerTodosLosArchivos, enviarArchivos } = useContext(SolicitudDocumentoContext)
 
     return (
         <>
@@ -113,7 +115,9 @@ export default function Formulario() {
                                                 codigo: e.codigo,
                                                 codigoalternativo: e.codigoalternativo,
                                                 nombre: e.nombre,
-                                                jornada: e.jornada
+                                                jornada: e.jornada,
+                                                departamento: e.departamento,
+                                                correo: e.correo
                                             })
                                         }}
                                         datos={listaEmpleados}
@@ -131,7 +135,9 @@ export default function Formulario() {
                                             setFormulario({
                                                 ...formulario,
                                                 motivo: e.target.value,
-                                                tipoMotivo: filtroMotivo[0].tipo
+                                                tipoMotivo: filtroMotivo[0].tipo,
+                                                nombreMotivo: filtroMotivo[0].nombre,
+                                                nombreTipoMotivo: filtroMotivo[0].nombreTipo,
                                             });
                                         }}
                                         fullWidth
@@ -179,22 +185,32 @@ export default function Formulario() {
                                     />
                                 </Grid>
                             </Grid>
-                            <Grid item container md={6} spacing={1} justifyContent="center">
-                                <Grid item md={6}>
-                                    <Button
-                                        fullWidth
-                                        variant="text"
-                                        // onClick={() => { calcularAmortizacion() }}
-                                        startIcon={<AttachFileRoundedIcon />}
-                                    >
-                                        Subir Documento
-                                    </Button>
-                                </Grid>
-                            </Grid>
                         </Grid>
                     </Box>
                 </Card>
             </Fade>
+            {
+                formulario.motivo === 'M0002' ?
+                    <Fade in style={{ transformOrigin: '0 0 0' }} timeout={1000}>
+                        <Card sx={{ ml: 3, mr: 3, mt: 1, p: 2 }}>
+                            <Grid container spacing={1}>
+                                <Grid item xs={12}>
+                                    <UploadMultiFile
+                                        multiple
+                                        files={archivo}
+                                        onDrop={cargarArchivos}
+                                        onRemove={removerArchivo}
+                                        onRemoveAll={removerTodosLosArchivos}
+                                        onUpload={() => enviarArchivos()}
+                                        visibleButton
+                                    />
+                                </Grid>
+                            </Grid>
+                        </Card>
+                    </Fade>
+                : null
+            }
+
         </>
     )
 

@@ -11,7 +11,8 @@ import {
   IconButton,
   Typography,
   Box,
-  Chip
+  Chip,
+  Tooltip
 } from '@mui/material';
 import * as React from 'react';
 import { DataGrid, esES } from '@mui/x-data-grid';
@@ -3120,16 +3121,30 @@ export default function FormularioEmpleado() {
                 <Grid container spacing={1}>
                   {
                     formularioempleado.urlDocumentos !== null ?
-                      <Grid item xs={12}>
-                        <Chip
-                          icon={<InfoIcon />}
-                          label="El empleado seleccionado ya cuenta con un documento adjunto, si desea reemplazarlo puede subir uno nuevo"
-                          color="primary"
-                        />
-                      </Grid> :
-                      null
+                      <Grid item container xs={12} justifyContent="flex-end">
+                        <Grid item xs={12}>
+                          <Tooltip
+                            title='El empleado seleccionado ya cuenta con un documento adjunto, si desea reemplazarlo puede subir uno nuevo'
+                          >
+                            <Chip
+                              icon={<InfoIcon />}
+                              label="El empleado seleccionado ya cuenta con un documento adjunto, si desea reemplazarlo puede subir uno nuevo"
+                              color="primary"
+                            />
+                          </Tooltip>
+                        </Grid>
+                        <Grid item xs={12} sm={4} md={2}>
+                          <Button
+                            onClick={() => {
+                              window.open(`${URLAPIGENERAL}/empleados/descargardocumento?url=${formularioempleado.urlDocumentos}&codigoEmpleado=${formularioempleado.codigo_Empleado}&nombres=${formularioempleado.nombres}`)
+                            }}
+                          > 
+                            Descargar Documento 
+                          </Button>
+                        </Grid>
+                      </Grid>
+                      : null
                   }
-
                   <Grid item xs={12}>
                     <UploadMultiFile
                       multiple
