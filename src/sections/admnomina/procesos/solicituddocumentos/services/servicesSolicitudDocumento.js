@@ -35,6 +35,15 @@ class ServicesSolicitudDocumento {
         const { data } = await axiosBirobid(`${URLAPIGENERAL}/SolicitudDocumentos/ultimoNumSolicitud`);
         return data;
     };
+
+    /**
+    * @param {{ documento: object }}
+    * @returns {Promise<object>}    
+    */
+     SubirDocumento({ documento }) {
+        const apiUrl = `${URLAPIGENERAL}/SolicitudDocumentos/subirdocumento`;
+        return axiosBirobid.post(apiUrl, documento).then(res => res);
+    }
 }
 
 const servicesSolicitudDocumento = new ServicesSolicitudDocumento()

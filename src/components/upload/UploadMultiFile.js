@@ -30,6 +30,7 @@ UploadMultiFile.propTypes = {
   onUpload: PropTypes.func,
   helperText: PropTypes.node,
   sx: PropTypes.object,
+  visibleButton: PropTypes.bool
 };
 
 export default function UploadMultiFile({
@@ -41,6 +42,7 @@ export default function UploadMultiFile({
   onUpload,
   helperText,
   sx,
+  visibleButton,
   ...other
 }) {
   const { getRootProps, getInputProps, isDragActive, isDragReject, fileRejections } = useDropzone({
@@ -72,6 +74,8 @@ export default function UploadMultiFile({
         showPreview={showPreview}
         onRemove={onRemove}
         onRemoveAll={onRemoveAll}
+        onUpload={onUpload}
+        visibleButton={visibleButton}
       />
 
       {helperText && helperText}

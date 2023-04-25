@@ -1,5 +1,6 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useEffect, useState, useCallback } from "react";
 import serviciosEmpleados from '../../../../../servicios/parametros_del_sistema/servicios_empleado';
+import serviciosJefeDepartamento from '../../../../../servicios/parametros_del_sistema/servicios_Jefedepartamento';
 import useCargando from "../../../../../hooks/admnomina/useCargando";
 import useMensajeGeneral from '../../../../../hooks/admnomina/useMensajeGeneral';
 import { obtenerMaquina, convertirFecha } from "../../../../../utils/admnomina/funciones/funciones";
@@ -25,17 +26,27 @@ export const SolicitudDocumentoProvider = ({ children }) => {
         codigo: 0,
         codigoalternativo: '',
         nombre: '',
-        jornada: ''
+        jornada: '',
+        departamento: '',
+        correo: ''
+    })
+    const [jefeDepartamento, setJefeDepartamento] = useState({
+        codigo: '',
+        nombre: '',
+        correo: ''
     })
     const [formulario, setFormulario] = useState({
         fecha: new Date(),
         fechaInicio: new Date(),
         fechaFin: new Date(),
         motivo: '',
+        nombreMotivo: '',
         tipoMotivo: 0,
+        nombreTipoMotivo: '',
         estado: false,
         aprobado: false,
         observacion: '',
+        url: ''
     })
 
     const isValidDate = (d) => d instanceof Date && !d.isNaN;
@@ -56,6 +67,151 @@ export const SolicitudDocumentoProvider = ({ children }) => {
             ...formulario,
             fechaFin: isValidDate(e) ? e : new Date(),
         })
+    }
+
+    function limpiarCampos() {
+        setFormulario({
+            fecha: new Date(),
+            fechaInicio: new Date(),
+            fechaFin: new Date(),
+            motivo: '',
+            nombreMotivo: '',
+            tipoMotivo: 0,
+            nombreTipoMotivo: '',
+            estado: false,
+            aprobado: false,
+            observacion: '',
+            url: ''
+        })
+        setEmpleado({
+            codigo: 0,
+            codigoalternativo: '',
+            nombre: '',
+            jornada: '',
+            departamento: '',
+            correo: ''
+        })
+        ObtenerSolicitudes()
+    }
+
+    // CARGA DE DOCUMENTOS ----------------------------------------------------------------------------------------------
+    const [archivo, setArchivo] = useState([]);
+    const cargarArchivos = useCallback(
+        (archivos) => {
+            const noEsPdf = archivos.at(0).type !== 'application/pdf';
+            if (noEsPdf) {
+                mensajeSistemaGenerico({ tipo: 'warning', mensaje: 'Solo puede subir un archivo en formato .pdf' });
+                return;
+            }
+            if (archivo.length >= 1) {
+                mensajeSistemaGenerico({ tipo: 'warning', mensaje: 'Solo puede subir un archivo' });
+                return;
+            }
+            if (archivos.at(0).size / 1000000 > 2) {
+                mensajeSistemaGenerico({ tipo: 'warning', mensaje: 'Solo puede subir un archivo que pese máximo 2mb' });
+                return;
+            }
+            const nuevosArchivos = archivos.map((file) =>
+                Object.assign(file, {
+                    preview: URL.createObjectURL(file),
+                })
+            );
+            setArchivo([...archivo, ...nuevosArchivos]);
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [archivo]
+    );
+    const removerArchivo = (archivoRemovido) => {
+        const archivosEliminados = archivo.filter((file) => file !== archivoRemovido);
+        setArchivo(archivosEliminados);
+    };
+    const removerTodosLosArchivos = () => setArchivo([]);
+    const enviarArchivos = () => {
+        const codigo = empleado.codigoalternativo;
+        const fechahoy = new Date().toISOString();
+        const nombrepdf = `${formulario.nombreMotivo.trim()}_${codigo}_${fechahoy.substring(0, 10)}.pdf`
+        const lecturArchivo = new FileReader();
+        lecturArchivo.readAsDataURL(archivo.at(0));
+        lecturArchivo.onloadend = (e) => {
+            const datos = {
+                nombreArchivo: nombrepdf,
+                archivo: e.target.result.split('base64,')[1]
+            }
+            empezarCarga();
+            servicesSolicitudDocumento.SubirDocumento({ documento: datos })
+                .then((res) => {
+                    setFormulario({
+                        ...formulario,
+                        url: res.data
+                    })
+                    mensajeSistemaGenerico({ tipo: 'success', mensaje: 'Documento subido con éxito' });
+                })
+                .catch((error) => {
+                    console.log(error)
+                    mensajeSistemaGenerico({ tipo: 'error', mensaje: 'Problemas con el servidor intente nuevamente, si el problema persiste contácte con soporte' });
+                })
+                .finally(() => {
+                    terminarCarga();
+                })
+        }
+    };
+    // ------------------------------------------------------------------------------------------------------------------
+
+    const validacion = () => {
+        if (empleado.nombre === '') {
+            mensajeSistemaGenerico({ tipo: 'warning', mensaje: 'Seleccione un empleado' });
+            return false;
+        }
+        if (formulario.motivo === 'M0002') {
+            if (formulario.url === '') {
+                mensajeSistemaGenerico({ tipo: 'warning', mensaje: 'Para completar la solicitud primero debe subir el documento' });
+                return false;
+            }
+        }
+        return true;
+    };
+
+    async function Grabar() {
+        if (validacion() === false) {
+            return;
+        }
+        const numeroSolic = await servicesSolicitudDocumento.ObtenerUltimoNumSolicitud()
+        const form = {
+            codigo: 0,
+            numero: numeroSolic + 1,
+            fecha: formulario.fecha,
+            motivo: formulario.motivo,
+            fechaInicio: convertirFecha(formulario.fechaInicio),
+            fechaFin: convertirFecha(formulario.fechaFin),
+            empleado: empleado.codigo,
+            observacion: formulario.observacion,
+            estado: true,
+            aprobado: false,
+            iess: formulario.nombreTipoMotivo === 'IESS',
+            urlDocumento: formulario.url,
+            fechaing: new Date(),
+            maquina: ip,
+            usuario: usuarioLogeado,
+            fechaapr: new Date(),
+            maquinaapr: ' ',
+            usuarioapr: 0,
+        }
+        console.log('tosend', form)
+        empezarCarga();
+        servicesSolicitudDocumento.GrabarSolicitud({ form })
+            .then(res => {
+                console.log(res)
+                mensajeSistemaGenerico({ tipo: 'success', mensaje: 'Solicitud registrada con éxito' });
+                limpiarCampos()
+                ObtenerDatos();
+            })
+            .catch(error => {
+                console.log(error)
+                mensajeSistemaGenerico({ tipo: 'error', mensaje: 'Problemas al guardar verifique los datos e inténtelo nuevamente' });
+            })
+            .finally(
+                terminarCarga()
+            )
     }
 
     const ObtenerEmpleados = () => {
@@ -95,82 +251,13 @@ export const SolicitudDocumentoProvider = ({ children }) => {
         servicesSolicitudDocumento.ListarMotivos()
             .then(res => {
                 const motivos = res.data
+                console.log(motivos)
                 setListaMotivos(motivos)
             })
             .catch(error => {
                 console.log(error)
                 mensajeSistemaGenerico({ tipo: 'error', mensaje: 'Problemas al obtener información de los motivos' });
             })
-    }
-
-    function limpiarCampos() {
-        setFormulario({
-            fecha: new Date(),
-            fechaInicio: new Date(),
-            fechaFin: new Date(),
-            motivo: '',
-            tipoMotivo: 0,
-            estado: false,
-            aprobado: false,
-            observacion: '',
-        })
-        setEmpleado({
-            codigo: 0,
-            codigoalternativo: '',
-            nombre: '',
-            jornada: ''
-        })
-        setNumeroSolicitud(0)
-    }
-
-    const validacion = () => {
-        if (empleado.nombre === '') {
-            mensajeSistemaGenerico({ tipo: 'warning', mensaje: 'Seleccione un empleado' });
-            return false;
-        }
-        return true;
-    };
-
-    async function Grabar() {
-        if (validacion() === false) {
-            return;
-        }
-        const numeroSolic = await servicesSolicitudDocumento.ObtenerUltimoNumSolicitud()
-        const form = {
-            codigo: 0,
-            numero: numeroSolic + 1,
-            fecha: formulario.fecha,
-            motivo: formulario.motivo,
-            fechaInicio: convertirFecha(formulario.fechaInicio),
-            fechaFin: convertirFecha(formulario.fechaFin),
-            empleado: empleado.codigo,
-            observacion: formulario.observacion,
-            estado: true,
-            aprobado: false,
-            urlDocumento: ' ',
-            fechaing: new Date(),
-            maquina: ip,
-            usuario: usuarioLogeado,
-            fechaapr: new Date(),
-            maquinaapr: ' ',
-            usuarioapr: 0,
-        }
-        console.log('tosend', form)
-        // empezarCarga();
-        // servicesSolicitudDocumento.GrabarSolicitud({ form })
-        //     .then(res => {
-        //         console.log(res)
-        //         mensajeSistemaGenerico({ tipo: 'success', mensaje: 'Datos registrados con éxito' });
-        //         limpiarCampos()
-        //         ObtenerDatos();
-        //     })
-        //     .catch(error => {
-        //         console.log(error)
-        //         mensajeSistemaGenerico({ tipo: 'error', mensaje: 'Problemas al guardar verifique los datos e inténtelo nuevamente' });
-        //     })
-        //     .finally(
-        //         terminarCarga()
-        //     )
     }
 
     async function ObtenerDatos() {
@@ -190,10 +277,32 @@ export const SolicitudDocumentoProvider = ({ children }) => {
         }
     }
 
+    const ObtenerJefeDepartamento = () => {
+        serviciosJefeDepartamento.BuscarxDepartamento({ departamento: empleado.departamento })
+            .then(res => {
+                setJefeDepartamento({
+                    codigo: res.codigoEmpleado,
+                    nombre: res.nombreEmpleado,
+                    correo: res.correo
+                })
+            })
+            .catch(error => {
+                console.log(error)
+                mensajeSistemaGenerico({ tipo: 'error', mensaje: 'Problemas al obtener el jefe del departamento del empleado seleccionado' });
+            })
+    }
+
     useEffect(() => {
         ObtenerDatos()
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
+
+    useEffect(() => {
+        if (empleado.departamento !== '') {
+            ObtenerJefeDepartamento()    
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [empleado.departamento])
 
     return (
         <SolicitudDocumentoContext.Provider
@@ -205,7 +314,8 @@ export const SolicitudDocumentoProvider = ({ children }) => {
                 numeroSolicitud,
                 formulario, setFormulario,
                 limpiarCampos, validacion, cambiarFecha, cambiarFechaInicio, cambiarFechaFin,
-                Grabar
+                Grabar,
+                archivo, cargarArchivos, removerArchivo, removerTodosLosArchivos, enviarArchivos
             }}
         >
             {children}

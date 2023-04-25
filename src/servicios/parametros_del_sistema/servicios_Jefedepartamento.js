@@ -21,6 +21,15 @@ class ServiciosJefeDepartamento {
     }
 
     /**
+    * @param {{ departamento: string }}
+    * @returns {Promise<Array<object>>}    
+    */
+     BuscarxDepartamento({ departamento }) {
+        const apiUrl = `${URLAPIGENERAL}/jefedepartamento/buscarxdept?departamento=${departamento}`;
+        return axiosBirobid.get(apiUrl).then(res => res.data);
+    }
+
+    /**
     * @param {{ datos: object }}
     * @returns {Promise<number>}    
     */
