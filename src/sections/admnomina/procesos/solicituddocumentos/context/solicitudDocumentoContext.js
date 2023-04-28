@@ -33,7 +33,8 @@ export const SolicitudDocumentoProvider = ({ children }) => {
     const [jefeDepartamento, setJefeDepartamento] = useState({
         codigo: '',
         nombre: '',
-        correo: ''
+        correo: '',
+        nombreDept: ''
     })
     const [formulario, setFormulario] = useState({
         fecha: new Date(),
@@ -90,6 +91,12 @@ export const SolicitudDocumentoProvider = ({ children }) => {
             jornada: '',
             departamento: '',
             correo: ''
+        })
+        setJefeDepartamento({
+            codigo: '',
+            nombre: '',
+            correo: '',
+            nombreDept: ''
         })
         ObtenerSolicitudes()
     }
@@ -175,7 +182,16 @@ export const SolicitudDocumentoProvider = ({ children }) => {
         if (validacion() === false) {
             return;
         }
+        empezarCarga();
         const numeroSolic = await servicesSolicitudDocumento.ObtenerUltimoNumSolicitud()
+        const datosCorreo = {
+            nombreEmpleado: empleado.nombre,
+            correoEmpleado: empleado.correo,
+            motivoSolicitud: formulario.nombreMotivo,
+            nombreJefeDpt: jefeDepartamento.nombre,
+            correoJefeDpt: jefeDepartamento.correo,
+            nombreDptJefe: jefeDepartamento.nombreDept
+        }
         const form = {
             codigo: 0,
             numero: numeroSolic + 1,
@@ -195,9 +211,8 @@ export const SolicitudDocumentoProvider = ({ children }) => {
             fechaapr: new Date(),
             maquinaapr: ' ',
             usuarioapr: 0,
+            datosCorreo
         }
-        console.log('tosend', form)
-        empezarCarga();
         servicesSolicitudDocumento.GrabarSolicitud({ form })
             .then(res => {
                 console.log(res)
@@ -280,10 +295,12 @@ export const SolicitudDocumentoProvider = ({ children }) => {
     const ObtenerJefeDepartamento = () => {
         serviciosJefeDepartamento.BuscarxDepartamento({ departamento: empleado.departamento })
             .then(res => {
+                console.log('res', res)
                 setJefeDepartamento({
                     codigo: res.codigoEmpleado,
                     nombre: res.nombreEmpleado,
-                    correo: res.correo
+                    correo: res.correo,
+                    nombreDept: res.nombreDepartamento
                 })
             })
             .catch(error => {
@@ -299,9 +316,9 @@ export const SolicitudDocumentoProvider = ({ children }) => {
 
     useEffect(() => {
         if (empleado.departamento !== '') {
-            ObtenerJefeDepartamento()    
+            ObtenerJefeDepartamento()
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [empleado.departamento])
 
     return (

@@ -672,7 +672,7 @@ export default function AprobacionSolicitud() {
                               if (cd === d.id) {
                                 const json = {
                                   codigosolicitud: d.codigo,
-                                  aprobacion: true,
+                                  aprobacion: true
                                 };
                                 datos.push(json);
                               }
