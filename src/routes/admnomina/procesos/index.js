@@ -13,7 +13,7 @@ const SolicitudDocumentos = Loadable(
 );
 
 const AprobacionSolicitud = Loadable(
-  lazy(() => import('../../../sections/admnomina/procesos/aprobacionsolicitud/aprobacionsolicitud'))
+  lazy(() => import('../../../sections/admnomina/procesos/aprobacionsolicitud/AprobacionSolicitudes'))
 );
 
 const RegistroRol = Loadable(lazy(() => import('../../../sections/admnomina/procesos/registrorol/registrorol')));

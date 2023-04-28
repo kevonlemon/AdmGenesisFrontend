@@ -1,19 +1,23 @@
-import { TextField, Button, Grid, Card, FormControlLabel, MenuItem, Checkbox } from '@mui/material';
+import { TextField, Button, Grid, Card, FormControlLabel, MenuItem, Checkbox, IconButton } from '@mui/material';
+import { DataGrid, esES } from '@mui/x-data-grid';
 import Box from '@mui/material/Box';
 import * as React from 'react';
 import axios from 'axios';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
+import AddCircleRoundedIcon from '@mui/icons-material/AddCircleRounded';
 import ArrowCircleLeftRoundedIcon from '@mui/icons-material/ArrowCircleLeftRounded';
 import InsertDriveFileRoundedIcon from '@mui/icons-material/InsertDriveFileRounded';
 import { obtenerMaquina } from '../../../../../utils/sistema/funciones';
-import { CORS, URLAPIGENERAL, URLAPILOCAL } from '../../../../../config';
+import { URLAPIGENERAL } from '../../../../../config';
 import { PATH_AUTH, PATH_PAGE } from '../../../../../routes/paths';
+import { styleActive, styleInactive, estilosdetabla, estilosdatagrid } from '../../../../../utils/csssistema/estilos';
 import ModalGenerico from '../../../../../components/modalgenerico';
 import Page from '../../../../../components/Page';
 import RequiredTextField from '../../../../../sistema/componentes/formulario/RequiredTextField';
 import MensajesGenericos from '../../../../../components/sistema/mensajesgenerico';
+import { CustomNoRowsOverlay } from '../../../../../utils/csssistema/iconsdatagrid';
 
 // ----------------------------------------------------------------------
 
@@ -84,7 +88,23 @@ export default function NuevoBancoCia() {
     maquina: '',
     usuario: 0,
     sucursal: 0,
+
+    campos: ''
   });
+
+  const [camposCsvTxt, setCamposCsxTxt] = React.useState([]);
+  const [datosCsvTxt, setDatosCsvTxt] = React.useState([]);
+  const columnasCsvTxt = [
+    { field: 'datosCsvTxt', headerName: 'Campos CSV/Txt', width: 350 }
+  ]
+
+  function AgregarCamposCsvTxt() {
+    const id = datosCsvTxt.length + 1
+    datosCsvTxt.push({
+      id,
+      datosCsvTxt: dataBanco.campos
+    })
+  }
 
   const limpiar = () => {
     setbanco({
@@ -106,6 +126,7 @@ export default function NuevoBancoCia() {
       maquina: '',
       usuario: 0,
       sucursal: 0,
+      campos: ''
     });
     setUcheque(true);
     setChecked(false);
@@ -496,308 +517,197 @@ export default function NuevoBancoCia() {
         <Card elevation={3} sx={{ ml: 3, mr: 3, mb: 2, p: 1 }}>
           <Box sx={{ width: '100%', p: 2 }}>
             <Grid container spacing={2}>
-              <Grid container item xs={12} sm={12} md={6} spacing={1} sx={{ mb: 1 }}>
+              <Grid container item xs={12} sm={12} md={12} spacing={1} sx={{ mb: 1 }}>
                 <Box sx={{ width: '100%' }}>
-                  <Grid item md={12} xs={12} sm={12}>
-                    <Typography variant="h6" gutterBottom component="div">
-                      Banco
-                    </Typography>
+                  <Grid item container xs={12} spacing={1}>
+                    <Grid item md={6} xs={6} sm={6}>
+                      <Typography variant="h6" gutterBottom component="div">
+                        Banco
+                      </Typography>
+                    </Grid>
+                    <Grid item md={6} xs={6} sm={6}>
+                      <Typography variant="h6" gutterBottom component="div">
+                        Datos Adicionales
+                      </Typography>
+                    </Grid>
                   </Grid>
                 </Box>
-
-                <Grid item md={4.5} xs={12} sm={5}>
-                  <RequiredTextField
-                    fullWidth
-                    error={error}
-                    size="small"
-                    required
-                    label="Inicial del Banco"
-                    onChange={(e) => {
-                      setbanco({
-                        ...dataBanco,
-                        inicial_Banco: e.target.value.toLocaleUpperCase(),
-                      });
-                    }}
-                    value={dataBanco.inicial_Banco}
-                    id="outlined-size-small"
-                  />
-                </Grid>
-                <Grid item md={7.5} xs={12} sm={7}>
-                  <RequiredTextField
-                    fullWidth
-                    error={error1}
-                    size="small"
-                    type="text"
-                    required
-                    label="Nombre Banco"
-                    id="outlined-size-small"
-                    onChange={(e) => {
-                      setbanco({
-                        ...dataBanco,
-                        nombre: e.target.value.toLocaleUpperCase(),
-                      });
-                    }}
-                    value={dataBanco.nombre}
-                  />
-                </Grid>
-
-                <Grid container item xs={12} spacing={1} sx={{ mb: 1 }}>
-                  <Grid item md={7} xs={12} sm={7}>
+                <Grid item container md={6} spacing={1}>
+                  <Grid item md={4.5} xs={12} sm={5}>
                     <RequiredTextField
                       fullWidth
-                      error={error2}
-                      size="small"
-                      type="number"
-                      label="Nº de Cuenta"
-                      onChange={(e) => {
-                        setbanco({
-                          ...dataBanco,
-                          numero_Cuenta: e.target.value.toLocaleUpperCase(),
-                        });
-                      }}
-                      value={dataBanco.numero_Cuenta}
-                      id="outlined-size-small"
-                    />
-                  </Grid>
-                  <Grid item md={4} xs={12} sm={4}>
-                    <RequiredTextField
-                      select
-                      error={error3}
-                      label="Tipo de Cuenta"
-                      value={dataBanco.tipo_Cuenta}
-                      onChange={habilitarCR}
-                      fullWidth
-                      size="small"
-                    >
-                      {Object.values(tipoCtas).map((val) => (
-                        <MenuItem key={val.nombre} value={val.codigo}>
-                          {val.nombre}
-                        </MenuItem>
-                      ))}
-                    </RequiredTextField>
-                  </Grid>
-                </Grid>
-
-                <Grid container item xs={12} spacing={1} sx={{ mb: 1 }}>
-                  <Grid item md={5} xs={12} sm={5}>
-                    <TextField
-                      fullWidth
-                      error={error6}
-                      disabled={switchUcheque}
-                      size="small"
-                      type="number"
-                      // InputProps={{
-                      //   readOnly: contadorAuto,}}
-                      label="Nº del Ultimo Cheque"
-                      onChange={ChequeFun}
-                      value={dataBanco.ultimo_Cheque}
-                    />
-                  </Grid>
-
-                  <Grid item md={6} xs={12} sm={6} sx={{ ml: 3 }}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          disabled={contadorAuto}
-                          checked={dataBanco.contador_Automatico}
-                          onChange={checkFunc}
-                        />
-                      }
-                      label="Contador Automatico"
-                      name="contador_automatico"
-                    />
-                  </Grid>
-                </Grid>
-
-                {/* <Box sx={{ width: '100%' }}>
-                  <Grid item md={12} xs={12} sm={12}>
-                    <Typography variant="h6" gutterBottom component="div">
-                      Contabilidad
-                    </Typography>
-                  </Grid>
-                </Box> */}
-                {/* <Grid item md={12} xs={12} sm={12}>
-                  <Typography variant="subtitle4" align="left" gutterBottom component="div">
-                    Cuenta Contable:
-                  </Typography>
-                </Grid> */}
-                {/* <Grid container item xs={12} spacing={1} sx={{ mb: 1 }}>
-
-                  <Grid item md={5} xs={12} sm={5}>
-                    <TextField
-                      fullWidth
-                      error={error4}
+                      error={error}
                       size="small"
                       required
-                      label="Nº Cuenta"
+                      label="Inicial del Banco"
                       onChange={(e) => {
                         setbanco({
                           ...dataBanco,
-                          cuenta: e.target.value,
+                          inicial_Banco: e.target.value.toLocaleUpperCase(),
                         });
                       }}
-                      value={dataBanco.cuenta}
-                      InputProps={{
-                        readOnly: true,
-                        endAdornment: (
-                          <InputAdornment position="start">
-                            <IconButton
-                              onClick={() => {
-                                setOpenModalnivel1(true);
-                              }}
-                              aria-label="SearchIcon"
-                            >
-                              <SearchIcon />
-                            </IconButton>
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  </Grid>
-                  <Grid item md={7} xs={12} sm={7} >
-                    <TextField
-                      fullWidth
-                      error={error4}
-                      size="small"
-                      type="text"
-                      label="Nombre Cuenta"
-                      onChange={(e) => {
-                        setbanco({
-                          ...dataBanco,
-                          nombre_cuenta: e.target.value.toLocaleUpperCase(),
-                        });
-                      }}
-                      value={dataBanco.nombre_cuenta}
-                      InputProps={{
-                        readOnly: true,
-                      }}
+                      value={dataBanco.inicial_Banco}
                       id="outlined-size-small"
                     />
                   </Grid>
-                </Grid> */}
-
-                {/* <Grid item md={12} xs={12} sm={12}>
-                  <Typography variant="subtitle4" align="left" gutterBottom component="div">
-                    Cuenta Cheque a Fecha:
-                  </Typography>
-                </Grid> */}
-                {/* <Grid container item xs={12} spacing={1} >
-
-                  <Grid item md={5} xs={12} sm={5}>
-                    <TextField
+                  <Grid item md={7.5} xs={12} sm={7}>
+                    <RequiredTextField
                       fullWidth
-                      size="small"
-                      error={error5}
-                      label="Nº Cuenta"
-                      onChange={(e) => {
-                        setbanco({
-                          ...dataBanco,
-                          cuenta_Cheque_Fecha: e.target.value.toLocaleUpperCase(),
-                        });
-                      }}
-                      value={dataBanco.cuenta_Cheque_Fecha}
-                      id="outlined-size-small"
-                      InputProps={{
-                        readOnly: true,
-                        endAdornment: (
-                          <InputAdornment position="start">
-                            <IconButton
-                              aria-label="SearchIcon"
-                              onClick={() => {
-                                setOpenModalnivel2(true);
-                              }}
-                            >
-                              <SearchIcon />
-                            </IconButton>
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  </Grid>
-
-                  <Grid item md={7} xs={12} sm={7} >
-                    <TextField
-                      fullWidth
-                      error={error5}
+                      error={error1}
                       size="small"
                       type="text"
-                      label="Nombre Cta Cheque"
+                      required
+                      label="Nombre Banco"
+                      id="outlined-size-small"
                       onChange={(e) => {
                         setbanco({
                           ...dataBanco,
-                          nombre_cta_cheque_fecha: e.target.value.toLocaleUpperCase(),
+                          nombre: e.target.value.toLocaleUpperCase(),
                         });
                       }}
-                      value={dataBanco.nombre_cta_cheque_fecha}
-                      InputProps={{
-                        readOnly: true,
-                      }}
-                      name="nombre cuenta"
-                      variant="outlined"
+                      value={dataBanco.nombre}
                     />
                   </Grid>
 
+                  <Grid container item xs={12} spacing={1} sx={{ mb: 1 }}>
+                    <Grid item md={7} xs={12} sm={7}>
+                      <RequiredTextField
+                        fullWidth
+                        error={error2}
+                        size="small"
+                        type="number"
+                        label="Nº de Cuenta"
+                        onChange={(e) => {
+                          setbanco({
+                            ...dataBanco,
+                            numero_Cuenta: e.target.value.toLocaleUpperCase(),
+                          });
+                        }}
+                        value={dataBanco.numero_Cuenta}
+                        id="outlined-size-small"
+                      />
+                    </Grid>
+                    <Grid item md={5} xs={12} sm={5}>
+                      <RequiredTextField
+                        select
+                        error={error3}
+                        label="Tipo de Cuenta"
+                        value={dataBanco.tipo_Cuenta}
+                        onChange={habilitarCR}
+                        fullWidth
+                        size="small"
+                      >
+                        {Object.values(tipoCtas).map((val) => (
+                          <MenuItem key={val.nombre} value={val.codigo}>
+                            {val.nombre}
+                          </MenuItem>
+                        ))}
+                      </RequiredTextField>
+                    </Grid>
+                  </Grid>
 
-                </Grid> */}
-                {/* <Grid container item xs={12} spacing={1} sx={{ mb: 1 }}>
-                  <Grid item md={2.5} xs={6} > */}
-                {/* <LocalizationProvider dateAdapter={AdapterDateFns} locale={es}>
-                    <MobileDatePicker
-                      disabled
-                      label="Ultima Conciliacion"
-                      value={valueDate}
-                      onChange={(newValue) => {
-                        setbanco(newValue);
-                      }}
-                      renderInput={(params) => <TextField {...params} fullWidth size="small" />}
-                    />
+                  <Grid container item xs={12} spacing={1} sx={{ mb: 1 }}>
+                    <Grid item md={5} xs={12} sm={5}>
+                      <TextField
+                        fullWidth
+                        error={error6}
+                        disabled={switchUcheque}
+                        size="small"
+                        type="number"
+                        // InputProps={{
+                        //   readOnly: contadorAuto,}}
+                        label="Nº del Ultimo Cheque"
+                        onChange={ChequeFun}
+                        value={dataBanco.ultimo_Cheque}
+                      />
+                    </Grid>
 
-                  </LocalizationProvider> */}
-                {/* </Grid>
-                </Grid> */}
+                    <Grid item md={6} xs={12} sm={6} sx={{ ml: 3 }}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            disabled={contadorAuto}
+                            checked={dataBanco.contador_Automatico}
+                            onChange={checkFunc}
+                          />
+                        }
+                        label="Contador Automatico"
+                        name="contador_automatico"
+                      />
+                    </Grid>
+                  </Grid>
 
-                <Grid
-                  container
-                  item
-                  xs={12}
-                  spacing={1}
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                >
-                  {/* <Grid item md={2} xs={12} sm={2}>
+                  <Grid
+                    container
+                    item
+                    xs={12}
+                    spacing={1}
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                  >
+                    <Grid item md={2} xs={12} sm={2} sx={{ ml: 3 }}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={dataBanco.estado}
+                            disabled
+                            onChange={(e) => {
+                              setbanco({ ...dataBanco, estado: e.target.checked });
+                            }}
+                          />
+                        }
+                        label="Activo"
+                        name="estado"
+                      />
+                    </Grid>
+                  </Grid>
+                </Grid>
+                <Grid item container md={6} spacing={1}>
+                  <Grid item md={11}>
                     <TextField
                       fullWidth
+                      label="Campos CSV/Txt"
+                      value={dataBanco.campos}
                       size="small"
-                      type="number"
-                      label="Año"
-                      InputProps={{
-                        readOnly: true,
+                      onChange={(e) => {
+                        setbanco({
+                          ...dataBanco,
+                          campos: e.target.value
+                        })
                       }}
-                      // onChange={(e) => {
-                      //   setbanco({
-                      //     ...dataBanco,
-                      //     anio: e.target.value.toLocaleUpperCase(),
-                      //   });
-                      // }}
-                      value={dataBanco.anio}
-                      variant="outlined"
                     />
-                  </Grid> */}
-                  <Grid item md={2} xs={12} sm={2} sx={{ ml: 3 }}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={dataBanco.estado}
-                          disabled
-                          onChange={(e) => {
-                            setbanco({ ...dataBanco, estado: e.target.checked });
+                  </Grid>
+                  <Grid item md={1}>
+                    <IconButton color='primary' onClick={() => AgregarCamposCsvTxt()}>
+                      <AddCircleRoundedIcon />
+                    </IconButton>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Box sx={estilosdetabla}>
+                      <div
+                        style={{
+                          padding: '0.5rem',
+                          height: '30vh',
+                          width: '100%',
+                        }}
+                      >
+                        <DataGrid
+                          density="compact"
+                          rowHeight={28}
+                          localeText={esES.components.MuiDataGrid.defaultProps.localeText}
+                          // onRowDoubleClick={(e) => Editar(e)}
+                          sx={estilosdatagrid}
+                          rows={datosCsvTxt}
+                          columns={columnasCsvTxt}
+                          getRowId={(datosCsvTxt) => datosCsvTxt.id}
+                          components={{
+                            NoRowsOverlay: CustomNoRowsOverlay,
                           }}
+                          hideFooter
                         />
-                      }
-                      label="Activo"
-                      name="estado"
-                    />
+                      </div>
+                    </Box>
                   </Grid>
                 </Grid>
               </Grid>

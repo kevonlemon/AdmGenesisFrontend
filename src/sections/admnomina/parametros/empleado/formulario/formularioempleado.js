@@ -1473,7 +1473,7 @@ export default function FormularioEmpleado() {
             serviciosMantenimientoGenerico.listarPorTabla({ tabla: 'NOM_FORMAPAGO' }),
             serviciosMantenimientoGenerico.listarPorTabla({ tabla: 'NOM_MODOEJECUCION' }),
             serviciosSucursal.Listar(),
-            serviciosBanco.Listar()
+            serviciosMantenimientoGenerico.listarPorTabla({ tabla: 'CXC_BANCO' })
           ])
             .then(res => {
               setProvincias(res[0].map((m) => ({ ...m, codigoalternativo: m.codigo })));
@@ -1485,7 +1485,7 @@ export default function FormularioEmpleado() {
               setSucursal(res[5].at(0).codigo)
               const bancos = res[6].map((m) => ({
                 codigo: m.codigo,
-                codigoalternativo: m.inicial_Banco,
+                codigoalternativo: m.codigo,
                 nombre: m.nombre
               }))
               setListaBancos(bancos)
