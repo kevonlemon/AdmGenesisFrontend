@@ -1,4 +1,5 @@
-import { TextField, Button, Grid, Card, FormControlLabel, MenuItem, Checkbox } from '@mui/material';
+import { TextField, Button, Grid, Card, FormControlLabel, MenuItem, Checkbox, IconButton } from '@mui/material';
+import { DataGrid, esES } from '@mui/x-data-grid';
 import Box from '@mui/material/Box';
 import * as React from 'react';
 import axios from 'axios';
@@ -6,8 +7,10 @@ import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
+import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
 import AddCircleRoundedIcon from '@mui/icons-material/AddCircle';
 import ArrowCircleLeftRoundedIcon from '@mui/icons-material/ArrowCircleLeftRounded';
+import axiosBirobid from '../../../../../utils/admnomina/axiosBirobid';
 import CircularProgreso from '../../../../../components/Cargando';
 import { obtenerMaquina } from '../../../../../utils/sistema/funciones';
 import { CORS, URLAPIGENERAL, URLAPILOCAL } from '../../../../../config';
@@ -16,6 +19,9 @@ import ModalGenerico from '../../../../../components/modalgenerico';
 import Page from '../../../../../components/Page';
 import RequiredTextField from '../../../../../sistema/componentes/formulario/RequiredTextField';
 import MensajesGenericos from '../../../../../components/sistema/mensajesgenerico';
+import { estilosdetabla, estilosdatagrid } from '../../../../../utils/csssistema/estilos';
+import useMensajeGeneral from '../../../../../hooks/admnomina/useMensajeGeneral';
+import { CustomNoRowsOverlay } from '../../../../../utils/csssistema/iconsdatagrid';
 
 // ----------------------------------------------------------------------
 
@@ -53,6 +59,8 @@ export default function EditarBancoCia() {
 
   const navigate = useNavigate();
 
+  const { mensajeSistemaPregunta } = useMensajeGeneral()
+
   const messajeTool = (variant, msg) => {
     const unTrue = true;
     setCodigomod('');
@@ -85,8 +93,81 @@ export default function EditarBancoCia() {
     maquina: '',
     usuario: 0,
     sucursal: 0,
+
+    campos: ''
   });
 
+  const [datosCsvTxt, setDatosCsvTxt] = React.useState([]);
+
+  async function EliminarCampo(campos) {
+    try {
+      const response = await axiosBirobid.post(`${URLAPIGENERAL}/bancos/eliminarcampocsvtxt`, campos, config, setMostrarProgreso(true))
+      if (response.data === 200) {
+        messajeTool('succes', 'Campo eliminado correctamente');
+        const nuevalista = datosCsvTxt.filter((l) => l.id !== campos.codigo);
+        setDatosCsvTxt(nuevalista)
+      }
+    } catch {
+      if (error.response.status === 401) {
+        navigate(`${PATH_AUTH.login}`);
+        messajeTool('error', 'Su inicio de sesion expiro');
+      } else if (error.response.status === 500) {
+        navigate(`${PATH_PAGE.page500}`);
+      } else {
+        messajeTool('error', 'Problemas con la base de datos');
+      }
+    } finally {
+      setMostrarProgreso(false);
+    }
+    
+
+  }
+
+  const eliminarCampoCsvTxt = async (e) => {
+    console.log('e', e)
+    if (e.row.origen === 'base') {
+      const campos = {
+        'codigo': e.id
+      }
+      mensajeSistemaPregunta({
+        mensaje: `Esta acción eliminará desde la base de datos. ¿Está seguro de eliminar este campo?`,
+        ejecutarFuncion: () => {
+          EliminarCampo(campos)
+        },
+      });
+    } else {
+      const nuevalista = datosCsvTxt.filter((l) => l.id !== e.id);
+      setDatosCsvTxt(nuevalista)
+    }
+
+  }
+  const columnasCsvTxt = [
+    { field: 'datosCsvTxt', headerName: 'Campos CSV/Txt', width: 370 },
+    {
+      field: 'eliminar',
+      headerName: 'Eliminar',
+      width: 100,
+      sortable: false,
+      renderCell: (param) => (
+        <Button
+          fullWidth
+          variant="text"
+          onClick={() => { eliminarCampoCsvTxt(param) }}
+          startIcon={<CancelRoundedIcon />}
+        />
+      ),
+    },
+  ]
+
+  function AgregarCamposCsvTxt() {
+    const filtro = datosCsvTxt.filter(f => f.datosCsvTxt.trim() === dataBanco.campos.trim())
+    const id = datosCsvTxt.length + 1
+    setDatosCsvTxt(
+      [...datosCsvTxt, { id, datosCsvTxt: dataBanco.campos, origen: 'web' }]
+    )
+    setbanco({ ...dataBanco, campos: '' })
+  }
+  console.log(datosCsvTxt)
   // eslint-disable-next-line react-hooks/rules-of-hooks
   React.useEffect(() => {
     async function obtenermotv() {
@@ -96,7 +177,14 @@ export default function EditarBancoCia() {
           config,
           setMostrarProgreso(true)
         );
+        console.log('data bancocia', data)
         setbanco(data);
+        const dataCamposcsvtxt = data.camposCsvTxt.map((m) => ({
+          id: m.codigo,
+          datosCsvTxt: m.columna,
+          origen: 'base'
+        }))
+        setDatosCsvTxt(dataCamposcsvtxt)
 
         if (data.tipo_Cuenta === 'COR') {
           setContadorauto(false);
@@ -161,37 +249,6 @@ export default function EditarBancoCia() {
     setbanco({ ...dataBanco, cuenta_Cheque_Fecha: item.codigo, nombre_cta_cheque_fecha: item.nombre });
     toggleShownivel2();
   };
-
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  // React.useEffect(() => {
-  //   async function getDatos() {
-  //     try {
-  //       const response = await axios(`${URLAPILOCAL}/cuentascontables/listar`, config);
-  //       const dataRes = response.data;
-  //       const filtrado = dataRes.filter(f => f.auxiliar === true);
-  //       const cateprov = filtrado.map((el) => ({
-  //         codigo: el.cuenta,
-  //         nombre: el.nombre,
-  //       }));
-  //       setCateProv(cateprov);
-  //       setRowsparaModal(cateprov);
-  //       setCateProv2(cateprov);
-  //       setRowsparaModal2(cateprov);
-  //     } catch (error) {
-  //       if (error.response.status === 401) {
-  //         navigate(`${PATH_AUTH.login}`);
-  //         mensajeSistema("Su inicio de sesion expiro", "error");
-  //       }
-  //       else if (error.response.status === 500) {
-  //         navigate(`${PATH_PAGE.page500}`);
-  //       } else {
-  //         mensajeSistema("Problemas con la base de datos", "error");
-  //       }
-  //     }
-
-  //   }
-  //   getDatos();
-  // }, []);
 
   const [tipoCtas, setTipocuentabanco] = React.useState({});
   React.useEffect(() => {
@@ -322,6 +379,12 @@ export default function EditarBancoCia() {
     const maquina = await obtenerMaquina();
     const { codigo } = JSON.parse(window.localStorage.getItem('usuario'));
 
+    const camposCsvTxt = datosCsvTxt.map((m) => ({
+      codigo: m.id,
+      columna: m.datosCsvTxt,
+      origen: m.origen
+    }))
+
     const Json = {
       Codigo: dataBanco.codigo,
       inicial_Banco: dataBanco.inicial_Banco,
@@ -337,14 +400,14 @@ export default function EditarBancoCia() {
       nombre_cta_cheque: dataBanco.nombre_cta_cheque,
       estado: dataBanco.estado,
       fecha_ing: new Date(),
-      // ultima_Conciliacion: new Date(),
       fechaRegistro: new Date(),
       maquina: `${maquina}`,
       usuario: codigo,
-      // sucursal: 0,
+      camposCsvTxt
     };
 
     try {
+      console.log('tosend', Json)
       const { data } = await axios.post(`${URLAPIGENERAL}/bancos/editar`, Json, config, setMostrarProgreso(true));
       if (data === 200) {
         setGuardado(true);
@@ -613,7 +676,7 @@ export default function EditarBancoCia() {
                       }}
                     />
                   </Grid>
-                  <Grid item md={4} xs={12} sm={4}>
+                  <Grid item md={4} xs={12} sm={5}>
                     <RequiredTextField
                       select
                       error={error3}
@@ -666,142 +729,6 @@ export default function EditarBancoCia() {
                   </Grid>
                 </Grid>
 
-                {/* <Box sx={{ width: '100%' }}>
-                  <Grid item md={12} xs={12} sm={12}>
-                    <Typography variant="h6" gutterBottom component="div">
-                      Contabilidad
-                    </Typography>
-                  </Grid>
-                </Box> */}
-                {/* <Grid item md={12} xs={12} sm={12}>
-                  <Typography variant="subtitle4" align="left" gutterBottom component="div">
-                    Cuenta Contable:
-                  </Typography>
-                </Grid> */}
-                {/* <Grid container item xs={12} spacing={1} sx={{ mb: 1 }}>
-
-                  <Grid item md={5} xs={12} sm={5}>
-                    <TextField
-                      fullWidth
-                      error={error4}
-                      size="small"
-                      required
-                      label="Nº Cuenta"
-                      onChange={(e) => {
-                        setbanco({
-                          ...dataBanco,
-                          cuenta: e.target.value,
-                        });
-                      }}
-                      value={dataBanco.cuenta}
-                      InputProps={{
-                        readOnly: true,
-                        endAdornment: (
-                          <InputAdornment position="start">
-                            <IconButton
-                              onClick={() => {
-                                setOpenModalnivel1(true);
-                              }}
-                              aria-label="SearchIcon"
-                            >
-                              <SearchIcon />
-                            </IconButton>
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  </Grid>
-                  <Grid item md={7} xs={12} sm={7} >
-                    <TextField
-                      fullWidth
-                      error={error4}
-                      size="small"
-                      type="text"
-                      label="Nombre Cuenta"
-                      onChange={(e) => {
-                        setbanco({
-                          ...dataBanco,
-                          nombre_cuenta: e.target.value.toLocaleUpperCase(),
-                        });
-                      }}
-                      value={dataBanco.nombre_cuenta}
-                      InputProps={{
-                        readOnly: true,
-                      }}
-                      id="outlined-size-small"
-                    />
-                  </Grid>
-                </Grid> */}
-
-                {/* <Grid item md={12} xs={12} sm={12}>
-                  <Typography variant="subtitle4" align="left" gutterBottom component="div">
-                    Cuenta Cheque a Fecha:
-                  </Typography>
-                </Grid> */}
-                {/* <Grid container item xs={12} spacing={1} >
-
-                  <Grid item md={5} xs={12} sm={5}>
-                    <TextField
-                      fullWidth
-                      size="small"
-                      error={error5}
-                      label="Nº Cuenta"
-                      onChange={(e) => {
-                        setbanco({
-                          ...dataBanco,
-                          cuenta_Cheque_Fecha: e.target.value.toLocaleUpperCase(),
-                        });
-                      }}
-                      value={dataBanco.cuenta_Cheque_Fecha}
-                      id="outlined-size-small"
-                      InputProps={{
-                        readOnly: true,
-                        endAdornment: (
-                          <InputAdornment position="start">
-                            <IconButton
-                              aria-label="SearchIcon"
-                              onClick={() => {
-                                setOpenModalnivel2(true);
-                              }}
-                            >
-                              <SearchIcon />
-                            </IconButton>
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  </Grid>
-                  
-                  <Grid item md={7} xs={12} sm={7} >
-                    <TextField
-                      fullWidth
-                      error={error5}
-                      size="small"
-                      type="text"
-                      label="Nombre Cta Cheque"
-                      onChange={(e) => {
-                        setbanco({
-                          ...dataBanco,
-                          nombre_cta_cheque: e.target.value.toLocaleUpperCase(),
-                        });
-                      }}
-                      value={dataBanco.nombre_cta_cheque}
-                      InputProps={{
-                        readOnly: true,
-                      }}
-                      name="nombre cuenta"
-                      variant="outlined"
-                    />
-                  </Grid>
-
-
-                </Grid> */}
-                {/* <Grid container item xs={12} spacing={1} sx={{ mb: 1 }}>
-                  <Grid item md={2.5} xs={6} >
-                    
-                  </Grid>
-                </Grid> */}
-
                 <Grid
                   container
                   item
@@ -811,25 +738,6 @@ export default function EditarBancoCia() {
                   justifyContent="space-between"
                   alignItems="center"
                 >
-                  {/* <Grid item md={2} xs={12} sm={2}>
-                    <TextField
-                      fullWidth
-                      size="small"
-                      type="number"
-                      label="Año"
-                      InputProps={{
-                        readOnly: true,
-                      }}
-                      // onChange={(e) => {
-                      //   setbanco({
-                      //     ...dataBanco,
-                      //     anio: e.target.value.toLocaleUpperCase(),
-                      //   });
-                      // }}
-                      value={dataBanco.anio}
-                      variant="outlined"
-                    />
-                  </Grid> */}
                   <Grid item md={2} xs={12} sm={2} sx={{ ml: 3 }}>
                     <FormControlLabel
                       control={
@@ -844,6 +752,60 @@ export default function EditarBancoCia() {
                       label="Activo"
                       name="estado"
                     />
+                  </Grid>
+                </Grid>
+                <Grid item container md={12} spacing={1}>
+                  <Grid item md={12} xs={12} sm={12}>
+                    <Typography variant="h6" gutterBottom component="div">
+                      Datos Adicionales
+                    </Typography>
+                  </Grid>
+                  <Grid item container md={12} sm={12} xs={12} spacing={1}>
+                    <Grid item md={11} sm={11} xs={11}>
+                      <TextField
+                        fullWidth
+                        label="Campos CSV/Txt"
+                        value={dataBanco.campos}
+                        size="small"
+                        onChange={(e) => {
+                          setbanco({
+                            ...dataBanco,
+                            campos: e.target.value.toLocaleUpperCase()
+                          })
+                        }}
+                      />
+                    </Grid>
+                    <Grid item md={1} sm={1} xs={1}>
+                      <IconButton color='primary' onClick={() => AgregarCamposCsvTxt()}>
+                        <AddCircleRoundedIcon />
+                      </IconButton>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Box sx={estilosdetabla}>
+                        <div
+                          style={{
+                            padding: '0.5rem',
+                            height: '30vh',
+                            width: '100%',
+                          }}
+                        >
+                          <DataGrid
+                            density="compact"
+                            rowHeight={28}
+                            localeText={esES.components.MuiDataGrid.defaultProps.localeText}
+                            // onRowDoubleClick={(e) => Editar(e)}
+                            sx={estilosdatagrid}
+                            rows={datosCsvTxt}
+                            columns={columnasCsvTxt}
+                            getRowId={(datosCsvTxt) => datosCsvTxt.id}
+                            components={{
+                              NoRowsOverlay: CustomNoRowsOverlay,
+                            }}
+                            hideFooter
+                          />
+                        </div>
+                      </Box>
+                    </Grid>
                   </Grid>
                 </Grid>
               </Grid>
