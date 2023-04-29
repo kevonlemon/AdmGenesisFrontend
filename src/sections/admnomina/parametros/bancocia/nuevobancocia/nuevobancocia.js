@@ -6,13 +6,14 @@ import axios from 'axios';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
+import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
 import AddCircleRoundedIcon from '@mui/icons-material/AddCircleRounded';
 import ArrowCircleLeftRoundedIcon from '@mui/icons-material/ArrowCircleLeftRounded';
 import InsertDriveFileRoundedIcon from '@mui/icons-material/InsertDriveFileRounded';
 import { obtenerMaquina } from '../../../../../utils/sistema/funciones';
 import { URLAPIGENERAL } from '../../../../../config';
 import { PATH_AUTH, PATH_PAGE } from '../../../../../routes/paths';
-import { styleActive, styleInactive, estilosdetabla, estilosdatagrid } from '../../../../../utils/csssistema/estilos';
+import { estilosdetabla, estilosdatagrid } from '../../../../../utils/csssistema/estilos';
 import ModalGenerico from '../../../../../components/modalgenerico';
 import Page from '../../../../../components/Page';
 import RequiredTextField from '../../../../../sistema/componentes/formulario/RequiredTextField';
@@ -92,18 +93,41 @@ export default function NuevoBancoCia() {
     campos: ''
   });
 
-  const [camposCsvTxt, setCamposCsxTxt] = React.useState([]);
   const [datosCsvTxt, setDatosCsvTxt] = React.useState([]);
+  const eliminarCampoCsvTxt = (e) => {
+    const nuevalista = datosCsvTxt.filter((l) => l.id !== e.id);
+    setDatosCsvTxt(nuevalista)
+  }
   const columnasCsvTxt = [
-    { field: 'datosCsvTxt', headerName: 'Campos CSV/Txt', width: 350 }
+    { field: 'datosCsvTxt', headerName: 'Campos CSV/Txt', width: 370 },
+    {
+      field: 'eliminar',
+      headerName: 'Eliminar',
+      width: 100,
+      sortable: false,
+      renderCell: (param) => (
+        <Button
+          fullWidth
+          variant="text"
+          onClick={() => { eliminarCampoCsvTxt(param) }}
+          startIcon={<CancelRoundedIcon />}
+        />
+      ),
+    },
   ]
 
   function AgregarCamposCsvTxt() {
-    const id = datosCsvTxt.length + 1
-    datosCsvTxt.push({
-      id,
-      datosCsvTxt: dataBanco.campos
-    })
+    const filtro = datosCsvTxt.filter(f => f.datosCsvTxt.trim() === dataBanco.campos.trim())
+    if (filtro.length > 0) {
+      messajeTool('warning', 'Ya ha ingresado un campo csv/txt con el mismo nombre, revise');
+    } else {
+      const id = datosCsvTxt.length + 1
+      setDatosCsvTxt(
+        [...datosCsvTxt, { id, datosCsvTxt: dataBanco.campos }]
+      )
+      setbanco({ ...dataBanco, campos: '' })
+    }
+
   }
 
   const limpiar = () => {
@@ -138,6 +162,7 @@ export default function NuevoBancoCia() {
     setError4(false);
     setError5(false);
     setError6(false);
+    setDatosCsvTxt([]);
   };
 
   // -------- Axios atrae las cuentas contables
@@ -172,37 +197,6 @@ export default function NuevoBancoCia() {
     setbanco({ ...dataBanco, cuenta_Cheque_Fecha: item.codigo, nombre_cta_cheque_fecha: item.nombre });
     toggleShownivel2();
   };
-
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  // React.useEffect(() => {
-  //   async function getDatos() {
-  //     try {
-  //       const response = await axios(`${URLAPILOCAL}/cuentascontables/listar`, config);
-  //       const dataRes = response.data;
-  //       const filtrado = dataRes.filter(f => f.auxiliar === true);
-  //       const cateprov = filtrado.map((el) => ({
-  //         codigo: el.cuenta,
-  //         nombre: el.nombre,
-  //       }));
-  //       setCateProv(cateprov);
-  //       setRowsparaModal(cateprov);
-  //       setCateProv2(cateprov);
-  //       setRowsparaModal2(cateprov);
-  //     } catch (error) {
-  //       if (error.response.status === 401) {
-  //         navigate(`${PATH_AUTH.login}`);
-  //         mensajeSistema("Su inicio de sesion expiro", "error");
-  //       }
-  //       else if (error.response.status === 500) {
-  //         navigate(`${PATH_PAGE.page500}`);
-  //       } else {
-  //         mensajeSistema("Problemas con la base de datos", "error");
-  //       }
-  //     }
-
-  //   }
-  //   getDatos();
-  // }, []);
 
   const [tipoCtas, setTipocuentabanco] = React.useState({});
   React.useEffect(() => {
@@ -401,9 +395,12 @@ export default function NuevoBancoCia() {
     const maquina = await obtenerMaquina();
     const usuario = JSON.parse(window.localStorage.getItem('usuario'));
 
+    const camposCsvTxt = datosCsvTxt.map((m) => ({
+      columna: m.datosCsvTxt
+    }))
+
     try {
       const json = {
-        // codigo: 0,
         inicial_Banco: dataBanco.inicial_Banco,
         cuenta: dataBanco.cuenta,
         nombre_cuenta: dataBanco.nombre_cuenta,
@@ -418,6 +415,7 @@ export default function NuevoBancoCia() {
         fecha_ing: new Date(),
         maquina: `${maquina}`,
         usuario: usuario.codigo,
+        camposCsvTxt
       };
       const { data } = await axios.post(`${URLAPIGENERAL}/bancos`, json, config);
       if (data === 200) {
@@ -523,11 +521,6 @@ export default function NuevoBancoCia() {
                     <Grid item md={6} xs={6} sm={6}>
                       <Typography variant="h6" gutterBottom component="div">
                         Banco
-                      </Typography>
-                    </Grid>
-                    <Grid item md={6} xs={6} sm={6}>
-                      <Typography variant="h6" gutterBottom component="div">
-                        Datos Adicionales
                       </Typography>
                     </Grid>
                   </Grid>
@@ -663,51 +656,57 @@ export default function NuevoBancoCia() {
                     </Grid>
                   </Grid>
                 </Grid>
-                <Grid item container md={6} spacing={1}>
-                  <Grid item md={11}>
-                    <TextField
-                      fullWidth
-                      label="Campos CSV/Txt"
-                      value={dataBanco.campos}
-                      size="small"
-                      onChange={(e) => {
-                        setbanco({
-                          ...dataBanco,
-                          campos: e.target.value
-                        })
-                      }}
-                    />
+                <Grid item container md={12} spacing={1}>
+                  <Grid item md={12} xs={12} sm={12}>
+                    <Typography variant="h6" gutterBottom component="div">
+                      Datos Adicionales
+                    </Typography>
                   </Grid>
-                  <Grid item md={1}>
-                    <IconButton color='primary' onClick={() => AgregarCamposCsvTxt()}>
-                      <AddCircleRoundedIcon />
-                    </IconButton>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Box sx={estilosdetabla}>
-                      <div
-                        style={{
-                          padding: '0.5rem',
-                          height: '30vh',
-                          width: '100%',
+                  <Grid item container md={6} spacing={1}>
+                    <Grid item md={11}>
+                      <TextField
+                        fullWidth
+                        label="Campos CSV/Txt"
+                        value={dataBanco.campos}
+                        size="small"
+                        onChange={(e) => {
+                          setbanco({
+                            ...dataBanco,
+                            campos: e.target.value.toLocaleUpperCase()
+                          })
                         }}
-                      >
-                        <DataGrid
-                          density="compact"
-                          rowHeight={28}
-                          localeText={esES.components.MuiDataGrid.defaultProps.localeText}
-                          // onRowDoubleClick={(e) => Editar(e)}
-                          sx={estilosdatagrid}
-                          rows={datosCsvTxt}
-                          columns={columnasCsvTxt}
-                          getRowId={(datosCsvTxt) => datosCsvTxt.id}
-                          components={{
-                            NoRowsOverlay: CustomNoRowsOverlay,
+                      />
+                    </Grid>
+                    <Grid item md={1}>
+                      <IconButton color='primary' onClick={() => AgregarCamposCsvTxt()}>
+                        <AddCircleRoundedIcon />
+                      </IconButton>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Box sx={estilosdetabla}>
+                        <div
+                          style={{
+                            padding: '0.5rem',
+                            height: '30vh',
+                            width: '100%',
                           }}
-                          hideFooter
-                        />
-                      </div>
-                    </Box>
+                        >
+                          <DataGrid
+                            density="compact"
+                            rowHeight={28}
+                            localeText={esES.components.MuiDataGrid.defaultProps.localeText}
+                            sx={estilosdatagrid}
+                            rows={datosCsvTxt}
+                            columns={columnasCsvTxt}
+                            getRowId={(datosCsvTxt) => datosCsvTxt.id}
+                            components={{
+                              NoRowsOverlay: CustomNoRowsOverlay,
+                            }}
+                            hideFooter
+                          />
+                        </div>
+                      </Box>
+                    </Grid>
                   </Grid>
                 </Grid>
               </Grid>
