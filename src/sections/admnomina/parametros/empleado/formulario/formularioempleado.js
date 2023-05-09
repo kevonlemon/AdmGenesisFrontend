@@ -473,6 +473,7 @@ export default function FormularioEmpleado() {
     ctabanco: '',
     modoejecucion: '',
     estado: true,
+    idBiometrico: '',
     fecha_ing: new Date(),
     maquina: '',
     usuario: 1,
@@ -659,6 +660,7 @@ export default function FormularioEmpleado() {
       ctabanco: '',
       modoejecucion: '',
       estado: true,
+      idBiometrico: '',
       fecha_ing: new Date()
     });
     setDatosProvincia({
@@ -748,7 +750,8 @@ export default function FormularioEmpleado() {
           fondoReserva: true,
           pagoMensualDecimoTercero: true,
           pagoMensualDecimoCuarto: true,
-          estado: true
+          estado: true,
+          idBiometrico: '',
         })
         setDatosProvincia({
           provincia: '',
@@ -977,6 +980,7 @@ export default function FormularioEmpleado() {
   const sueldobaseref = React.useRef();
   const departamentoref = React.useRef();
   const cargoref = React.useRef();
+  const idBiometricoref = React.useRef();
   const nivelestudioref = React.useRef();
   const institucionref = React.useRef();
   const tituloref = React.useRef();
@@ -1034,6 +1038,11 @@ export default function FormularioEmpleado() {
       cargoref.current.focus();
       return false;
     }
+    // if (formularioempleado.idBiometrico.trim().length === 0) {
+    //   messajeTool('warning', 'Ingrese un id de Biométrico');
+    //   idBiometricoref.current.focus();
+    //   return false;
+    // }
     if (nivelEstudios.codigo.trim().length === 0) {
       messajeTool('warning', 'Seleccione un nivel de estudio');
       nivelestudioref.current.focus();
@@ -1146,6 +1155,7 @@ export default function FormularioEmpleado() {
           formaPago: formapago.codigo,
           sucursal,
           estado: formularioempleado.estado,
+          idBiometrico: formularioempleado.idBiometrico.trim() === '' ? null : formularioempleado.idBiometrico,
           fecha_ing: new Date(),
           maquina,
           usuario: usuario.codigo,
@@ -1218,6 +1228,7 @@ export default function FormularioEmpleado() {
           formaPago: formapago.codigo,
           sucursal,
           estado: formularioempleado.estado,
+          idBiometrico: formularioempleado.idBiometrico.trim() === '' ? null : formularioempleado.idBiometrico,
           fecha_ing: new Date(),
           maquina,
           usuario: usuario.codigo,
@@ -1559,6 +1570,7 @@ export default function FormularioEmpleado() {
             ctabanco: empleado.data.numeroCuenta === null ? "" : empleado.data.numeroCuenta,
             modoejecucion: empleado.data.modoEjecucion,
             estado: empleado.data.estado,
+            idBiometrico: empleado.data.idBiometrico,
             urlDocumentos: empleado.data.urlDocumentos
           });
           setDatosProvincia({
@@ -2446,23 +2458,20 @@ export default function FormularioEmpleado() {
                     <Grid item md={12} sm={12} xs={12}>
                       {/*  */}
                     </Grid>
-                    <Grid item md={12} sm={12} xs={12}>
-                      {/*  */}
-                    </Grid>
-                    <Grid item md={12} sm={12} xs={12}>
-                      {/*  */}
-                    </Grid>
-                    <Grid item md={12} sm={12} xs={12}>
-                      {/*  */}
-                    </Grid>
-                    <Grid item md={12} sm={12} xs={12}>
-                      {/*  */}
-                    </Grid>
-                    <Grid item md={12} sm={12} xs={12}>
-                      {/*  */}
-                    </Grid>
-                    <Grid item md={12} sm={12} xs={12}>
-                      {/*  */}
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        label="Id. Biométrico"
+                        variant="outlined"
+                        value={formularioempleado.idBiometrico}
+                        onChange={(e) => {
+                          setFormularioEmpleado({
+                            ...formularioempleado,
+                            idBiometrico: e.target.value,
+                          });
+                        }}
+                      />
                     </Grid>
                     <Grid item md={12} sm={12} xs={12}>
                       {/*  */}
@@ -3138,8 +3147,8 @@ export default function FormularioEmpleado() {
                             onClick={() => {
                               window.open(`${URLAPIGENERAL}/empleados/descargardocumento?url=${formularioempleado.urlDocumentos}&codigoEmpleado=${formularioempleado.codigo_Empleado}&nombres=${formularioempleado.nombres}`)
                             }}
-                          > 
-                            Descargar Documento 
+                          >
+                            Descargar Documento
                           </Button>
                         </Grid>
                       </Grid>
