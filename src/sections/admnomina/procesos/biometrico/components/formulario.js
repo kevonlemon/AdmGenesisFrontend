@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { TextField, Button, Card, Grid, Fade, Chip, Box, Tooltip } from '@mui/material';
+import { Button, Card, Grid, Fade, Chip, Box, Tooltip } from '@mui/material';
 import InfoRoundedIcon from '@mui/icons-material/InfoRounded';
 import { DataGrid, esES } from '@mui/x-data-grid';
 import InsertDriveFileRoundedIcon from '@mui/icons-material/InsertDriveFileRounded';
@@ -103,7 +103,7 @@ export default function Formulario() {
                                     style={{
                                         padding: '1rem',
                                         height: '65vh',
-                                        width: '100%',
+                                        width: '100%'
                                     }}
                                 >
                                     <DataGrid

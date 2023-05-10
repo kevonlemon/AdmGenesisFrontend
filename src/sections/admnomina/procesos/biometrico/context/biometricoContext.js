@@ -40,7 +40,6 @@ export const BiometricoProvider = ({ children }) => {
                 const json = xlsx.utils.sheet_to_json(worksheet);
                 if (
                     worksheet.A1.v !== 'IdBiometrico' ||
-                    worksheet.B1.v !== 'Nombre' ||
                     worksheet.C1.v !== 'Departamento' ||
                     worksheet.D1.v !== 'Fecha' ||
                     worksheet.E1.v !== 'Hora'
@@ -165,6 +164,7 @@ export const BiometricoProvider = ({ children }) => {
                 datosExcel, setDatosExcel,
                 CargarExcel,
                 Grabar
+                
             }}
         >
             {children}
