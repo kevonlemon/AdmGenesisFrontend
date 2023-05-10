@@ -1,5 +1,6 @@
 import { useContext } from 'react';
-import { TextField, Button, Card, Grid, Fade, MenuItem, Box } from '@mui/material';
+import { Button, Card, Grid, Fade, Chip, Box, Tooltip } from '@mui/material';
+import InfoRoundedIcon from '@mui/icons-material/InfoRounded';
 import { DataGrid, esES } from '@mui/x-data-grid';
 import InsertDriveFileRoundedIcon from '@mui/icons-material/InsertDriveFileRounded';
 import FileUploadRoundedIcon from '@mui/icons-material/FileUploadRounded';
@@ -11,7 +12,7 @@ import { BiometricoContext } from '../context/biometricoContext';
 
 export default function Formulario() {
 
-    const { columnas, datosExcel, CargarExcel } = useContext(BiometricoContext);
+    const { columnas, datosExcel, CargarExcel, Grabar } = useContext(BiometricoContext);
 
     return (
         <>
@@ -39,7 +40,7 @@ export default function Formulario() {
                                         fullWidth
                                         variant="text"
                                         onClick={() => {
-                                            // Grabar();
+                                            Grabar();
                                         }}
                                         startIcon={<SaveRoundedIcon />}
                                     >
@@ -85,12 +86,24 @@ export default function Formulario() {
                             </Grid>
                         </Grid>
                         <Grid item xs={12}>
+                            <Tooltip
+                                title="Para poder subir el archivo excel, debe hacerselo con la estructura específicada (nombre de columnas)"
+                            >
+                                <Chip
+                                    avatar={<InfoRoundedIcon />}
+                                    color='primary'
+                                    size='medium'
+                                    label='Estructura del documento de Excel: IdBiometrico | Nombre | Departamento | Fecha | Hora'
+                                />
+                            </Tooltip>
+                        </Grid>
+                        <Grid item xs={12}>
                             <Box sx={estilosdetabla}>
                                 <div
                                     style={{
                                         padding: '1rem',
-                                        height: '55vh',
-                                        width: '100%',
+                                        height: '65vh',
+                                        width: '100%'
                                     }}
                                 >
                                     <DataGrid
