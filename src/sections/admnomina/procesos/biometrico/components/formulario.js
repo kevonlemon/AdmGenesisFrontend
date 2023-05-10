@@ -12,7 +12,7 @@ import { BiometricoContext } from '../context/biometricoContext';
 
 export default function Formulario() {
 
-    const { columnas, datosExcel, CargarExcel, Grabar } = useContext(BiometricoContext);
+    const { columnas, datosExcel, CargarExcel, Grabar, limpiarCampos } = useContext(BiometricoContext);
 
     return (
         <>
@@ -28,7 +28,7 @@ export default function Formulario() {
                                         fullWidth
                                         variant="text"
                                         onClick={() => {
-                                            // limpiarCampos();
+                                            limpiarCampos();
                                         }}
                                         startIcon={<InsertDriveFileRoundedIcon />}
                                     >
