@@ -31,8 +31,8 @@ export default function Formulario() {
                         heading="Solicitud de Documentos"
                         links={[{ name: 'Inicio' }, { name: 'Procesos' }, { name: 'Solicitud de Documentos' }]}
                         action={
-                            <Grid container spacing={1}>
-                                <Grid item md={4} sm={4} xs={12} sx={{ mr: 2 }}>
+                            <Grid container spacing={2}>
+                                <Grid item md={6} sm={5} xs={12} >
                                     <Button
                                         fullWidth
                                         variant="text"
@@ -44,7 +44,7 @@ export default function Formulario() {
                                         Nuevo
                                     </Button>
                                 </Grid>
-                                <Grid item md={4} sm={4} xs={12}>
+                                <Grid item md={6} sm={5} xs={12}>
                                     <Button
                                         fullWidth
                                         variant="text"

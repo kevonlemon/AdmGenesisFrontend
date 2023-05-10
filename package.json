@@ -122,6 +122,8 @@
     "util": "^0.12.4",
     "web-vitals": "^2.1.4",
     "worker-loader": "^3.0.8",
+    "xlsx": "^0.18.5",
+    "xlsx-populate": "^1.21.0",
     "yup": "^0.32.11"
   },
   "devDependencies": {

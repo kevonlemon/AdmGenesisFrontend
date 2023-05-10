@@ -26,6 +26,10 @@ const ControlHorarios = Loadable(
   lazy(() => import('../../../sections/admnomina/procesos/controlhorarios/ControlHorarios'))
 );
 
+const Biometrico = Loadable(
+  lazy(() => import('../../../sections/admnomina/procesos/biometrico/Biometrico'))
+);
+
 export const PROCESOS = [
   // {
   //     url: '/dashboard',
@@ -58,5 +62,9 @@ export const PROCESOS = [
   {
     url: '/controlhorarios',
     element: <ControlHorarios />,
+  },
+  {
+    url: '/biometrico',
+    element: <Biometrico />,
   },
 ];

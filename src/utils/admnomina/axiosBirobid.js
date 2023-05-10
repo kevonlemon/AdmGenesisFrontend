@@ -2,7 +2,7 @@ import axios from 'axios';
 import { URLAPIGENERAL } from '../../config';
 
 const session = JSON.parse(window.localStorage.getItem('usuario'));
-const token = session === null ? '' : session.token  
+const token = session === null ? '' : session.token
 const axiosBirobid = axios.create({
   baseURL: URLAPIGENERAL,
   headers: {
