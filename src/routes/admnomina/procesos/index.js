@@ -30,6 +30,10 @@ const Biometrico = Loadable(
   lazy(() => import('../../../sections/admnomina/procesos/biometrico/Biometrico'))
 );
 
+const ValidacionDocumentosIESS = Loadable(
+  lazy(() => import('../../../sections/admnomina/procesos/validaciondocumentosiess/ValidacionDocumentosIess'))
+);
+
 export const PROCESOS = [
   // {
   //     url: '/dashboard',
@@ -66,5 +70,9 @@ export const PROCESOS = [
   {
     url: '/biometrico',
     element: <Biometrico />,
+  },
+  {
+    url: '/validaciondocsiess',
+    element: <ValidacionDocumentosIESS />,
   },
 ];

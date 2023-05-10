@@ -185,7 +185,6 @@ export const AprobacionSolicitudProvider = ({ children }) => {
         })
             .then(res => {
                 const { data } = res;
-                console.log("🚀 ~ file: aprobacionSolicitudContext.js:168 ~ buscarSolicitudes ~ data:", data)
                 if (data.length === 0) {
                     mensajeSistemaGenerico({ tipo: 'warning', mensaje: 'No se encontraron solicitudes para los datos dados' });
                 } else {

@@ -1,29 +1,23 @@
 import { useContext } from 'react';
-import { Box, Grid, Button, Accordion, AccordionSummary, AccordionDetails, Typography, MenuItem } from '@mui/material';
+import { Box, Grid, Button, Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import InsertDriveFileRoundedIcon from '@mui/icons-material/InsertDriveFileRounded';
 import HeaderBreadcrumbs from '../../../../../components/cabecerainforme';
 import DateTextField from '../../../../../components/admnomina/DateTextField'
-import RequiredTextField from '../../../../../sistema/componentes/formulario/RequiredTextField';
 import CajaGenerica from '../../../../../components/admnomina/CajaGenerica';
 import { estilosacordeon } from '../../../../../utils/csssistema/estilos';
-import { AprobacionSolicitudContext } from '../context/aprobacionSolicitudContext';
+import { ValidacionDocumentosIessContext } from '../context/validacionDocsIessContext';
 
 export default function Formulario() {
     const {
-        columns,
-        rows,
-        listaMotivos,
-        listaEmpleados,
+        listaEmpleados, listValidados,
         empleadoDesde, empleadoHasta,
         setEmpleadoDesde, setEmpleadoHasta,
-        formulario, setFormulario, ip, usuarioLogeado, sucursalLogeada,
-        listAprobados, setListAprobados,
-        limpiarCampos, cambiarFechaDesde, cambiarFechaHasta,
-        buscarSolicitudes, Procesar
-    } = useContext(AprobacionSolicitudContext);
+        formulario, cambiarFechaDesde, cambiarFechaHasta,
+        buscarSolicitudesIESS, Procesar, limpiarCampos
+    } = useContext(ValidacionDocumentosIessContext)
 
     return (
         <>
@@ -32,16 +26,16 @@ export default function Formulario() {
                     <Grid item md={12} sm={12} xs={12}>
                         <Box>
                             <HeaderBreadcrumbs
-                                heading="Aprobación de Solicitud"
+                                heading="Validación Documentos IESS"
                                 links={[
                                     { name: 'Inicio' },
-                                    { name: 'Aprobación de Solicitud' },
+                                    { name: 'Validación Documentos IESS' },
                                     { name: 'Procesos' },
                                 ]}
                                 action={
                                     <Button
                                         fullWidth
-                                        disabled={listAprobados.length === 0}
+                                        disabled={listValidados.length === 0}
                                         // variant="text"
                                         variant="contained"
                                         size="medium"
@@ -122,45 +116,6 @@ export default function Formulario() {
                                 />
                             </Grid>
                         </Grid>
-                        <Grid item container spacing={1} md={3}>
-                            <Grid item xs={12}>
-                                <RequiredTextField
-                                    select
-                                    label="Motivo"
-                                    value={formulario.motivo}
-                                    onChange={(e) => {
-                                        if (e.target.value === 'todos') {
-                                            setFormulario({
-                                                ...formulario,
-                                                motivo: e.target.value,
-                                                tipoMotivo: 0,
-                                                nombreMotivo: 'TODOS',
-                                                nombreTipoMotivo: 'TODOS',
-                                            })
-                                        } else {
-                                            const filtroMotivo = listaMotivos.filter(f => f.codigo === e.target.value)
-                                            setFormulario({
-                                                ...formulario,
-                                                motivo: e.target.value,
-                                                tipoMotivo: filtroMotivo[0].tipo,
-                                                nombreMotivo: filtroMotivo[0].nombre,
-                                                nombreTipoMotivo: filtroMotivo[0].nombreTipo,
-                                            });
-                                        }
-
-                                    }}
-                                    fullWidth
-                                    size="small"
-                                >
-                                    <MenuItem key="todos" value="todos">TODOS</MenuItem>
-                                    {listaMotivos.map((f) => (
-                                        <MenuItem key={f.codigo} value={f.codigo}>
-                                            {f.nombre}
-                                        </MenuItem>
-                                    ))}
-                                </RequiredTextField>
-                            </Grid>
-                        </Grid>
                     </Grid>
                     <Grid container item xs={12} spacing={1} sx={{ mt: 1 }} justifyContent="flex-start">
                         <Grid item md={1.2} sm={2} xs={6}>
@@ -179,7 +134,7 @@ export default function Formulario() {
                                 fullWidth
                                 variant="text"
                                 size="small"
-                                onClick={() => buscarSolicitudes()}
+                                onClick={() => buscarSolicitudesIESS()}
                                 startIcon={<SearchRoundedIcon />}
                             >
                                 Buscar
